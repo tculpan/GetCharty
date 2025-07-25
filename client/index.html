@@ -1,0 +1,262 @@
+#client/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChartDomain - Simple Example</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .upload-section {
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-section:hover {
+            border-color: #4facfe;
+            background: #f0f9ff;
+        }
+        
+        .upload-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 10px;
+        }
+        
+        .upload-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .status {
+            padding: 12px;
+            border-radius: 6px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+        }
+        
+        .status.error {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+        }
+        
+        .status.loading {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+        }
+        
+        #chartContainer {
+            margin-top: 30px;
+            min-height: 400px;
+        }
+        
+        .file-info {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 ChartDomain - Simple Example</h1>
+        <p>Upload a CSV file and see server-side processing in action!</p>
+        
+        <div class="upload-section">
+            <h3>📁 Upload CSV File</h3>
+            <input type="file" id="fileInput" accept=".csv" style="display: none;">
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                Choose CSV File
+            </button>
+            <p><small>Upload a CSV file to see smart formatting in action</small></p>
+        </div>
+        
+        <div class="status" id="status"></div>
+        <div class="file-info" id="fileInfo"></div>
+        <div id="chartContainer"></div>
+    </div>
+
+    <script>
+        // API endpoint - you'll update this with your actual API Gateway URL
+        const API_ENDPOINT = 'https://your-api-gateway-url.amazonaws.com/dev';
+        
+        // File input handler
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+        
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.name.endsWith('.csv')) {
+                showStatus('Please upload a CSV file only.', 'error');
+                return;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                showStatus('File size must be under 5MB.', 'error');
+                return;
+            }
+            
+            showStatus('Processing file on server...', 'loading');
+            
+            try {
+                // Read file content
+                const fileContent = await file.text();
+                
+                // Send to server for processing
+                const response = await fetch(`${API_ENDPOINT}/process-file`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        filename: file.name,
+                        content: fileContent,
+                        chart_config: {
+                            chart_type: 'bar',
+                            x_column: null, // Will be auto-detected
+                            y_column: null  // Will be auto-detected
+                        }
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                // Display file info
+                showFileInfo(result);
+                
+                // Create chart with server-formatted data
+                createChart(result);
+                
+                showStatus('✅ File processed successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error processing file:', error);
+                showStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 3000);
+            }
+        }
+        
+        function showFileInfo(result) {
+            const fileInfo = document.getElementById('fileInfo');
+            const { data, chart_elements, processing_info } = result;
+            
+            fileInfo.innerHTML = `
+                <h4>📊 Server Processing Results:</h4>
+                <p><strong>Rows processed:</strong> ${data.length}</p>
+                <p><strong>Columns found:</strong> ${Object.keys(data[0] || {}).join(', ')}</p>
+                <p><strong>Generated title:</strong> ${chart_elements.title}</p>
+                <p><strong>X-axis label:</strong> ${chart_elements.x_label}</p>
+                <p><strong>Y-axis label:</strong> ${chart_elements.y_label}</p>
+                <p><strong>Processing time:</strong> ${processing_info.duration}ms</p>
+            `;
+            fileInfo.style.display = 'block';
+        }
+        
+        function createChart(result) {
+            const { data, chart_elements } = result;
+            
+            if (!data || data.length === 0) {
+                showStatus('No data to chart', 'error');
+                return;
+            }
+            
+            // Get column names
+            const columns = Object.keys(data[0]);
+            const xColumn = columns[0]; // First column for X
+            const yColumn = columns[1]; // Second column for Y
+            
+            // Extract data for chart
+            const xData = data.map(row => row[xColumn]);
+            const yData = data.map(row => row[yColumn]);
+            
+            // Create Plotly chart with server-generated formatting
+            const plotData = [{
+                x: xData,
+                y: yData,
+                type: 'bar',
+                marker: {
+                    color: '#4facfe'
+                }
+            }];
+            
+            const layout = {
+                title: {
+                    text: chart_elements.title,
+                    font: { size: 18 }
+                },
+                xaxis: {
+                    title: chart_elements.x_label,
+                    gridcolor: '#e5e7eb'
+                },
+                yaxis: {
+                    title: chart_elements.y_label,
+                    gridcolor: '#e5e7eb'
+                },
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white',
+                margin: { t: 60, b: 50, l: 50, r: 50 }
+            };
+            
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                displaylogo: false
+            };
+            
+            // Render chart
+            Plotly.newPlot('chartContainer', plotData, layout, config);
+        }
+    </script>
+</body>
+</html>

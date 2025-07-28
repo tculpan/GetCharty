@@ -56,16 +56,31 @@
         }
         
         .content {
-            padding: 40px;
+            display: flex;
+            min-height: calc(100vh - 200px);
+        }
+        
+        .sidebar {
+            width: 25%;
+            background: #f8fafc;
+            padding: 30px;
+            border-right: 1px solid #e5e7eb;
+        }
+        
+        .main-content {
+            width: 75%;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
         }
         
         .upload-section {
-            background: #f8fafc;
+            background: white;
             border: 2px dashed #cbd5e0;
             border-radius: 12px;
-            padding: 40px;
+            padding: 30px;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             transition: all 0.3s ease;
         }
         
@@ -88,12 +103,13 @@
             background: linear-gradient(135deg, #4facfe 0%, #46344d 100%);
             color: white;
             border: none;
-            padding: 15px 30px;
+            padding: 12px 24px;
             border-radius: 8px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             cursor: pointer;
             transition: transform 0.2s ease;
             margin: 10px;
+            width: 100%;
         }
         
         .upload-btn:hover {
@@ -103,8 +119,8 @@
         .controls {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
+            gap: 15px;
+            margin: 20px 0;
         }
         
         .control-group {
@@ -138,12 +154,13 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 15px 40px;
+            padding: 12px 24px;
             border-radius: 8px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             cursor: pointer;
             transition: transform 0.2s ease;
             margin: 20px 0;
+            width: 100%;
         }
         
         .generate-btn:hover {
@@ -154,6 +171,95 @@
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+        }
+        
+        .chart-container {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+        
+        .chart-container.has-chart {
+            min-height: 500px;
+            display: block;
+        }
+        
+        .chart-container.has-chart #plotlyChart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls-section {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .data-preview-section {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #374151;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #e5e7eb;
+            }
+            
+            .main-content {
+                width: 100%;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
         }
         
         .loading {
@@ -207,14 +313,7 @@
             top: 0;
         }
         
-        .chart-container {
-            margin: 30px 0;
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            min-height: 500px;
-        }
+
         
         .export-section {
             margin: 30px 0;
@@ -308,52 +407,11 @@
             margin-bottom: 15px;
         }
         
-        .quarter-btn {
-            background: #0ea5e9;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
+
         
-        .quarter-btn:hover {
-            background: #0284c7;
-            transform: translateY(-1px);
-        }
+
         
-        .quarter-btn.active {
-            background: #0369a1;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        .date-filter-controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 10px;
-        }
-        
-        .quarter-summary {
-            background: #f0f9ff;
-            border: 1px solid #0ea5e9;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-            display: none;
-        }
-        
-        .quarter-summary h5 {
-            color: #0369a1;
-            margin-bottom: 10px;
-        }
-        
-        .quarter-summary .summary-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 5px 0;
-            font-size: 0.9rem;
-        }
+
     </style>
 </head>
 <body>
@@ -365,171 +423,144 @@
         </div>
         
         <div class="content">
-            <div class="upload-section" id="uploadSection">
-                <h3>📁 Upload Your Data File</h3>
-                <p>Drag and drop or click to select CSV or Excel files</p>
-                <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls">
-                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Choose File</button>
-                <p><small>Supported formats: CSV, Excel (.xlsx, .xls) • Max size: 10MB</small></p>
-                
-                <div class="control-group" style="margin-top: 20px; max-width: 300px; margin-left: auto; margin-right: auto;">
-                    <label for="dataOrientation">📋 Data Orientation</label>
-                    <select id="dataOrientation" onchange="handleDataOrientationChange()">
-                        <option value="vertical">📊 Vertical (Columns as Series)</option>
-                        <option value="horizontal">📈 Horizontal (Rows as Series)</option>
-                    </select>
-                    <small style="display: block; margin-top: 5px; color: #6b7280;">
-                        Vertical: Each column is a data series<br>
-                        Horizontal: Each row is a data series
-                    </small>
-                </div>
-            </div>
-            
-            <div class="status" id="status"></div>
-            
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>Processing your file...</p>
-            </div>
-            
-            <!-- User Files Section -->
-            <div class="user-files-section" id="userFilesSection">
-                <h3>📁 Your Files</h3>
-                <div id="userFiles">
-                    <p>Loading your files...</p>
-                </div>
-            </div>
-            
-            <div id="dataStats" style="display: none;"></div>
-            
-            <!-- New Date/Quarter Controls -->
-            <div class="date-controls" id="dateControls">
-                <h4>📅 Date Filtering Options</h4>
-                <div id="dateColumnInfo" style="margin-bottom: 10px; color: #0369a1;"></div>
-                
-                <div class="quarter-buttons" id="quarterButtons">
-                    <!-- Quarters will be populated dynamically -->
-                </div>
-                
-                <div class="date-filter-controls">
-                    <div class="control-group" style="padding: 10px;">
-                        <label for="startDate">Start Date</label>
-                        <input type="date" id="startDate">
-                    </div>
-                    <div class="control-group" style="padding: 10px;">
-                        <label for="endDate">End Date</label>
-                        <input type="date" id="endDate">
-                    </div>
-                    <div class="control-group" style="padding: 10px;">
-                        <label for="yearFilter">Year</label>
-                        <select id="yearFilter">
-                            <option value="">All Years</option>
+            <!-- Left Sidebar -->
+            <div class="sidebar">
+                <div class="upload-section" id="uploadSection">
+                    <h3>📁 Upload Your Data File</h3>
+                    <p>Drag and drop or click to select CSV or Excel files</p>
+                    <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls">
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Choose File</button>
+                    <p><small>Supported formats: CSV, Excel (.xlsx, .xls) • Max size: 10MB</small></p>
+                    
+                    <div class="control-group" style="margin-top: 20px;">
+                        <label for="dataOrientation">📋 Data Orientation</label>
+                        <select id="dataOrientation" onchange="handleDataOrientationChange()">
+                            <option value="vertical">📊 Vertical (Columns as Series)</option>
+                            <option value="horizontal">📈 Horizontal (Rows as Series)</option>
                         </select>
+                        <small style="display: block; margin-top: 5px; color: #6b7280;">
+                            Vertical: Each column is a data series<br>
+                            Horizontal: Each row is a data series
+                        </small>
                     </div>
                 </div>
                 
-                <button class="upload-btn" onclick="applyDateFilter()" style="margin-top: 10px;">
-                    🔍 Apply Date Filter
-                </button>
-                <button class="upload-btn" onclick="clearDateFilter()" style="margin-top: 10px; background: #6b7280;">
-                    ❌ Clear Filter
+                <button class="generate-btn" id="generateBtn" onclick="generateChart()" disabled>
+                    🎨 Generate Interactive Chart
                 </button>
                 
-                <div class="quarter-summary" id="quarterSummary">
-                    <!-- Summary will be populated dynamically -->
+                <div class="status" id="status"></div>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Processing your file...</p>
+                </div>
+                
+                <!-- Data Stats Section -->
+                <div id="dataStats" style="display: none;"></div>
+                
+                <!-- User Files Section -->
+                <div class="user-files-section" id="userFilesSection">
+                    <h3>📁 Your Files</h3>
+                    <div id="userFiles">
+                        <p>Loading your files...</p>
+                    </div>
                 </div>
             </div>
             
-            <div class="controls" id="controls" style="display: none;">
-                <div class="control-group">
-                    <label for="chartType">📈 Chart Type</label>
-                    <select id="chartType" onchange="updateColumnOptions()">
-                        <option value="bar">Bar Chart</option>
-                        <option value="line">Line Chart</option>
-                        <option value="scatter">Scatter Plot</option>
-                        <option value="pie">Pie Chart</option>
-                        <option value="histogram">Histogram</option>
-                        <option value="box">Box Plot</option>
-                        <option value="heatmap">Heatmap</option>
-                        <option value="3d_scatter">3D Scatter</option>
-                    </select>
+            <!-- Main Content Area -->
+            <div class="main-content">
+                <!-- Chart Container -->
+                <div class="chart-container" id="chartContainer">
+                    <div id="plotlyChart">Your Chart Goes Here</div>
                 </div>
                 
-                <div class="control-group">
-                    <label for="xColumn">🔢 X-Axis Column</label>
-                    <select id="xColumn"></select>
+                <!-- Controls Section -->
+                <div class="controls-section" id="controls" style="display: none;">
+                    <h3>📊 Chart Configuration</h3>
+                    <div class="controls" id="controlsGrid">
+                        <div class="control-group">
+                            <label for="chartType">📈 Chart Type</label>
+                            <select id="chartType" onchange="updateColumnOptions()">
+                                <option value="vertical_bar">Vertical Bar Chart</option>
+                                <option value="horizontal_bar">Horizontal Bar Chart</option>
+                                <option value="line">Line Chart</option>
+                                <option value="scatter">Scatter Plot</option>
+                                <option value="pie">Pie Chart</option>
+                                <option value="histogram">Histogram</option>
+                                <option value="box">Box Plot</option>
+                                <option value="heatmap">Heatmap</option>
+                                <option value="3d_scatter">3D Scatter</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="xColumn">🔢 X-Axis Column</label>
+                            <select id="xColumn"></select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="yColumn">📊 Y-Axis Column</label>
+                            <select id="yColumn"></select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="zColumn">📈 Z-Axis Column (3D only)</label>
+                            <select id="zColumn">
+                                <option value="">None</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="colorColumn">🎨 Color Column</label>
+                            <select id="colorColumn">
+                                <option value="">None</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="chartTitle">🏷️ Chart Title</label>
+                            <input type="text" id="chartTitle" placeholder="Auto-generated title">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="aggregation">🔄 Aggregation</label>
+                            <select id="aggregation">
+                                <option value="none">No Aggregation</option>
+                                <option value="count">Count</option>
+                                <option value="sum">Sum</option>
+                                <option value="average">Average</option>
+                                <option value="max">Maximum</option>
+                                <option value="min">Minimum</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="maxItems">📏 Max Items to Show</label>
+                            <select id="maxItems">
+                                <option value="10">Top 10</option>
+                                <option value="20">Top 20</option>
+                                <option value="50">Top 50</option>
+                                <option value="all">Show All</option>
+                            </select>
+                        </div>
+                        
+
+                    </div>
                 </div>
                 
-                <div class="control-group">
-                    <label for="yColumn">📊 Y-Axis Column</label>
-                    <select id="yColumn"></select>
+                <!-- Data Preview Section -->
+                <div class="data-preview-section" id="dataPreview" style="display: none;">
+                    <h3>📋 Data Preview</h3>
+                    <div class="data-preview" id="dataPreviewContent"></div>
                 </div>
                 
-                <div class="control-group">
-                    <label for="zColumn">📈 Z-Axis Column (3D only)</label>
-                    <select id="zColumn">
-                        <option value="">None</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                    <label for="colorColumn">🎨 Color Column</label>
-                    <select id="colorColumn">
-                        <option value="">None</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                    <label for="chartTitle">🏷️ Chart Title</label>
-                    <input type="text" id="chartTitle" placeholder="Auto-generated title">
-                </div>
-                
-                <div class="control-group">
-                    <label for="aggregation">🔄 Aggregation</label>
-                    <select id="aggregation">
-                        <option value="none">No Aggregation</option>
-                        <option value="count">Count</option>
-                        <option value="sum">Sum</option>
-                        <option value="average">Average</option>
-                        <option value="max">Maximum</option>
-                        <option value="min">Minimum</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                    <label for="maxItems">📏 Max Items to Show</label>
-                    <select id="maxItems">
-                        <option value="10">Top 10</option>
-                        <option value="20">Top 20</option>
-                        <option value="50">Top 50</option>
-                        <option value="all">Show All</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                    <label for="orientation">🔄 Chart Orientation</label>
-                    <select id="orientation">
-                        <option value="vertical">📊 Vertical Bars</option>
-                        <option value="horizontal">📈 Horizontal Bars</option>
-                    </select>
-                </div>
-            </div>
-            
-            <button class="generate-btn" id="generateBtn" onclick="generateChart()" disabled>
-                🎨 Generate Interactive Chart
-            </button>
-            
-            <div class="data-preview" id="dataPreview" style="display: none;"></div>
-            
-            <div class="chart-container" id="chartContainer" style="display: none;">
-                <div id="plotlyChart"></div>
-            </div>
-            
-            <div class="export-section" id="exportSection">
-                <h3>💾 Export Options</h3>
-                <button class="export-btn" onclick="exportAsImage('png')">📸 Export as PNG</button>
-                <button class="export-btn" onclick="exportAsImage('svg')">🎨 Export as SVG</button>
-                <button class="export-btn" onclick="exportAsHTML()">🌐 Export as HTML</button>
+                <!-- Export Section -->
+                <div class="export-section" id="exportSection" style="display: none;">
+                    <h3>💾 Export Options</h3>
+                    <button class="export-btn" onclick="exportAsImage('png')">📸 Export as PNG</button>
+                    <button class="export-btn" onclick="exportAsImage('svg')">🎨 Export as SVG</button>
+                    <button class="export-btn" onclick="exportAsHTML()">🌐 Export as HTML</button>
                 <button class="export-btn" onclick="exportData()">📄 Export Data as CSV</button>
                 <button class="export-btn" onclick="exportChartConfig()">⚙️ Export Chart Config</button>
             </div>
@@ -548,268 +579,27 @@
         let currentChart = null;
         let processedData = [];
         let rawData = []; // Store original unprocessed data
-        let filteredData = []; // Store filtered data
-        let dateColumns = []; // Store detected date columns
-        let currentDateFilter = null; // Store current date filter
         let currentFileId = null; // Store current file ID from server
         
-        // Quarter definitions
-        const quarters = {
-            'Q1': { start: '01-01', end: '03-31', name: 'Q1 (Jan-Mar)' },
-            'Q2': { start: '04-01', end: '06-30', name: 'Q2 (Apr-Jun)' },
-            'Q3': { start: '07-01', end: '09-30', name: 'Q3 (Jul-Sep)' },
-            'Q4': { start: '10-01', end: '12-31', name: 'Q4 (Oct-Dec)' }
-        };
+
         
         function generateSessionId() {
             return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         }
         
-        function detectDateColumns(data) {
-            if (!data || data.length === 0) return [];
-            
-            const columns = Object.keys(data[0]);
-            const detectedDateCols = [];
-            
-            columns.forEach(col => {
-                // Check if column contains date-like values
-                const sampleValues = data.slice(0, Math.min(10, data.length))
-                    .map(row => row[col])
-                    .filter(val => val !== null && val !== undefined && val !== '');
-                
-                if (sampleValues.length === 0) return;
-                
-                const isDateColumn = sampleValues.every(val => {
-                    // Check various date formats
-                    const datePatterns = [
-                        /^\d{4}-\d{2}-\d{2}/, // YYYY-MM-DD
-                        /^\d{2}\/\d{2}\/\d{4}/, // MM/DD/YYYY
-                        /^\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}/, // Various formats
-                        /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/i // Month names
-                    ];
-                    
-                    if (typeof val === 'string') {
-                        return datePatterns.some(pattern => pattern.test(val)) || !isNaN(Date.parse(val));
-                    } else if (val instanceof Date) {
-                        return true;
-                    } else if (typeof val === 'number') {
-                        // Excel serial date number check
-                        return val > 25569 && val < 50000; // Reasonable date range
-                    }
-                    return false;
-                });
-                
-                if (isDateColumn) {
-                    detectedDateCols.push(col);
-                }
-            });
-            
-            return detectedDateCols;
-        }
+
         
-        function parseDate(value) {
-            if (!value) return null;
-            
-            if (value instanceof Date) {
-                return value;
-            }
-            
-            if (typeof value === 'number') {
-                // Excel serial date
-                const excelEpoch = new Date(1899, 11, 30);
-                return new Date(excelEpoch.getTime() + value * 24 * 60 * 60 * 1000);
-            }
-            
-            const parsed = new Date(value);
-            return isNaN(parsed.getTime()) ? null : parsed;
-        }
+
         
-        function getQuarterFromDate(date) {
-            const month = date.getMonth();
-            if (month < 3) return 'Q1';
-            if (month < 6) return 'Q2';
-            if (month < 9) return 'Q3';
-            return 'Q4';
-        }
+
         
-        function setupDateControls() {
-            if (dateColumns.length === 0) {
-                document.getElementById('dateControls').style.display = 'none';
-                return;
-            }
-            
-            document.getElementById('dateControls').style.display = 'block';
-            document.getElementById('dateColumnInfo').textContent = 
-                `Detected date column(s): ${dateColumns.join(', ')}`;
-            
-            // Find date range
-            const primaryDateCol = dateColumns[0];
-            const dates = currentData
-                .map(row => parseDate(row[primaryDateCol]))
-                .filter(date => date !== null)
-                .sort((a, b) => a - b);
-            
-            if (dates.length === 0) return;
-            
-            const minDate = dates[0];
-            const maxDate = dates[dates.length - 1];
-            
-            // Set date input limits
-            const formatDate = (date) => date.toISOString().split('T')[0];
-            document.getElementById('startDate').min = formatDate(minDate);
-            document.getElementById('startDate').max = formatDate(maxDate);
-            document.getElementById('endDate').min = formatDate(minDate);
-            document.getElementById('endDate').max = formatDate(maxDate);
-            
-            // Populate years
-            const years = new Set();
-            dates.forEach(date => years.add(date.getFullYear()));
-            const yearFilter = document.getElementById('yearFilter');
-            yearFilter.innerHTML = '<option value="">All Years</option>';
-            Array.from(years).sort().reverse().forEach(year => {
-                yearFilter.innerHTML += `<option value="${year}">${year}</option>`;
-            });
-            
-            // Create quarter buttons
-            const quarterButtons = document.getElementById('quarterButtons');
-            quarterButtons.innerHTML = '';
-            
-            // Add "All Data" button
-            const allBtn = document.createElement('button');
-            allBtn.className = 'quarter-btn active';
-            allBtn.textContent = '📊 All Data';
-            allBtn.onclick = () => clearDateFilter();
-            quarterButtons.appendChild(allBtn);
-            
-            // Add quarter buttons for each year
-            Array.from(years).sort().reverse().forEach(year => {
-                Object.entries(quarters).forEach(([qKey, qData]) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'quarter-btn';
-                    btn.textContent = `${year} ${qKey}`;
-                    btn.onclick = () => selectQuarter(year, qKey);
-                    quarterButtons.appendChild(btn);
-                });
-            });
-        }
-        
-        function selectQuarter(year, quarter) {
-            // Update button states
-            document.querySelectorAll('.quarter-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.textContent.includes(`${year} ${quarter}`)) {
-                    btn.classList.add('active');
-                }
-            });
-            
-            // Set date filters
-            const q = quarters[quarter];
-            document.getElementById('startDate').value = `${year}-${q.start}`;
-            document.getElementById('endDate').value = `${year}-${q.end}`;
-            document.getElementById('yearFilter').value = year;
-            
-            // Apply filter
-            applyDateFilter();
-            
-            // Show quarter summary
-            showQuarterSummary(year, quarter);
-        }
-        
-        function showQuarterSummary(year, quarter) {
-            const summary = document.getElementById('quarterSummary');
-            const primaryDateCol = dateColumns[0];
-            
-            // Get quarter data
-            const quarterData = filteredData.length > 0 ? filteredData : currentData;
-            
-            // Calculate summary statistics
-            const numericColumns = Object.keys(quarterData[0] || {}).filter(col => 
-                !dateColumns.includes(col) && quarterData.some(row => typeof row[col] === 'number')
-            );
-            
-            let summaryHtml = `<h5>${year} ${quarter} Summary</h5>`;
-            summaryHtml += `<div class="summary-item"><span>Total Records:</span><span>${quarterData.length}</span></div>`;
-            
-            numericColumns.slice(0, 3).forEach(col => {
-                const values = quarterData.map(row => row[col]).filter(v => typeof v === 'number');
-                if (values.length > 0) {
-                    const sum = values.reduce((a, b) => a + b, 0);
-                    const avg = sum / values.length;
-                    summaryHtml += `<div class="summary-item"><span>${col} (Avg):</span><span>${avg.toFixed(2)}</span></div>`;
-                }
-            });
-            
-            summary.innerHTML = summaryHtml;
-            summary.style.display = 'block';
-        }
-        
-        function applyDateFilter() {
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-            const year = document.getElementById('yearFilter').value;
-            
-            if (!dateColumns.length) {
-                showStatus('⚠️ No date columns detected in the data', 'warning');
-                return;
-            }
-            
-            const primaryDateCol = dateColumns[0];
-            
-            filteredData = currentData.filter(row => {
-                const date = parseDate(row[primaryDateCol]);
-                if (!date) return false;
-                
-                if (year && date.getFullYear() !== parseInt(year)) return false;
-                if (startDate && date < new Date(startDate)) return false;
-                if (endDate && date > new Date(endDate + 'T23:59:59')) return false;
-                
-                return true;
-            });
-            
-            currentDateFilter = { startDate, endDate, year };
-            
-            // Update preview with filtered data
-            showDataPreview(filteredData);
-            displayDataStats(filteredData);
-            
-            showStatus(`✅ Filter applied! Showing ${filteredData.length} records`, 'success');
-        }
-        
-        function clearDateFilter() {
-            document.getElementById('startDate').value = '';
-            document.getElementById('endDate').value = '';
-            document.getElementById('yearFilter').value = '';
-            
-            filteredData = [];
-            currentDateFilter = null;
-            
-            // Reset active button
-            document.querySelectorAll('.quarter-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.textContent.includes('All Data')) {
-                    btn.classList.add('active');
-                }
-            });
-            
-            // Hide summary
-            document.getElementById('quarterSummary').style.display = 'none';
-            
-            // Restore original data
-            showDataPreview(currentData);
-            displayDataStats(currentData);
-            
-            showStatus('✅ Filter cleared! Showing all data', 'success');
-        }
+
         
         function handleDataOrientationChange() {
             if (rawData.length > 0) {
                 // Reprocess the data with new orientation
                 const orientation = document.getElementById('dataOrientation').value;
                 currentData = orientation === 'horizontal' ? transposeData(rawData) : rawData;
-                
-                // Re-detect date columns
-                dateColumns = detectDateColumns(currentData);
-                setupDateControls();
                 
                 // Update UI
                 displayDataStats(currentData);
@@ -976,13 +766,18 @@
                 const orientation = document.getElementById('dataOrientation').value;
                 currentData = orientation === 'horizontal' ? transposeData(currentData) : currentData;
                 
-                // Detect date columns
-                dateColumns = detectDateColumns(currentData);
-                setupDateControls();
+
                 
                 displayDataStats(currentData);
                 populateColumnSelectors(currentData);
                 showDataPreview(currentData);
+                
+                // Reset chart container for new file
+                const chartContainer = document.getElementById('chartContainer');
+                const plotlyChart = document.getElementById('plotlyChart');
+                chartContainer.classList.remove('has-chart');
+                plotlyChart.innerHTML = 'Your Chart Goes Here';
+                document.getElementById('exportSection').style.display = 'none';
                 
                 document.getElementById('controls').style.display = 'grid';
                 document.getElementById('generateBtn').disabled = false;
@@ -1030,6 +825,12 @@
         function displayDataStats(data) {
             if (!data.length) return;
             
+            const dataStatsElement = document.getElementById('dataStats');
+            if (!dataStatsElement) {
+                console.warn('dataStats element not found');
+                return;
+            }
+            
             const columns = Object.keys(data[0]);
             const numericColumns = columns.filter(col => 
                 data.some(row => typeof row[col] === 'number')
@@ -1059,8 +860,8 @@
                 </div>
             `;
             
-            document.getElementById('dataStats').innerHTML = statsHtml;
-            document.getElementById('dataStats').style.display = 'block';
+            dataStatsElement.innerHTML = statsHtml;
+            dataStatsElement.style.display = 'block';
         }
         
         function populateColumnSelectors(data) {
@@ -1071,6 +872,11 @@
             
             selectors.forEach(selectorId => {
                 const selector = document.getElementById(selectorId);
+                if (!selector) {
+                    console.warn(`Selector ${selectorId} not found`);
+                    return;
+                }
+                
                 const currentValue = selector.value;
                 selector.innerHTML = '';
                 
@@ -1092,10 +898,14 @@
             
             // Set intelligent defaults
             if (columns.length >= 2) {
-                document.getElementById('xColumn').value = columns[0];
-                document.getElementById('yColumn').value = columns[1];
-                if (columns.length >= 3) {
-                    document.getElementById('zColumn').value = columns[2];
+                const xColumn = document.getElementById('xColumn');
+                const yColumn = document.getElementById('yColumn');
+                const zColumn = document.getElementById('zColumn');
+                
+                if (xColumn) xColumn.value = columns[0];
+                if (yColumn) yColumn.value = columns[1];
+                if (zColumn && columns.length >= 3) {
+                    zColumn.value = columns[2];
                 }
             }
             
@@ -1133,10 +943,17 @@
             if (!data.length) return;
             
             const preview = document.getElementById('dataPreview');
+            const previewContent = document.getElementById('dataPreviewContent');
+            
+            if (!preview || !previewContent) {
+                console.warn('Data preview elements not found');
+                return;
+            }
+            
             const columns = Object.keys(data[0]);
             const previewRows = data.slice(0, 10); // Show first 10 rows
             
-            let html = `<h4>📋 Data Preview (First ${previewRows.length} rows of ${data.length})</h4>`;
+            let html = `<p><strong>Data Preview (First ${previewRows.length} rows of ${data.length})</strong></p>`;
             html += '<div style="overflow-x: auto;"><table><thead><tr>';
             
             // Headers
@@ -1161,7 +978,7 @@
             });
             
             html += '</tbody></table></div>';
-            preview.innerHTML = html;
+            previewContent.innerHTML = html;
             preview.style.display = 'block';
         }
         
@@ -1176,12 +993,12 @@
                 throw new Error('Missing required data or column selection');
             }
             
-            // Use filtered data if available, otherwise use current data
-            let dataToProcess = filteredData.length > 0 ? filteredData : currentData;
+            // Use current data
+            let dataToProcess = currentData;
             let processedData = [...dataToProcess];
             
             // Handle aggregation
-            if (aggregation !== 'none' && ['pie', 'bar'].includes(chartType)) {
+            if (aggregation !== 'none' && ['pie', 'vertical_bar', 'horizontal_bar'].includes(chartType)) {
                 const grouped = {};
                 
                 processedData.forEach(row => {
@@ -1227,7 +1044,7 @@
             }
             
             // Sort and limit items
-            if (['pie', 'bar'].includes(chartType) && aggregation !== 'none') {
+            if (['pie', 'vertical_bar', 'horizontal_bar'].includes(chartType) && aggregation !== 'none') {
                 const valueKey = yColumn || 'value';
                 processedData.sort((a, b) => b[valueKey] - a[valueKey]);
                 
@@ -1251,19 +1068,8 @@
             const zColumn = document.getElementById('zColumn').value;
             const colorColumn = document.getElementById('colorColumn').value;
             let title = document.getElementById('chartTitle').value || `${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart`;
-            const orientation = document.getElementById('orientation').value;
             
-            // Add date filter info to title if applicable
-            if (currentDateFilter && filteredData.length > 0) {
-                const filterInfo = [];
-                if (currentDateFilter.year) filterInfo.push(`Year: ${currentDateFilter.year}`);
-                if (currentDateFilter.startDate && currentDateFilter.endDate) {
-                    filterInfo.push(`${currentDateFilter.startDate} to ${currentDateFilter.endDate}`);
-                }
-                if (filterInfo.length > 0) {
-                    title += ` (${filterInfo.join(', ')})`;
-                }
-            }
+
             
             if (!xColumn || (!yColumn && !['pie', 'histogram'].includes(chartType))) {
                 showStatus('❌ Please select the required columns for your chart.', 'error');
@@ -1281,17 +1087,19 @@
                     yColumn,
                     zColumn,
                     colorColumn,
-                    title,
-                    orientation
+                    title
                 });
                 
+                const plotlyChart = document.getElementById('plotlyChart');
+                plotlyChart.innerHTML = ''; // Clear the placeholder text
                 Plotly.newPlot('plotlyChart', plotlyConfig.data, plotlyConfig.layout, plotlyConfig.config);
                 
-                document.getElementById('chartContainer').style.display = 'block';
+                const chartContainer = document.getElementById('chartContainer');
+                chartContainer.style.display = 'block';
+                chartContainer.classList.add('has-chart');
                 document.getElementById('exportSection').style.display = 'block';
                 
-                const dataSource = filteredData.length > 0 ? 'filtered' : 'all';
-                showStatus(`✅ Interactive chart generated successfully! Showing ${processedData.length} data points from ${dataSource} data.`, 'success');
+                showStatus(`✅ Interactive chart generated successfully! Showing ${processedData.length} data points.`, 'success');
                 
             } catch (error) {
                 showStatus(`❌ Error generating chart: ${error.message}`, 'error');
@@ -1302,7 +1110,7 @@
         }
         
         function createPlotlyConfig(chartType, data, options) {
-            const { xColumn, yColumn, zColumn, colorColumn, title, orientation } = options;
+            const { xColumn, yColumn, zColumn, colorColumn, title } = options;
             
             const xData = data.map(row => row[xColumn]);
             const yData = yColumn ? data.map(row => row[yColumn]) : [];
@@ -1329,12 +1137,12 @@
             };
             
             switch (chartType) {
-                case 'bar':
+                case 'vertical_bar':
                     plotData = [{
                         type: 'bar',
-                        x: orientation === 'horizontal' ? yData : xData,
-                        y: orientation === 'horizontal' ? xData : yData,
-                        orientation: orientation === 'horizontal' ? 'h' : 'v',
+                        x: xData,
+                        y: yData,
+                        orientation: 'v',
                         marker: {
                             color: colorData.length ? colorData : '#4facfe',
                             colorscale: colorData.length ? 'Viridis' : undefined,
@@ -1344,11 +1152,35 @@
                     }];
                     
                     layout.xaxis = {
-                        title: orientation === 'horizontal' ? (yColumn || 'Value') : xColumn,
+                        title: xColumn,
                         gridcolor: '#e5e7eb'
                     };
                     layout.yaxis = {
-                        title: orientation === 'horizontal' ? xColumn : (yColumn || 'Value'),
+                        title: yColumn || 'Value',
+                        gridcolor: '#e5e7eb'
+                    };
+                    break;
+                    
+                case 'horizontal_bar':
+                    plotData = [{
+                        type: 'bar',
+                        x: yData,
+                        y: xData,
+                        orientation: 'h',
+                        marker: {
+                            color: colorData.length ? colorData : '#4facfe',
+                            colorscale: colorData.length ? 'Viridis' : undefined,
+                            showscale: colorData.length > 0
+                        },
+                        name: yColumn || 'Values'
+                    }];
+                    
+                    layout.xaxis = {
+                        title: yColumn || 'Value',
+                        gridcolor: '#e5e7eb'
+                    };
+                    layout.yaxis = {
+                        title: xColumn,
                         gridcolor: '#e5e7eb'
                     };
                     break;
@@ -1717,7 +1549,6 @@
             const config = {
                 chartType: document.getElementById('chartType').value,
                 dataOrientation: document.getElementById('dataOrientation').value,
-                orientation: document.getElementById('orientation').value,
                 xColumn: document.getElementById('xColumn').value,
                 yColumn: document.getElementById('yColumn').value,
                 zColumn: document.getElementById('zColumn').value,
@@ -1725,7 +1556,7 @@
                 title: document.getElementById('chartTitle').value,
                 aggregation: document.getElementById('aggregation').value,
                 maxItems: document.getElementById('maxItems').value,
-                dateFilter: currentDateFilter,
+
                 timestamp: new Date().toISOString(),
                 dataPreview: processedData.slice(0, 5) // Include sample data
             };
@@ -1808,7 +1639,14 @@
                 populateColumnSelectors(currentData);
                 showDataPreview(currentData);
                 
-                document.getElementById('controls').style.display = 'grid';
+                // Reset chart container for loaded file
+                const chartContainer = document.getElementById('chartContainer');
+                const plotlyChart = document.getElementById('plotlyChart');
+                chartContainer.classList.remove('has-chart');
+                plotlyChart.innerHTML = 'Your Chart Goes Here';
+                document.getElementById('exportSection').style.display = 'none';
+                
+                document.getElementById('controls').style.display = 'block';
                 document.getElementById('generateBtn').disabled = false;
                 
                 showStatus(`✅ Loaded file with ${currentData.length} records`, 'success');

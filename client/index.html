@@ -1,31 +1,68 @@
-#client/index.html
+<!--
+    File: client/index.html
+    28 July 2025: 1546
+    ChartDomain - Professional Data Visualization Platform
+    Complete HTML file with quarterly spacing integration
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChartDomain - Simple Example</title>
+    <title>GetCharty -- A New, Better Way to Make Charts</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
-            background: #f8fafc;
         }
         
         .container {
+            max-width: 1200px;
+            margin: 0 auto;
             background: white;
-            border-radius: 12px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #8c3eab 0%, #46344d 100%);
+            color: white;
             padding: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
         }
         
         .upload-section {
+            background: #f8fafc;
             border: 2px dashed #cbd5e0;
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 40px;
             text-align: center;
             margin-bottom: 30px;
@@ -37,14 +74,25 @@
             background: #f0f9ff;
         }
         
+        .upload-section.dragover {
+            border-color: #4facfe;
+            background: #dbeafe;
+            transform: scale(1.02);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
         .upload-btn {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background: linear-gradient(135deg, #4facfe 0%, #46344d 100%);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1rem;
             cursor: pointer;
-            font-size: 1rem;
+            transition: transform 0.2s ease;
             margin: 10px;
         }
         
@@ -52,9 +100,145 @@
             transform: translateY(-2px);
         }
         
-        .status {
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .control-group {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .control-group select, .control-group input {
+            width: 100%;
             padding: 12px;
-            border-radius: 6px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+        
+        .control-group select:focus, .control-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+        
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin: 20px 0;
+        }
+        
+        .generate-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .data-preview {
+            margin: 20px 0;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            overflow-x: auto;
+            max-height: 400px;
+        }
+        
+        .data-preview table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        
+        .data-preview th,
+        .data-preview td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .data-preview th {
+            background: #374151;
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        .chart-container {
+            margin: 30px 0;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            min-height: 500px;
+        }
+        
+        .export-section {
+            margin: 30px 0;
+            display: none;
+        }
+        
+        .export-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            margin: 0 10px 10px 0;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .export-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
             margin: 20px 0;
             display: none;
         }
@@ -71,71 +255,694 @@
             color: #991b1b;
         }
         
-        .status.loading {
+        .status.warning {
             background: #fef3c7;
             border: 1px solid #f59e0b;
             color: #92400e;
         }
         
-        #chartContainer {
-            margin-top: 30px;
-            min-height: 400px;
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
         }
         
-        .file-info {
+        .stat-card {
             background: #f3f4f6;
             padding: 15px;
-            border-radius: 6px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #9238b0;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        
+        /* New styles for quarterly data */
+        .date-controls {
+            background: #e0f2fe;
+            padding: 20px;
+            border-radius: 12px;
             margin: 20px 0;
             display: none;
+        }
+        
+        .date-controls h4 {
+            color: #0369a1;
+            margin-bottom: 15px;
+        }
+        
+        .quarter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .quarter-btn {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .quarter-btn:hover {
+            background: #0284c7;
+            transform: translateY(-1px);
+        }
+        
+        .quarter-btn.active {
+            background: #0369a1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .date-filter-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        
+        .quarter-summary {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            display: none;
+        }
+        
+        .quarter-summary h5 {
+            color: #0369a1;
+            margin-bottom: 10px;
+        }
+        
+        .quarter-summary .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🚀 ChartDomain - Simple Example</h1>
-        <p>Upload a CSV file and see server-side processing in action!</p>
-        
-        <div class="upload-section">
-            <h3>📁 Upload CSV File</h3>
-            <input type="file" id="fileInput" accept=".csv" style="display: none;">
-            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                Choose CSV File
-            </button>
-            <p><small>Upload a CSV file to see smart formatting in action</small></p>
+        <div class="header">
+            <h1>No Mess, No Fuss -- Get Charty</h1>
+            <p>Process CSV/Excel files and create interactive charts</p>
+            <p>Don't worry, we're in Alpha -- it WILL crash. It's not you, it's us!</p>
         </div>
         
-        <div class="status" id="status"></div>
-        <div class="file-info" id="fileInfo"></div>
-        <div id="chartContainer"></div>
+        <div class="content">
+            <div class="upload-section" id="uploadSection">
+                <h3>📁 Upload Your Data File</h3>
+                <p>Drag and drop or click to select CSV or Excel files</p>
+                <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Choose File</button>
+                <p><small>Supported formats: CSV, Excel (.xlsx, .xls) • Max size: 10MB</small></p>
+                
+                <div class="control-group" style="margin-top: 20px; max-width: 300px; margin-left: auto; margin-right: auto;">
+                    <label for="dataOrientation">📋 Data Orientation</label>
+                    <select id="dataOrientation" onchange="handleDataOrientationChange()">
+                        <option value="vertical">📊 Vertical (Columns as Series)</option>
+                        <option value="horizontal">📈 Horizontal (Rows as Series)</option>
+                    </select>
+                    <small style="display: block; margin-top: 5px; color: #6b7280;">
+                        Vertical: Each column is a data series<br>
+                        Horizontal: Each row is a data series
+                    </small>
+                </div>
+            </div>
+            
+            <div class="status" id="status"></div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing your file...</p>
+            </div>
+            
+            <!-- User Files Section -->
+            <div class="user-files-section" id="userFilesSection">
+                <h3>📁 Your Files</h3>
+                <div id="userFiles">
+                    <p>Loading your files...</p>
+                </div>
+            </div>
+            
+            <div id="dataStats" style="display: none;"></div>
+            
+            <!-- New Date/Quarter Controls -->
+            <div class="date-controls" id="dateControls">
+                <h4>📅 Date Filtering Options</h4>
+                <div id="dateColumnInfo" style="margin-bottom: 10px; color: #0369a1;"></div>
+                
+                <div class="quarter-buttons" id="quarterButtons">
+                    <!-- Quarters will be populated dynamically -->
+                </div>
+                
+                <div class="date-filter-controls">
+                    <div class="control-group" style="padding: 10px;">
+                        <label for="startDate">Start Date</label>
+                        <input type="date" id="startDate">
+                    </div>
+                    <div class="control-group" style="padding: 10px;">
+                        <label for="endDate">End Date</label>
+                        <input type="date" id="endDate">
+                    </div>
+                    <div class="control-group" style="padding: 10px;">
+                        <label for="yearFilter">Year</label>
+                        <select id="yearFilter">
+                            <option value="">All Years</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="upload-btn" onclick="applyDateFilter()" style="margin-top: 10px;">
+                    🔍 Apply Date Filter
+                </button>
+                <button class="upload-btn" onclick="clearDateFilter()" style="margin-top: 10px; background: #6b7280;">
+                    ❌ Clear Filter
+                </button>
+                
+                <div class="quarter-summary" id="quarterSummary">
+                    <!-- Summary will be populated dynamically -->
+                </div>
+            </div>
+            
+            <div class="controls" id="controls" style="display: none;">
+                <div class="control-group">
+                    <label for="chartType">📈 Chart Type</label>
+                    <select id="chartType" onchange="updateColumnOptions()">
+                        <option value="bar">Bar Chart</option>
+                        <option value="line">Line Chart</option>
+                        <option value="scatter">Scatter Plot</option>
+                        <option value="pie">Pie Chart</option>
+                        <option value="histogram">Histogram</option>
+                        <option value="box">Box Plot</option>
+                        <option value="heatmap">Heatmap</option>
+                        <option value="3d_scatter">3D Scatter</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="xColumn">🔢 X-Axis Column</label>
+                    <select id="xColumn"></select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="yColumn">📊 Y-Axis Column</label>
+                    <select id="yColumn"></select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="zColumn">📈 Z-Axis Column (3D only)</label>
+                    <select id="zColumn">
+                        <option value="">None</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="colorColumn">🎨 Color Column</label>
+                    <select id="colorColumn">
+                        <option value="">None</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="chartTitle">🏷️ Chart Title</label>
+                    <input type="text" id="chartTitle" placeholder="Auto-generated title">
+                </div>
+                
+                <div class="control-group">
+                    <label for="aggregation">🔄 Aggregation</label>
+                    <select id="aggregation">
+                        <option value="none">No Aggregation</option>
+                        <option value="count">Count</option>
+                        <option value="sum">Sum</option>
+                        <option value="average">Average</option>
+                        <option value="max">Maximum</option>
+                        <option value="min">Minimum</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="maxItems">📏 Max Items to Show</label>
+                    <select id="maxItems">
+                        <option value="10">Top 10</option>
+                        <option value="20">Top 20</option>
+                        <option value="50">Top 50</option>
+                        <option value="all">Show All</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="orientation">🔄 Chart Orientation</label>
+                    <select id="orientation">
+                        <option value="vertical">📊 Vertical Bars</option>
+                        <option value="horizontal">📈 Horizontal Bars</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button class="generate-btn" id="generateBtn" onclick="generateChart()" disabled>
+                🎨 Generate Interactive Chart
+            </button>
+            
+            <div class="data-preview" id="dataPreview" style="display: none;"></div>
+            
+            <div class="chart-container" id="chartContainer" style="display: none;">
+                <div id="plotlyChart"></div>
+            </div>
+            
+            <div class="export-section" id="exportSection">
+                <h3>💾 Export Options</h3>
+                <button class="export-btn" onclick="exportAsImage('png')">📸 Export as PNG</button>
+                <button class="export-btn" onclick="exportAsImage('svg')">🎨 Export as SVG</button>
+                <button class="export-btn" onclick="exportAsHTML()">🌐 Export as HTML</button>
+                <button class="export-btn" onclick="exportData()">📄 Export Data as CSV</button>
+                <button class="export-btn" onclick="exportChartConfig()">⚙️ Export Chart Config</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        // API endpoint - you'll update this with your actual API Gateway URL
-        const API_ENDPOINT = 'https://your-api-gateway-url.amazonaws.com/dev';
+        // API configuration
+        const API_ENDPOINT = 'http://localhost:5000';
         
-        // File input handler
+        // Session management
+        let sessionId = localStorage.getItem('getcharty_session_id') || generateSessionId();
+        localStorage.setItem('getcharty_session_id', sessionId);
+        
+        let currentData = [];
+        let currentChart = null;
+        let processedData = [];
+        let rawData = []; // Store original unprocessed data
+        let filteredData = []; // Store filtered data
+        let dateColumns = []; // Store detected date columns
+        let currentDateFilter = null; // Store current date filter
+        let currentFileId = null; // Store current file ID from server
+        
+        // Quarter definitions
+        const quarters = {
+            'Q1': { start: '01-01', end: '03-31', name: 'Q1 (Jan-Mar)' },
+            'Q2': { start: '04-01', end: '06-30', name: 'Q2 (Apr-Jun)' },
+            'Q3': { start: '07-01', end: '09-30', name: 'Q3 (Jul-Sep)' },
+            'Q4': { start: '10-01', end: '12-31', name: 'Q4 (Oct-Dec)' }
+        };
+        
+        function generateSessionId() {
+            return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        function detectDateColumns(data) {
+            if (!data || data.length === 0) return [];
+            
+            const columns = Object.keys(data[0]);
+            const detectedDateCols = [];
+            
+            columns.forEach(col => {
+                // Check if column contains date-like values
+                const sampleValues = data.slice(0, Math.min(10, data.length))
+                    .map(row => row[col])
+                    .filter(val => val !== null && val !== undefined && val !== '');
+                
+                if (sampleValues.length === 0) return;
+                
+                const isDateColumn = sampleValues.every(val => {
+                    // Check various date formats
+                    const datePatterns = [
+                        /^\d{4}-\d{2}-\d{2}/, // YYYY-MM-DD
+                        /^\d{2}\/\d{2}\/\d{4}/, // MM/DD/YYYY
+                        /^\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}/, // Various formats
+                        /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/i // Month names
+                    ];
+                    
+                    if (typeof val === 'string') {
+                        return datePatterns.some(pattern => pattern.test(val)) || !isNaN(Date.parse(val));
+                    } else if (val instanceof Date) {
+                        return true;
+                    } else if (typeof val === 'number') {
+                        // Excel serial date number check
+                        return val > 25569 && val < 50000; // Reasonable date range
+                    }
+                    return false;
+                });
+                
+                if (isDateColumn) {
+                    detectedDateCols.push(col);
+                }
+            });
+            
+            return detectedDateCols;
+        }
+        
+        function parseDate(value) {
+            if (!value) return null;
+            
+            if (value instanceof Date) {
+                return value;
+            }
+            
+            if (typeof value === 'number') {
+                // Excel serial date
+                const excelEpoch = new Date(1899, 11, 30);
+                return new Date(excelEpoch.getTime() + value * 24 * 60 * 60 * 1000);
+            }
+            
+            const parsed = new Date(value);
+            return isNaN(parsed.getTime()) ? null : parsed;
+        }
+        
+        function getQuarterFromDate(date) {
+            const month = date.getMonth();
+            if (month < 3) return 'Q1';
+            if (month < 6) return 'Q2';
+            if (month < 9) return 'Q3';
+            return 'Q4';
+        }
+        
+        function setupDateControls() {
+            if (dateColumns.length === 0) {
+                document.getElementById('dateControls').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('dateControls').style.display = 'block';
+            document.getElementById('dateColumnInfo').textContent = 
+                `Detected date column(s): ${dateColumns.join(', ')}`;
+            
+            // Find date range
+            const primaryDateCol = dateColumns[0];
+            const dates = currentData
+                .map(row => parseDate(row[primaryDateCol]))
+                .filter(date => date !== null)
+                .sort((a, b) => a - b);
+            
+            if (dates.length === 0) return;
+            
+            const minDate = dates[0];
+            const maxDate = dates[dates.length - 1];
+            
+            // Set date input limits
+            const formatDate = (date) => date.toISOString().split('T')[0];
+            document.getElementById('startDate').min = formatDate(minDate);
+            document.getElementById('startDate').max = formatDate(maxDate);
+            document.getElementById('endDate').min = formatDate(minDate);
+            document.getElementById('endDate').max = formatDate(maxDate);
+            
+            // Populate years
+            const years = new Set();
+            dates.forEach(date => years.add(date.getFullYear()));
+            const yearFilter = document.getElementById('yearFilter');
+            yearFilter.innerHTML = '<option value="">All Years</option>';
+            Array.from(years).sort().reverse().forEach(year => {
+                yearFilter.innerHTML += `<option value="${year}">${year}</option>`;
+            });
+            
+            // Create quarter buttons
+            const quarterButtons = document.getElementById('quarterButtons');
+            quarterButtons.innerHTML = '';
+            
+            // Add "All Data" button
+            const allBtn = document.createElement('button');
+            allBtn.className = 'quarter-btn active';
+            allBtn.textContent = '📊 All Data';
+            allBtn.onclick = () => clearDateFilter();
+            quarterButtons.appendChild(allBtn);
+            
+            // Add quarter buttons for each year
+            Array.from(years).sort().reverse().forEach(year => {
+                Object.entries(quarters).forEach(([qKey, qData]) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'quarter-btn';
+                    btn.textContent = `${year} ${qKey}`;
+                    btn.onclick = () => selectQuarter(year, qKey);
+                    quarterButtons.appendChild(btn);
+                });
+            });
+        }
+        
+        function selectQuarter(year, quarter) {
+            // Update button states
+            document.querySelectorAll('.quarter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.includes(`${year} ${quarter}`)) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Set date filters
+            const q = quarters[quarter];
+            document.getElementById('startDate').value = `${year}-${q.start}`;
+            document.getElementById('endDate').value = `${year}-${q.end}`;
+            document.getElementById('yearFilter').value = year;
+            
+            // Apply filter
+            applyDateFilter();
+            
+            // Show quarter summary
+            showQuarterSummary(year, quarter);
+        }
+        
+        function showQuarterSummary(year, quarter) {
+            const summary = document.getElementById('quarterSummary');
+            const primaryDateCol = dateColumns[0];
+            
+            // Get quarter data
+            const quarterData = filteredData.length > 0 ? filteredData : currentData;
+            
+            // Calculate summary statistics
+            const numericColumns = Object.keys(quarterData[0] || {}).filter(col => 
+                !dateColumns.includes(col) && quarterData.some(row => typeof row[col] === 'number')
+            );
+            
+            let summaryHtml = `<h5>${year} ${quarter} Summary</h5>`;
+            summaryHtml += `<div class="summary-item"><span>Total Records:</span><span>${quarterData.length}</span></div>`;
+            
+            numericColumns.slice(0, 3).forEach(col => {
+                const values = quarterData.map(row => row[col]).filter(v => typeof v === 'number');
+                if (values.length > 0) {
+                    const sum = values.reduce((a, b) => a + b, 0);
+                    const avg = sum / values.length;
+                    summaryHtml += `<div class="summary-item"><span>${col} (Avg):</span><span>${avg.toFixed(2)}</span></div>`;
+                }
+            });
+            
+            summary.innerHTML = summaryHtml;
+            summary.style.display = 'block';
+        }
+        
+        function applyDateFilter() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const year = document.getElementById('yearFilter').value;
+            
+            if (!dateColumns.length) {
+                showStatus('⚠️ No date columns detected in the data', 'warning');
+                return;
+            }
+            
+            const primaryDateCol = dateColumns[0];
+            
+            filteredData = currentData.filter(row => {
+                const date = parseDate(row[primaryDateCol]);
+                if (!date) return false;
+                
+                if (year && date.getFullYear() !== parseInt(year)) return false;
+                if (startDate && date < new Date(startDate)) return false;
+                if (endDate && date > new Date(endDate + 'T23:59:59')) return false;
+                
+                return true;
+            });
+            
+            currentDateFilter = { startDate, endDate, year };
+            
+            // Update preview with filtered data
+            showDataPreview(filteredData);
+            displayDataStats(filteredData);
+            
+            showStatus(`✅ Filter applied! Showing ${filteredData.length} records`, 'success');
+        }
+        
+        function clearDateFilter() {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('yearFilter').value = '';
+            
+            filteredData = [];
+            currentDateFilter = null;
+            
+            // Reset active button
+            document.querySelectorAll('.quarter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.includes('All Data')) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Hide summary
+            document.getElementById('quarterSummary').style.display = 'none';
+            
+            // Restore original data
+            showDataPreview(currentData);
+            displayDataStats(currentData);
+            
+            showStatus('✅ Filter cleared! Showing all data', 'success');
+        }
+        
+        function handleDataOrientationChange() {
+            if (rawData.length > 0) {
+                // Reprocess the data with new orientation
+                const orientation = document.getElementById('dataOrientation').value;
+                currentData = orientation === 'horizontal' ? transposeData(rawData) : rawData;
+                
+                // Re-detect date columns
+                dateColumns = detectDateColumns(currentData);
+                setupDateControls();
+                
+                // Update UI
+                displayDataStats(currentData);
+                populateColumnSelectors(currentData);
+                showDataPreview(currentData);
+                
+                showStatus(`✅ Data reoriented to ${orientation} format!`, 'success');
+            }
+        }
+        
+        function transposeData(data) {
+            if (!data || data.length === 0) return [];
+            
+            // Get all unique keys from all rows
+            const allKeys = [...new Set(data.flatMap(row => Object.keys(row)))];
+            
+            // Create transposed structure
+            const transposed = [];
+            
+            // First, create a row for each original column
+            allKeys.forEach((key, index) => {
+                const newRow = { 'Field': key };
+                
+                // Add values from each original row as new columns
+                data.forEach((originalRow, rowIndex) => {
+                    newRow[`Row_${rowIndex + 1}`] = originalRow[key] || null;
+                });
+                
+                transposed.push(newRow);
+            });
+            
+            return transposed;
+        }
+        
+        function showStatus(message, type = 'success') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 4000);
+            }
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+        
+        // Enhanced file upload handling
         document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+        
+        const uploadSection = document.getElementById('uploadSection');
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+        
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+        
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('fileInput').files = files;
+                handleFileUpload({ target: { files: files } });
+            }
+        });
         
         async function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
             
-            if (!file.name.endsWith('.csv')) {
-                showStatus('Please upload a CSV file only.', 'error');
+            // File validation
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.size > maxSize) {
+                showStatus('❌ File size exceeds 10MB limit. Please upload a smaller file.', 'error');
                 return;
             }
             
-            if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                showStatus('File size must be under 5MB.', 'error');
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            if (!['csv', 'xlsx', 'xls'].includes(fileExtension)) {
+                showStatus('❌ Please upload a CSV or Excel file (.csv, .xlsx, .xls)', 'error');
                 return;
             }
             
-            showStatus('Processing file on server...', 'loading');
+            showLoading(true);
+            showStatus('🔄 Processing your file...', 'warning');
             
             try {
-                // Read file content
-                const fileContent = await file.text();
+                let data;
+                
+                if (fileExtension === 'csv') {
+                    const text = await file.text();
+                    const result = Papa.parse(text, {
+                        header: true,
+                        skipEmptyLines: true,
+                        dynamicTyping: true,
+                        transformHeader: (header) => header.trim()
+                    });
+                    
+                    if (result.errors.length > 0) {
+                        console.warn('CSV parsing warnings:', result.errors);
+                    }
+                    
+                    data = result.data;
+                } else {
+                    // Excel file processing
+                    const arrayBuffer = await file.arrayBuffer();
+                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    data = XLSX.utils.sheet_to_json(worksheet, { defval: null });
+                }
+                
+                if (!data || data.length === 0) {
+                    throw new Error('No data found in the file');
+                }
+                
+                // Clean and validate data
+                const cleanedData = cleanData(data);
+                
+                if (cleanedData.length === 0) {
+                    throw new Error('No valid data rows found after cleaning');
+                }
+                
+                // Convert data to CSV for server processing
+                const csvContent = Papa.unparse(cleanedData);
                 
                 // Send to server for processing
                 const response = await fetch(`${API_ENDPOINT}/process-file`, {
@@ -145,118 +952,910 @@
                     },
                     body: JSON.stringify({
                         filename: file.name,
-                        content: fileContent,
+                        content: csvContent,
+                        session_id: sessionId,
                         chart_config: {
-                            chart_type: 'bar',
-                            x_column: null, // Will be auto-detected
-                            y_column: null  // Will be auto-detected
+                            chart_type: 'bar'
                         }
                     })
                 });
                 
                 if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Server processing failed');
                 }
                 
-                const result = await response.json();
+                const serverResponse = await response.json();
                 
-                // Display file info
-                showFileInfo(result);
+                // Store server response data
+                currentData = serverResponse.data;
+                currentFileId = serverResponse.file_id;
                 
-                // Create chart with server-formatted data
-                createChart(result);
+                // Store raw data and apply orientation
+                rawData = cleanedData;
+                const orientation = document.getElementById('dataOrientation').value;
+                currentData = orientation === 'horizontal' ? transposeData(currentData) : currentData;
                 
-                showStatus('✅ File processed successfully!', 'success');
+                // Detect date columns
+                dateColumns = detectDateColumns(currentData);
+                setupDateControls();
+                
+                displayDataStats(currentData);
+                populateColumnSelectors(currentData);
+                showDataPreview(currentData);
+                
+                document.getElementById('controls').style.display = 'grid';
+                document.getElementById('generateBtn').disabled = false;
+                
+                showStatus(`✅ Successfully processed ${file.name}! Found ${currentData.length} rows with ${Object.keys(currentData[0]).length} columns. File ID: ${currentFileId}`, 'success');
                 
             } catch (error) {
-                console.error('Error processing file:', error);
-                showStatus(`❌ Error: ${error.message}`, 'error');
+                showStatus(`❌ Error processing file: ${error.message}`, 'error');
+                console.error('File processing error:', error);
+            } finally {
+                showLoading(false);
             }
         }
         
-        function showStatus(message, type) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = `status ${type}`;
-            status.style.display = 'block';
+        function cleanData(data) {
+            if (!Array.isArray(data) || data.length === 0) return [];
             
-            if (type === 'success') {
-                setTimeout(() => {
-                    status.style.display = 'none';
-                }, 3000);
-            }
+            // Remove completely empty rows
+            const cleaned = data.filter(row => {
+                return Object.values(row).some(value => 
+                    value !== null && value !== undefined && value !== ''
+                );
+            });
+            
+            // Convert string numbers to actual numbers where appropriate
+            return cleaned.map(row => {
+                const cleanRow = {};
+                Object.entries(row).forEach(([key, value]) => {
+                    if (typeof value === 'string') {
+                        // Try to convert string numbers
+                        const numValue = parseFloat(value);
+                        if (!isNaN(numValue) && isFinite(numValue) && value.trim() !== '') {
+                            cleanRow[key] = numValue;
+                        } else {
+                            cleanRow[key] = value;
+                        }
+                    } else {
+                        cleanRow[key] = value;
+                    }
+                });
+                return cleanRow;
+            });
         }
         
-        function showFileInfo(result) {
-            const fileInfo = document.getElementById('fileInfo');
-            const { data, chart_elements, processing_info } = result;
+        function displayDataStats(data) {
+            if (!data.length) return;
             
-            fileInfo.innerHTML = `
-                <h4>📊 Server Processing Results:</h4>
-                <p><strong>Rows processed:</strong> ${data.length}</p>
-                <p><strong>Columns found:</strong> ${Object.keys(data[0] || {}).join(', ')}</p>
-                <p><strong>Generated title:</strong> ${chart_elements.title}</p>
-                <p><strong>X-axis label:</strong> ${chart_elements.x_label}</p>
-                <p><strong>Y-axis label:</strong> ${chart_elements.y_label}</p>
-                <p><strong>Processing time:</strong> ${processing_info.duration}ms</p>
+            const columns = Object.keys(data[0]);
+            const numericColumns = columns.filter(col => 
+                data.some(row => typeof row[col] === 'number')
+            );
+            const textColumns = columns.filter(col => 
+                data.some(row => typeof row[col] === 'string')
+            );
+            
+            const statsHtml = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">${data.length.toLocaleString()}</div>
+                        <div class="stat-label">Total Rows</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${columns.length}</div>
+                        <div class="stat-label">Total Columns</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${numericColumns.length}</div>
+                        <div class="stat-label">Numeric Columns</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${textColumns.length}</div>
+                        <div class="stat-label">Text Columns</div>
+                    </div>
+                </div>
             `;
-            fileInfo.style.display = 'block';
+            
+            document.getElementById('dataStats').innerHTML = statsHtml;
+            document.getElementById('dataStats').style.display = 'block';
         }
         
-        function createChart(result) {
-            const { data, chart_elements } = result;
+        function populateColumnSelectors(data) {
+            if (!data.length) return;
             
-            if (!data || data.length === 0) {
-                showStatus('No data to chart', 'error');
+            const columns = Object.keys(data[0]);
+            const selectors = ['xColumn', 'yColumn', 'zColumn', 'colorColumn'];
+            
+            selectors.forEach(selectorId => {
+                const selector = document.getElementById(selectorId);
+                const currentValue = selector.value;
+                selector.innerHTML = '';
+                
+                // Add "None" option for optional columns
+                if (['zColumn', 'colorColumn'].includes(selectorId)) {
+                    selector.add(new Option('None', ''));
+                }
+                
+                columns.forEach(col => {
+                    const option = new Option(col, col);
+                    selector.add(option);
+                });
+                
+                // Restore previous selection if still valid
+                if (columns.includes(currentValue)) {
+                    selector.value = currentValue;
+                }
+            });
+            
+            // Set intelligent defaults
+            if (columns.length >= 2) {
+                document.getElementById('xColumn').value = columns[0];
+                document.getElementById('yColumn').value = columns[1];
+                if (columns.length >= 3) {
+                    document.getElementById('zColumn').value = columns[2];
+                }
+            }
+            
+            updateColumnOptions();
+        }
+        
+        function updateColumnOptions() {
+            const chartType = document.getElementById('chartType').value;
+            const yColumnGroup = document.getElementById('yColumn').parentElement;
+            const zColumnGroup = document.getElementById('zColumn').parentElement;
+            const colorColumnGroup = document.getElementById('colorColumn').parentElement;
+            
+            // Show/hide column selectors based on chart type
+            if (['pie', 'histogram'].includes(chartType)) {
+                yColumnGroup.style.display = 'none';
+            } else {
+                yColumnGroup.style.display = 'block';
+            }
+            
+            if (chartType === '3d_scatter') {
+                zColumnGroup.style.display = 'block';
+            } else {
+                zColumnGroup.style.display = 'none';
+            }
+            
+            // Color column is useful for scatter plots and some others
+            if (['scatter', '3d_scatter', 'bar'].includes(chartType)) {
+                colorColumnGroup.style.display = 'block';
+            } else {
+                colorColumnGroup.style.display = 'none';
+            }
+        }
+        
+        function showDataPreview(data) {
+            if (!data.length) return;
+            
+            const preview = document.getElementById('dataPreview');
+            const columns = Object.keys(data[0]);
+            const previewRows = data.slice(0, 10); // Show first 10 rows
+            
+            let html = `<h4>📋 Data Preview (First ${previewRows.length} rows of ${data.length})</h4>`;
+            html += '<div style="overflow-x: auto;"><table><thead><tr>';
+            
+            // Headers
+            columns.forEach(col => {
+                html += `<th>${col}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            // Rows
+            previewRows.forEach(row => {
+                html += '<tr>';
+                columns.forEach(col => {
+                    let value = row[col];
+                    if (value === null || value === undefined) {
+                        value = '<em style="color: #999;">null</em>';
+                    } else if (typeof value === 'number') {
+                        value = value.toLocaleString();
+                    }
+                    html += `<td>${value}</td>`;
+                });
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div>';
+            preview.innerHTML = html;
+            preview.style.display = 'block';
+        }
+        
+        function prepareChartData() {
+            const chartType = document.getElementById('chartType').value;
+            const xColumn = document.getElementById('xColumn').value;
+            const yColumn = document.getElementById('yColumn').value;
+            const aggregation = document.getElementById('aggregation').value;
+            const maxItems = document.getElementById('maxItems').value;
+            
+            if (!currentData.length || !xColumn) {
+                throw new Error('Missing required data or column selection');
+            }
+            
+            // Use filtered data if available, otherwise use current data
+            let dataToProcess = filteredData.length > 0 ? filteredData : currentData;
+            let processedData = [...dataToProcess];
+            
+            // Handle aggregation
+            if (aggregation !== 'none' && ['pie', 'bar'].includes(chartType)) {
+                const grouped = {};
+                
+                processedData.forEach(row => {
+                    const key = row[xColumn];
+                    if (key === null || key === undefined) return;
+                    
+                    if (!grouped[key]) {
+                        grouped[key] = { count: 0, sum: 0, values: [] };
+                    }
+                    
+                    grouped[key].count++;
+                    
+                    if (yColumn && typeof row[yColumn] === 'number') {
+                        grouped[key].sum += row[yColumn];
+                        grouped[key].values.push(row[yColumn]);
+                    }
+                });
+                
+                processedData = Object.entries(grouped).map(([key, data]) => {
+                    let value;
+                    switch (aggregation) {
+                        case 'count':
+                            value = data.count;
+                            break;
+                        case 'sum':
+                            value = data.sum;
+                            break;
+                        case 'average':
+                            value = data.values.length ? data.sum / data.values.length : 0;
+                            break;
+                        case 'max':
+                            value = data.values.length ? Math.max(...data.values) : 0;
+                            break;
+                        case 'min':
+                            value = data.values.length ? Math.min(...data.values) : 0;
+                            break;
+                        default:
+                            value = data.count;
+                    }
+                    
+                    return { [xColumn]: key, [yColumn || 'value']: value };
+                });
+            }
+            
+            // Sort and limit items
+            if (['pie', 'bar'].includes(chartType) && aggregation !== 'none') {
+                const valueKey = yColumn || 'value';
+                processedData.sort((a, b) => b[valueKey] - a[valueKey]);
+                
+                if (maxItems !== 'all') {
+                    processedData = processedData.slice(0, parseInt(maxItems));
+                }
+            }
+            
+            return processedData;
+        }
+        
+        function generateChart() {
+            if (!currentData.length) {
+                showStatus('❌ No data available. Please upload a file first.', 'error');
                 return;
             }
             
-            // Get column names
-            const columns = Object.keys(data[0]);
-            const xColumn = columns[0]; // First column for X
-            const yColumn = columns[1]; // Second column for Y
+            const chartType = document.getElementById('chartType').value;
+            const xColumn = document.getElementById('xColumn').value;
+            const yColumn = document.getElementById('yColumn').value;
+            const zColumn = document.getElementById('zColumn').value;
+            const colorColumn = document.getElementById('colorColumn').value;
+            let title = document.getElementById('chartTitle').value || `${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart`;
+            const orientation = document.getElementById('orientation').value;
             
-            // Extract data for chart
-            const xData = data.map(row => row[xColumn]);
-            const yData = data.map(row => row[yColumn]);
-            
-            // Create Plotly chart with server-generated formatting
-            const plotData = [{
-                x: xData,
-                y: yData,
-                type: 'bar',
-                marker: {
-                    color: '#4facfe'
+            // Add date filter info to title if applicable
+            if (currentDateFilter && filteredData.length > 0) {
+                const filterInfo = [];
+                if (currentDateFilter.year) filterInfo.push(`Year: ${currentDateFilter.year}`);
+                if (currentDateFilter.startDate && currentDateFilter.endDate) {
+                    filterInfo.push(`${currentDateFilter.startDate} to ${currentDateFilter.endDate}`);
                 }
-            }];
+                if (filterInfo.length > 0) {
+                    title += ` (${filterInfo.join(', ')})`;
+                }
+            }
             
-            const layout = {
+            if (!xColumn || (!yColumn && !['pie', 'histogram'].includes(chartType))) {
+                showStatus('❌ Please select the required columns for your chart.', 'error');
+                return;
+            }
+            
+            try {
+                showLoading(true);
+                showStatus('🎨 Generating your interactive chart...', 'warning');
+                
+                processedData = prepareChartData();
+                
+                const plotlyConfig = createPlotlyConfig(chartType, processedData, {
+                    xColumn,
+                    yColumn,
+                    zColumn,
+                    colorColumn,
+                    title,
+                    orientation
+                });
+                
+                Plotly.newPlot('plotlyChart', plotlyConfig.data, plotlyConfig.layout, plotlyConfig.config);
+                
+                document.getElementById('chartContainer').style.display = 'block';
+                document.getElementById('exportSection').style.display = 'block';
+                
+                const dataSource = filteredData.length > 0 ? 'filtered' : 'all';
+                showStatus(`✅ Interactive chart generated successfully! Showing ${processedData.length} data points from ${dataSource} data.`, 'success');
+                
+            } catch (error) {
+                showStatus(`❌ Error generating chart: ${error.message}`, 'error');
+                console.error('Chart generation error:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        function createPlotlyConfig(chartType, data, options) {
+            const { xColumn, yColumn, zColumn, colorColumn, title, orientation } = options;
+            
+            const xData = data.map(row => row[xColumn]);
+            const yData = yColumn ? data.map(row => row[yColumn]) : [];
+            const zData = zColumn ? data.map(row => row[zColumn]) : [];
+            const colorData = colorColumn ? data.map(row => row[colorColumn]) : [];
+            
+            let plotData = [];
+            let layout = {
                 title: {
-                    text: chart_elements.title,
+                    text: title,
                     font: { size: 18 }
                 },
-                xaxis: {
-                    title: chart_elements.x_label,
-                    gridcolor: '#e5e7eb'
-                },
-                yaxis: {
-                    title: chart_elements.y_label,
-                    gridcolor: '#e5e7eb'
-                },
-                plot_bgcolor: 'white',
+                showlegend: true,
+                margin: { t: 60, b: 50, l: 50, r: 50 },
                 paper_bgcolor: 'white',
-                margin: { t: 60, b: 50, l: 50, r: 50 }
+                plot_bgcolor: 'white'
             };
             
             const config = {
                 responsive: true,
                 displayModeBar: true,
+                modeBarButtonsToAdd: ['drawline', 'drawopenpath', 'drawclosedpath', 'drawcircle', 'drawrect', 'eraseshape'],
                 displaylogo: false
             };
             
-            // Render chart
-            Plotly.newPlot('chartContainer', plotData, layout, config);
+            switch (chartType) {
+                case 'bar':
+                    plotData = [{
+                        type: 'bar',
+                        x: orientation === 'horizontal' ? yData : xData,
+                        y: orientation === 'horizontal' ? xData : yData,
+                        orientation: orientation === 'horizontal' ? 'h' : 'v',
+                        marker: {
+                            color: colorData.length ? colorData : '#4facfe',
+                            colorscale: colorData.length ? 'Viridis' : undefined,
+                            showscale: colorData.length > 0
+                        },
+                        name: yColumn || 'Values'
+                    }];
+                    
+                    layout.xaxis = {
+                        title: orientation === 'horizontal' ? (yColumn || 'Value') : xColumn,
+                        gridcolor: '#e5e7eb'
+                    };
+                    layout.yaxis = {
+                        title: orientation === 'horizontal' ? xColumn : (yColumn || 'Value'),
+                        gridcolor: '#e5e7eb'
+                    };
+                    break;
+                    
+                case 'line':
+                    plotData = [{
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        x: xData,
+                        y: yData,
+                        line: { color: '#4facfe', width: 3 },
+                        marker: { size: 6, color: '#4facfe' },
+                        name: yColumn || 'Values'
+                    }];
+                    
+                    layout.xaxis = { title: xColumn, gridcolor: '#e5e7eb' };
+                    layout.yaxis = { title: yColumn || 'Value', gridcolor: '#e5e7eb' };
+                    break;
+                    
+                case 'scatter':
+                    plotData = [{
+                        type: 'scatter',
+                        mode: 'markers',
+                        x: xData,
+                        y: yData,
+                        marker: {
+                            size: 8,
+                            color: colorData.length ? colorData : '#4facfe',
+                            colorscale: colorData.length ? 'Viridis' : undefined,
+                            showscale: colorData.length > 0,
+                            colorbar: colorData.length ? { title: colorColumn } : undefined
+                        },
+                        text: colorData.length ? colorData.map((val, i) => `${xColumn}: ${xData[i]}<br>${yColumn}: ${yData[i]}<br>${colorColumn}: ${val}`) : undefined,
+                        hovertemplate: colorData.length ? '%{text}<extra></extra>' : undefined,
+                        name: 'Data Points'
+                    }];
+                    
+                    layout.xaxis = { title: xColumn, gridcolor: '#e5e7eb' };
+                    layout.yaxis = { title: yColumn, gridcolor: '#e5e7eb' };
+                    break;
+                    
+                case '3d_scatter':
+                    plotData = [{
+                        type: 'scatter3d',
+                        mode: 'markers',
+                        x: xData,
+                        y: yData,
+                        z: zData,
+                        marker: {
+                            size: 5,
+                            color: colorData.length ? colorData : '#4facfe',
+                            colorscale: colorData.length ? 'Viridis' : undefined,
+                            showscale: colorData.length > 0,
+                            colorbar: colorData.length ? { title: colorColumn } : undefined
+                        },
+                        text: colorData.length ? colorData.map((val, i) => `${xColumn}: ${xData[i]}<br>${yColumn}: ${yData[i]}<br>${zColumn}: ${zData[i]}<br>${colorColumn}: ${val}`) : undefined,
+                        hovertemplate: colorData.length ? '%{text}<extra></extra>' : undefined,
+                        name: '3D Data Points'
+                    }];
+                    
+                    layout.scene = {
+                        xaxis: { title: xColumn },
+                        yaxis: { title: yColumn },
+                        zaxis: { title: zColumn }
+                    };
+                    break;
+                    
+                case 'pie':
+                    const pieValues = yColumn ? yData : xData.map(() => 1);
+                    plotData = [{
+                        type: 'pie',
+                        labels: xData,
+                        values: pieValues,
+                        textinfo: 'label+percent',
+                        textposition: 'auto',
+                        marker: {
+                            colors: generatePlotlyColors(xData.length)
+                        },
+                        name: 'Distribution'
+                    }];
+                    break;
+                    
+                case 'histogram':
+                    plotData = [{
+                        type: 'histogram',
+                        x: xData,
+                        nbinsx: 30,
+                        marker: { color: '#4facfe', opacity: 0.7 },
+                        name: 'Frequency'
+                    }];
+                    
+                    layout.xaxis = { title: xColumn, gridcolor: '#e5e7eb' };
+                    layout.yaxis = { title: 'Frequency', gridcolor: '#e5e7eb' };
+                    break;
+                    
+                case 'box':
+                    plotData = [{
+                        type: 'box',
+                        y: yData,
+                        name: yColumn || 'Values',
+                        marker: { color: '#4facfe' },
+                        boxpoints: 'outliers'
+                    }];
+                    
+                    layout.yaxis = { title: yColumn || 'Value', gridcolor: '#e5e7eb' };
+                    break;
+                    
+                case 'heatmap':
+                    // Create a simple heatmap from the data
+                    const uniqueX = [...new Set(xData)];
+                    const uniqueY = [...new Set(yData)];
+                    
+                    const zMatrix = Array(uniqueY.length).fill().map(() => Array(uniqueX.length).fill(0));
+                    
+                    data.forEach(row => {
+                        const xIdx = uniqueX.indexOf(row[xColumn]);
+                        const yIdx = uniqueY.indexOf(row[yColumn]);
+                        if (xIdx !== -1 && yIdx !== -1) {
+                            zMatrix[yIdx][xIdx] += 1; // Count occurrences
+                        }
+                    });
+                    
+                    plotData = [{
+                        type: 'heatmap',
+                        z: zMatrix,
+                        x: uniqueX,
+                        y: uniqueY,
+                        colorscale: 'Viridis',
+                        showscale: true,
+                        name: 'Heatmap'
+                    }];
+                    
+                    layout.xaxis = { title: xColumn };
+                    layout.yaxis = { title: yColumn };
+                    break;
+            }
+            
+            return { data: plotData, layout, config };
         }
+        
+        function generatePlotlyColors(count) {
+            const colors = [
+                '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+                '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
+            ];
+            
+            if (count <= colors.length) {
+                return colors.slice(0, count);
+            }
+            
+            // Generate additional colors
+            const additionalColors = [];
+            for (let i = colors.length; i < count; i++) {
+                const hue = (i * 137.508) % 360;
+                additionalColors.push(`hsl(${hue}, 70%, 60%)`);
+            }
+            
+            return [...colors, ...additionalColors];
+        }
+        
+        function exportAsImage(format) {
+            const plotlyDiv = document.getElementById('plotlyChart');
+            if (!plotlyDiv || !plotlyDiv.data) {
+                showStatus('❌ No chart to export. Generate a chart first.', 'error');
+                return;
+            }
+            
+            const config = {
+                format: format,
+                width: 1200,
+                height: 700,
+                scale: 2
+            };
+            
+            Plotly.downloadImage(plotlyDiv, config).then(() => {
+                showStatus(`✅ Chart exported as ${format.toUpperCase()} image!`, 'success');
+            }).catch(error => {
+                showStatus(`❌ Error exporting image: ${error.message}`, 'error');
+            });
+        }
+        
+        function exportAsHTML() {
+            const plotlyDiv = document.getElementById('plotlyChart');
+            if (!plotlyDiv || !plotlyDiv.data) {
+                showStatus('❌ No chart to export. Generate a chart first.', 'error');
+                return;
+            }
+            
+            const title = document.getElementById('chartTitle').value || 'Data Visualization';
+            
+            const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"><\/script>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            margin: 0;
+            padding: 20px; 
+            background: #f8fafc;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 { 
+            color: #374151; 
+            margin-bottom: 20px; 
+            text-align: center;
+        }
+        .chart-container { 
+            width: 100%; 
+            height: 600px; 
+        }
+        .timestamp { 
+            color: #6b7280; 
+            font-size: 0.9rem; 
+            margin-top: 20px; 
+            text-align: center;
+        }
+        
+        /* User Files Section Styles */
+        .user-files-section {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .user-files-section h3 {
+            color: #374151;
+            margin-bottom: 15px;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .file-item.in-memory {
+            border-left-color: #10b981;
+        }
+        
+        .file-item.in-database {
+            border-left-color: #3b82f6;
+        }
+        
+        .file-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .file-info h4 {
+            margin: 0 0 5px 0;
+            color: #374151;
+        }
+        
+        .file-info p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .storage-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 5px;
+        }
+        
+        .file-item.in-memory .storage-badge {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .file-item.in-database .storage-badge {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+    <\/style>
+</head>
+<body>
+    <div class="container">
+        <h1>${title}</h1>
+        <div class="chart-container" id="chart"></div>
+        <div class="timestamp">Generated on ${new Date().toLocaleString()}</div>
+    </div>
+    <script>
+        var plotData = ${JSON.stringify(plotlyDiv.data)};
+        var plotLayout = ${JSON.stringify(plotlyDiv.layout)};
+        var plotConfig = ${JSON.stringify(plotlyDiv.config)};
+        Plotly.newPlot('chart', plotData, plotLayout, plotConfig);
+    <\/script>
+</body>
+</html>`;
+            
+            downloadFile(html, 'interactive_chart.html', 'text/html');
+            showStatus('✅ Interactive chart exported as HTML file!', 'success');
+        }
+        
+        function exportData() {
+            if (!processedData.length) {
+                showStatus('❌ No processed data to export. Generate a chart first.', 'error');
+                return;
+            }
+            
+            const csv = Papa.unparse(processedData);
+            downloadFile(csv, 'chart_data.csv', 'text/csv');
+            showStatus('✅ Data exported as CSV file!', 'success');
+        }
+        
+        function exportChartConfig() {
+            if (!processedData.length) {
+                showStatus('❌ No chart configuration to export. Generate a chart first.', 'error');
+                return;
+            }
+            
+            const config = {
+                chartType: document.getElementById('chartType').value,
+                dataOrientation: document.getElementById('dataOrientation').value,
+                orientation: document.getElementById('orientation').value,
+                xColumn: document.getElementById('xColumn').value,
+                yColumn: document.getElementById('yColumn').value,
+                zColumn: document.getElementById('zColumn').value,
+                colorColumn: document.getElementById('colorColumn').value,
+                title: document.getElementById('chartTitle').value,
+                aggregation: document.getElementById('aggregation').value,
+                maxItems: document.getElementById('maxItems').value,
+                dateFilter: currentDateFilter,
+                timestamp: new Date().toISOString(),
+                dataPreview: processedData.slice(0, 5) // Include sample data
+            };
+            
+            const json = JSON.stringify(config, null, 2);
+            downloadFile(json, 'chart_config.json', 'application/json');
+            showStatus('✅ Chart configuration exported as JSON!', 'success');
+        }
+        
+        function downloadFile(content, filename, contentType) {
+            const blob = new Blob([content], { type: contentType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+        
+        // File management functions
+        async function loadUserFiles() {
+            try {
+                const response = await fetch(`${API_ENDPOINT}/api/files?session_id=${sessionId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load user files');
+                }
+                
+                const data = await response.json();
+                displayUserFiles(data.files);
+            } catch (error) {
+                console.error('Error loading user files:', error);
+            }
+        }
+        
+        function displayUserFiles(files) {
+            const fileListContainer = document.getElementById('userFiles');
+            if (!fileListContainer) return;
+            
+            if (files.length === 0) {
+                fileListContainer.innerHTML = '<p>No files uploaded yet.</p>';
+                return;
+            }
+            
+            const filesHtml = files.map(file => `
+                <div class="file-item ${file.in_memory ? 'in-memory' : 'in-database'}">
+                    <div class="file-info">
+                        <h4>${file.filename}</h4>
+                        <p>${file.total_records} records, ${file.columns.length} columns</p>
+                        <span class="storage-badge">${file.in_memory ? 'In Memory' : 'In Database'}</span>
+                    </div>
+                    <div class="file-actions">
+                        <button onclick="loadFile('${file.file_id}')" class="btn btn-primary">Load</button>
+                        <button onclick="deleteFile('${file.file_id}')" class="btn btn-danger">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            fileListContainer.innerHTML = filesHtml;
+        }
+        
+        async function loadFile(fileId) {
+            try {
+                showLoading(true);
+                const response = await fetch(`${API_ENDPOINT}/api/files/${fileId}?session_id=${sessionId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load file');
+                }
+                
+                const data = await response.json();
+                
+                // Update current data
+                currentData = data.data;
+                currentFileId = fileId;
+                
+                // Update UI
+                displayDataStats(currentData);
+                populateColumnSelectors(currentData);
+                showDataPreview(currentData);
+                
+                document.getElementById('controls').style.display = 'grid';
+                document.getElementById('generateBtn').disabled = false;
+                
+                showStatus(`✅ Loaded file with ${currentData.length} records`, 'success');
+                
+            } catch (error) {
+                showStatus(`❌ Error loading file: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function deleteFile(fileId) {
+            if (!confirm('Are you sure you want to delete this file?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_ENDPOINT}/api/files/${fileId}?session_id=${sessionId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to delete file');
+                }
+                
+                showStatus('✅ File deleted successfully', 'success');
+                loadUserFiles(); // Refresh file list
+                
+            } catch (error) {
+                showStatus(`❌ Error deleting file: ${error.message}`, 'error');
+            }
+        }
+        
+        // Initialize the application
+        window.addEventListener('load', () => {
+            showStatus('🚀 Interactive charting application ready! Upload a CSV or Excel file to get started.', 'success');
+            loadUserFiles(); // Load user's existing files
+        });
+        
+        // Handle window resize for chart responsiveness
+        window.addEventListener('resize', () => {
+            const plotlyDiv = document.getElementById('plotlyChart');
+            if (plotlyDiv && plotlyDiv.data) {
+                Plotly.Plots.resize(plotlyDiv);
+            }
+        });
+        
     </script>
 </body>
 </html>

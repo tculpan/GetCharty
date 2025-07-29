@@ -10,11 +10,18 @@ import time
 import re
 import json
 import uuid
+from datetime import datetime, timedelta
 from utils.hybrid_storage import storage_manager
 from utils.user_manager import user_manager
 
 # Import API modules
 from api.quarterly_stats import register_quarterly_stats_routes
+
+# Month names for consistent formatting
+MONTH_NAMES = {
+    1: 'Jan', 2: 'Feb', 3: 'March', 4: 'April', 5: 'May', 6: 'June',
+    7: 'July', 8: 'Aug', 9: 'Sept', 10: 'Oct', 11: 'Nov', 12: 'Dec'
+}
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -349,6 +356,520 @@ def detect_large_numbers(series):
         return numeric_series.max() > 1000
     except:
         return False
+
+@app.route('/api/auto-spacing', methods=['POST'])
+def auto_spacing():
+    """
+    Auto-spacing endpoint for X-axis labels
+    """
+    try:
+        data = request.get_json()
+        x_labels = data.get('x_labels', [])
+        chart_type = data.get('chart_type', 'vertical_bar')
+        
+        if not x_labels:
+            return jsonify({
+                'success': False,
+                'error': 'No X-axis labels provided'
+            }), 400
+        
+        # Detect time interval and apply appropriate spacing
+        interval_type = detect_time_interval(x_labels)
+        
+        if interval_type:
+            xaxis_config = apply_time_spacing(x_labels, interval_type)
+        else:
+            xaxis_config = apply_default_spacing(x_labels)
+        
+        return jsonify({
+            'success': True,
+            'xaxis_config': xaxis_config,
+            'interval_type': interval_type
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+def detect_time_interval(x_labels):
+    """
+    Detect if labels represent time series and determine interval
+    """
+    try:
+        # Try to parse dates from labels
+        dates = []
+        for label in x_labels[:10]:  # Sample first 10 labels
+            # Skip if label is "Date" or similar header
+            if str(label).lower() in ['date', 'time', 'period', '']:
+                continue
+                
+            try:
+                # Try various date formats
+                for fmt in ['%Y-%m-%d', '%m/%d/%Y', '%d/%m/%Y', '%Y-%m-%d %H:%M:%S', 
+                           '%m/%d/%Y %H:%M', '%Y-%m-%d %H:%M', '%H:%M', '%Y-%m',
+                           '%d-%b-%y', '%d-%b-%Y', '%Y/%m/%d', '%d/%m/%Y',
+                           '%b %d, %Y', '%B %d, %Y', '%d %b %Y', '%d %B %Y']:
+                    try:
+                        date = datetime.strptime(str(label), fmt)
+                        dates.append(date)
+                        break
+                    except ValueError:
+                        continue
+            except:
+                continue
+        
+        if len(dates) < 3:
+            return None  # Not enough valid dates
+        
+        # Calculate time differences
+        intervals = []
+        for i in range(1, len(dates)):
+            diff = dates[i] - dates[i-1]
+            intervals.append(diff)
+        
+        if not intervals:
+            return None
+        
+        # Determine interval type
+        avg_interval = sum(intervals, timedelta(0)) / len(intervals)
+        
+        if avg_interval <= timedelta(hours=2):
+            return 'hour'
+        elif avg_interval <= timedelta(days=2):
+            return 'day'
+        elif avg_interval <= timedelta(weeks=2):
+            return 'week'
+        elif avg_interval <= timedelta(days=45):
+            return 'month'
+        elif avg_interval <= timedelta(days=120):
+            return 'quarter'
+        elif avg_interval >= timedelta(days=300):
+            return 'year'
+        else:
+            return 'other'
+            
+    except Exception as e:
+        print(f"Error detecting time interval: {e}")
+        return None
+
+def apply_time_spacing(x_labels, interval_type):
+    """
+    Apply appropriate spacing based on time interval type
+    """
+    try:
+        dates = []
+        for label in x_labels:
+            # Skip if label is "Date" or similar header
+            if str(label).lower() in ['date', 'time', 'period', '']:
+                dates.append(None)
+                continue
+                
+            try:
+                for fmt in ['%Y-%m-%d', '%m/%d/%Y', '%d/%m/%Y', '%Y-%m-%d %H:%M:%S', 
+                           '%m/%d/%Y %H:%M', '%Y-%m-%d %H:%M', '%H:%M', '%Y-%m',
+                           '%d-%b-%y', '%d-%b-%Y', '%Y/%m/%d', '%d/%m/%Y',
+                           '%b %d, %Y', '%B %d, %Y', '%d %b %Y', '%d %B %Y']:
+                    try:
+                        date = datetime.strptime(str(label), fmt)
+                        dates.append(date)
+                        break
+                    except ValueError:
+                        continue
+            except:
+                dates.append(None)
+        
+        if interval_type == 'hour':
+            return apply_hourly_spacing(dates, x_labels)
+        elif interval_type == 'day':
+            return apply_daily_spacing(dates, x_labels)
+        elif interval_type == 'week':
+            return apply_weekly_spacing(dates, x_labels)
+        elif interval_type == 'month':
+            return apply_monthly_spacing(dates, x_labels)
+        elif interval_type == 'quarter':
+            return apply_quarterly_spacing(dates, x_labels)
+        elif interval_type == 'year':
+            return apply_yearly_spacing(dates, x_labels)
+        else:
+            return apply_default_spacing(x_labels)
+            
+    except Exception as e:
+        print(f"Error applying time spacing: {e}")
+        return apply_default_spacing(x_labels)
+
+def apply_hourly_spacing(dates, x_labels):
+    """Show every 6th hour: 0600, 1200, 1800, 2400"""
+    tickvals = []
+    ticktext = []
+    
+    for i, (date, label) in enumerate(zip(dates, x_labels)):
+        if date and date.hour in [0, 6, 12, 18]:
+            tickvals.append(i)
+            ticktext.append(date.strftime('%H:%M'))
+    
+    # Check if the final label follows the same spacing pattern as other labels
+    if len(tickvals) > 2:
+        # Calculate the typical spacing between labels
+        spacings = []
+        for i in range(1, len(tickvals)):
+            spacing = tickvals[i] - tickvals[i-1]
+            spacings.append(spacing)
+        
+        if spacings:
+            # Calculate average spacing (excluding the last interval)
+            avg_spacing = sum(spacings[:-1]) / len(spacings[:-1]) if len(spacings) > 1 else spacings[0]
+            
+            # Check if the final spacing is significantly different from average
+            final_spacing = spacings[-1] if spacings else 0
+            if abs(final_spacing - avg_spacing) > avg_spacing * 0.5:  # If more than 50% different
+                # Remove the final label as it doesn't follow the pattern
+                tickvals.pop()
+                ticktext.pop()
+    
+    return {
+        'tickmode': 'array',
+        'tickvals': tickvals,
+        'ticktext': ticktext,
+        'tickangle': 0,
+        'showticklabels': True,
+        'showgrid': False,
+        'ticks': 'outside',
+        'ticklen': 8,
+        'tickwidth': 2,
+        'tickcolor': 'black',
+        'showline': True,
+        'linecolor': 'black',
+        'linewidth': 1
+    }
+
+def apply_daily_spacing(dates, x_labels):
+    """Show only Mondays"""
+    tickvals = []
+    ticktext = []
+    
+    for i, (date, label) in enumerate(zip(dates, x_labels)):
+        if date and date.weekday() == 0:  # Monday
+            tickvals.append(i)
+            ticktext.append(date.strftime('%a %m/%d'))
+    
+    # Check if the final label follows the same spacing pattern as other labels
+    if len(tickvals) > 2:
+        # Calculate the typical spacing between labels
+        spacings = []
+        for i in range(1, len(tickvals)):
+            spacing = tickvals[i] - tickvals[i-1]
+            spacings.append(spacing)
+        
+        if spacings:
+            # Calculate average spacing (excluding the last interval)
+            avg_spacing = sum(spacings[:-1]) / len(spacings[:-1]) if len(spacings) > 1 else spacings[0]
+            
+            # Check if the final spacing is significantly different from average
+            final_spacing = spacings[-1] if spacings else 0
+            if abs(final_spacing - avg_spacing) > avg_spacing * 0.5:  # If more than 50% different
+                # Remove the final label as it doesn't follow the pattern
+                tickvals.pop()
+                ticktext.pop()
+    
+    return {
+        'tickmode': 'array',
+        'tickvals': tickvals,
+        'ticktext': ticktext,
+        'tickangle': 0,
+        'showticklabels': True,
+        'showgrid': False,
+        'ticks': 'outside',
+        'ticklen': 8,
+        'tickwidth': 2,
+        'tickcolor': 'black',
+        'showline': True,
+        'linecolor': 'black',
+        'linewidth': 1
+    }
+
+def apply_weekly_spacing(dates, x_labels):
+    """Show every 4th week, starting with 4th week"""
+    tickvals = []
+    ticktext = []
+    
+    for i, (date, label) in enumerate(zip(dates, x_labels)):
+        if date and i >= 3 and (i - 3) % 4 == 0:  # Start from 4th week, every 4th
+            tickvals.append(i)
+            ticktext.append(date.strftime('%d %B %Y'))
+    
+    # Check if the final label follows the same spacing pattern as other labels
+    if len(tickvals) > 2:
+        # Calculate the typical spacing between labels
+        spacings = []
+        for i in range(1, len(tickvals)):
+            spacing = tickvals[i] - tickvals[i-1]
+            spacings.append(spacing)
+        
+        if spacings:
+            # Calculate average spacing (excluding the last interval)
+            avg_spacing = sum(spacings[:-1]) / len(spacings[:-1]) if len(spacings) > 1 else spacings[0]
+            
+            # Check if the final spacing is significantly different from average
+            final_spacing = spacings[-1] if spacings else 0
+            if abs(final_spacing - avg_spacing) > avg_spacing * 0.5:  # If more than 50% different
+                # Remove the final label as it doesn't follow the pattern
+                tickvals.pop()
+                ticktext.pop()
+    
+    return {
+        'tickmode': 'array',
+        'tickvals': tickvals,
+        'ticktext': ticktext,
+        'tickangle': 0,
+        'showticklabels': True,
+        'showgrid': False,
+        'ticks': 'outside',
+        'ticklen': 8,
+        'tickwidth': 2,
+        'tickcolor': 'black',
+        'showline': True,
+        'linecolor': 'black',
+        'linewidth': 1
+    }
+
+def apply_monthly_spacing(dates, x_labels):
+    """Show every 3rd month: March, June, Sept, Dec"""
+    tickvals = []
+    ticktext = []
+    
+    for i, (date, label) in enumerate(zip(dates, x_labels)):
+        if date and date.month in [3, 6, 9, 12]:
+            tickvals.append(i)
+            ticktext.append(f"{MONTH_NAMES[date.month]} {date.year}")
+    
+    # Check if the final label follows the same spacing pattern as other labels
+    if len(tickvals) > 2:
+        # Calculate the typical spacing between labels
+        spacings = []
+        for i in range(1, len(tickvals)):
+            spacing = tickvals[i] - tickvals[i-1]
+            spacings.append(spacing)
+        
+        if spacings:
+            # Calculate average spacing (excluding the last interval)
+            avg_spacing = sum(spacings[:-1]) / len(spacings[:-1]) if len(spacings) > 1 else spacings[0]
+            
+            # Check if the final spacing is significantly different from average
+            final_spacing = spacings[-1] if spacings else 0
+            if abs(final_spacing - avg_spacing) > avg_spacing * 0.5:  # If more than 50% different
+                # Remove the final label as it doesn't follow the pattern
+                tickvals.pop()
+                ticktext.pop()
+    
+    return {
+        'tickmode': 'array',
+        'tickvals': tickvals,
+        'ticktext': ticktext,
+        'tickangle': 0,
+        'showticklabels': True,
+        'showgrid': False,
+        'ticks': 'outside',
+        'ticklen': 8,
+        'tickwidth': 2,
+        'tickcolor': 'black',
+        'showline': True,
+        'linecolor': 'black',
+        'linewidth': 1
+    }
+
+def apply_quarterly_spacing(dates, x_labels):
+    """Show final quarter of each year"""
+    tickvals = []
+    ticktext = []
+    
+    # Filter out None dates
+    valid_dates = [(i, date) for i, date in enumerate(dates) if date]
+    
+    if len(valid_dates) < 2:
+        return apply_default_spacing(x_labels)
+    
+    # Group dates by year and find the final quarter of each year
+    year_groups = {}
+    for idx, date in valid_dates:
+        year = date.year
+        if year not in year_groups:
+            year_groups[year] = []
+        year_groups[year].append((idx, date))
+    
+    # For each year, find the latest quarter (highest month)
+    labeled_indices = set()
+    for year in sorted(year_groups.keys()):
+        year_dates = year_groups[year]
+        # Find the date with the highest month in this year
+        latest_date = max(year_dates, key=lambda x: x[1].month)
+        idx, date = latest_date
+        tickvals.append(idx)
+        ticktext.append(f"{MONTH_NAMES[date.month]} {date.year}")
+        labeled_indices.add(idx)
+    
+    # Drop the final label if it's not the final quarter of the year
+    if tickvals and len(tickvals) > 1:
+        last_idx = tickvals[-1]
+        last_date = None
+        for idx, date in valid_dates:
+            if idx == last_idx:
+                last_date = date
+                break
+        
+        if last_date:
+            # Check if this is actually the final quarter of the year
+            # Get all dates for this year
+            year_dates = [d for idx, d in valid_dates if d.year == last_date.year]
+            if year_dates:
+                actual_last_quarter = max(year_dates)
+                if last_date != actual_last_quarter:
+                    # Remove the final label if it's not the true final quarter
+                    tickvals.pop()
+                    ticktext.pop()
+                    labeled_indices.discard(last_idx)
+    
+    # Check if the final label follows the same spacing pattern as other labels
+    if len(tickvals) > 2:
+        # Calculate the typical spacing between labels
+        spacings = []
+        for i in range(1, len(tickvals)):
+            spacing = tickvals[i] - tickvals[i-1]
+            spacings.append(spacing)
+        
+        if spacings:
+            # Calculate average spacing (excluding the last interval)
+            avg_spacing = sum(spacings[:-1]) / len(spacings[:-1]) if len(spacings) > 1 else spacings[0]
+            
+            # Check if the final spacing is significantly different from average
+            final_spacing = spacings[-1] if spacings else 0
+            if abs(final_spacing - avg_spacing) > avg_spacing * 0.5:  # If more than 50% different
+                # Remove the final label as it doesn't follow the pattern
+                tickvals.pop()
+                ticktext.pop()
+                labeled_indices.discard(tickvals[-1] if tickvals else None)
+    
+    # Add all quarterly points for tick marks, but only show labels for final quarters
+    all_quarterly_indices = [idx for idx, date in valid_dates]
+    all_quarterly_texts = []
+    
+    for idx, date in valid_dates:
+        if idx in labeled_indices:
+            all_quarterly_texts.append(f"{MONTH_NAMES[date.month]} {date.year}")
+        else:
+            all_quarterly_texts.append("")  # Empty text for unlabeled ticks
+    
+    return {
+        'tickmode': 'array',
+        'tickvals': tickvals,
+        'ticktext': ticktext,
+        'tickangle': 0,
+        'showticklabels': True,
+        'showgrid': False,
+        'ticks': 'outside',
+        'ticklen': 8,
+        'tickwidth': 2,
+        'tickcolor': 'black',
+        'showline': True,
+        'linecolor': 'black',
+        'linewidth': 1,
+        'minor': {
+            'tickmode': 'array',
+            'tickvals': all_quarterly_indices,
+            'showgrid': False,
+            'ticks': 'outside',
+            'ticklen': 5,
+            'tickwidth': 1,
+            'tickcolor': 'black'
+        }
+    }
+
+def apply_yearly_spacing(dates, x_labels):
+    """Show evenly spaced years: 2, 4, 5, 10, 20, 50, 100 year intervals"""
+    if len(dates) < 2:
+        return apply_default_spacing(x_labels)
+    
+    # Find year range
+    valid_dates = [d for d in dates if d]
+    if len(valid_dates) < 2:
+        return apply_default_spacing(x_labels)
+    
+    min_year = min(d.year for d in valid_dates)
+    max_year = max(d.year for d in valid_dates)
+    year_span = max_year - min_year
+    
+    # Choose appropriate spacing
+    if year_span <= 5:
+        spacing = 1
+    elif year_span <= 20:
+        spacing = 2
+    elif year_span <= 50:
+        spacing = 5
+    elif year_span <= 100:
+        spacing = 10
+    else:
+        spacing = 20
+    
+    tickvals = []
+    ticktext = []
+    
+    for i, (date, label) in enumerate(zip(dates, x_labels)):
+        if date and (date.year - min_year) % spacing == 0:
+            tickvals.append(i)
+            ticktext.append(str(date.year))
+    
+    # Check if the final label follows the same spacing pattern as other labels
+    if len(tickvals) > 2:
+        # Calculate the typical spacing between labels
+        spacings = []
+        for i in range(1, len(tickvals)):
+            spacing = tickvals[i] - tickvals[i-1]
+            spacings.append(spacing)
+        
+        if spacings:
+            # Calculate average spacing (excluding the last interval)
+            avg_spacing = sum(spacings[:-1]) / len(spacings[:-1]) if len(spacings) > 1 else spacings[0]
+            
+            # Check if the final spacing is significantly different from average
+            final_spacing = spacings[-1] if spacings else 0
+            if abs(final_spacing - avg_spacing) > avg_spacing * 0.5:  # If more than 50% different
+                # Remove the final label as it doesn't follow the pattern
+                tickvals.pop()
+                ticktext.pop()
+    
+    return {
+        'tickmode': 'array',
+        'tickvals': tickvals,
+        'ticktext': ticktext,
+        'tickangle': 0,
+        'showticklabels': True,
+        'showgrid': False,
+        'ticks': 'outside',
+        'ticklen': 8,
+        'tickwidth': 2,
+        'tickcolor': 'black',
+        'showline': True,
+        'linecolor': 'black',
+        'linewidth': 1
+    }
+
+def apply_default_spacing(x_labels):
+    """Default spacing for non-time-series data"""
+    if len(x_labels) <= 20:
+        return {}  # No spacing needed
+    
+    # Show every nth label
+    n = max(1, len(x_labels) // 10)
+    tickvals = list(range(0, len(x_labels), n))
+    ticktext = [x_labels[i] for i in tickvals]
+    
+    return {
+        'tickmode': 'array',
+        'tickvals': tickvals,
+        'ticktext': ticktext,
+        'tickangle': 45
+    }
 
 # Register API routes
 register_quarterly_stats_routes(app)

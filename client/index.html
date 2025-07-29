@@ -545,6 +545,14 @@
                             </select>
                         </div>
                         
+                        <div class="control-group">
+                            <label for="autoSpacing">📏 X-axis Auto Spacing</label>
+                            <select id="autoSpacing">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                            </select>
+                        </div>
+                        
 
                     </div>
                 </div>
@@ -779,7 +787,7 @@
                 plotlyChart.innerHTML = 'Your Chart Goes Here';
                 document.getElementById('exportSection').style.display = 'none';
                 
-                document.getElementById('controls').style.display = 'grid';
+                document.getElementById('controls').style.display = 'block';
                 document.getElementById('generateBtn').disabled = false;
                 
                 showStatus(`✅ Successfully processed ${file.name}! Found ${currentData.length} rows with ${Object.keys(currentData[0]).length} columns. File ID: ${currentFileId}`, 'success');
@@ -1056,7 +1064,7 @@
             return processedData;
         }
         
-        function generateChart() {
+        async function generateChart() {
             if (!currentData.length) {
                 showStatus('❌ No data available. Please upload a file first.', 'error');
                 return;
@@ -1067,6 +1075,7 @@
             const yColumn = document.getElementById('yColumn').value;
             const zColumn = document.getElementById('zColumn').value;
             const colorColumn = document.getElementById('colorColumn').value;
+            const autoSpacing = document.getElementById('autoSpacing').value === 'yes';
             let title = document.getElementById('chartTitle').value || `${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart`;
             
 
@@ -1082,13 +1091,45 @@
                 
                 processedData = prepareChartData();
                 
-                const plotlyConfig = createPlotlyConfig(chartType, processedData, {
+                let plotlyConfig = createPlotlyConfig(chartType, processedData, {
                     xColumn,
                     yColumn,
                     zColumn,
                     colorColumn,
                     title
                 });
+                
+                // Apply auto-spacing if enabled
+                if (autoSpacing) {
+                    try {
+                        const xData = processedData.map(row => row[xColumn]);
+                        const spacingResponse = await fetch(`${API_ENDPOINT}/api/auto-spacing`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                x_labels: xData,
+                                chart_type: chartType
+                            })
+                        });
+                        
+                        if (spacingResponse.ok) {
+                            const spacingData = await spacingResponse.json();
+                            if (spacingData.success) {
+                                // Apply the auto-spacing configuration
+                                plotlyConfig.layout.xaxis = {
+                                    ...plotlyConfig.layout.xaxis,
+                                    ...spacingData.xaxis_config
+                                };
+                                showStatus('✅ Auto-spacing applied successfully!', 'success');
+                            }
+                        }
+                    } catch (error) {
+                        console.warn('Auto-spacing failed, using default spacing:', error);
+                        showStatus('⚠️ Auto-spacing failed, using default spacing', 'warning');
+                    }
+                }
                 
                 const plotlyChart = document.getElementById('plotlyChart');
                 plotlyChart.innerHTML = ''; // Clear the placeholder text

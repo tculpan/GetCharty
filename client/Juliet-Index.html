@@ -1439,12 +1439,17 @@
                     layout.xaxis = applyGridSettings({
                         title: xColumn,
                         gridcolor: 'rgba(255,255,255,0.1)',
-                        color: 'white'
+                        color: 'white',
+                        range: [-0.5, xData.length - 0.5]
                     }, verticalGrid, horizontalGrid);
                     layout.yaxis = applyGridSettings({
                         title: yColumn || 'Value',
                         gridcolor: 'rgba(255,255,255,0.1)',
-                        color: 'white'
+                        color: 'white',
+                        zeroline: true,
+                        zerolinecolor: 'gray',
+                        zerolinewidth: 2,
+                        range: [0, Math.max(...yData) * 1.1]
                     }, horizontalGrid, verticalGrid);
                     break;
                     
@@ -1465,12 +1470,17 @@
                     layout.xaxis = applyGridSettings({
                         title: yColumn || 'Value',
                         gridcolor: 'rgba(255,255,255,0.1)',
-                        color: 'white'
+                        color: 'white',
+                        range: [0, Math.max(...yData) * 1.1]
                     }, horizontalGrid, verticalGrid);
                     layout.yaxis = applyGridSettings({
                         title: xColumn,
                         gridcolor: 'rgba(255,255,255,0.1)',
-                        color: 'white'
+                        color: 'white',
+                        zeroline: true,
+                        zerolinecolor: 'gray',
+                        zerolinewidth: 2,
+                        range: [0, Math.max(...xData) * 1.1]
                     }, verticalGrid, horizontalGrid);
                     break;
                     
@@ -1485,8 +1495,13 @@
                         name: yColumn || 'Values'
                     }];
                     
-                    layout.xaxis = applyGridSettings({ title: xColumn, gridcolor: 'rgba(255,255,255,0.1)', color: 'white' }, verticalGrid, horizontalGrid);
-                    layout.yaxis = applyGridSettings({ title: yColumn || 'Value', gridcolor: 'rgba(255,255,255,0.1)', color: 'white' }, horizontalGrid, verticalGrid);
+                    layout.xaxis = applyGridSettings({ 
+                        title: xColumn, 
+                        gridcolor: 'rgba(255,255,255,0.1)', 
+                        color: 'white',
+                        range: [-0.5, xData.length - 0.5]
+                    }, verticalGrid, horizontalGrid);
+                    layout.yaxis = applyGridSettings({ title: yColumn || 'Value', gridcolor: 'rgba(255,255,255,0.1)', color: 'white', zeroline: true, zerolinecolor: 'gray', zerolinewidth: 2, range: [0, Math.max(...yData) * 1.1] }, horizontalGrid, verticalGrid);
                     break;
                     
                 case 'scatter':
@@ -1507,8 +1522,13 @@
                         name: 'Data Points'
                     }];
                     
-                    layout.xaxis = applyGridSettings({ title: xColumn, gridcolor: 'rgba(255,255,255,0.1)', color: 'white' }, verticalGrid, horizontalGrid);
-                    layout.yaxis = applyGridSettings({ title: yColumn, gridcolor: 'rgba(255,255,255,0.1)', color: 'white' }, horizontalGrid, verticalGrid);
+                    layout.xaxis = applyGridSettings({ 
+                        title: xColumn, 
+                        gridcolor: 'rgba(255,255,255,0.1)', 
+                        color: 'white',
+                        range: [-0.5, xData.length - 0.5]
+                    }, verticalGrid, horizontalGrid);
+                    layout.yaxis = applyGridSettings({ title: yColumn, gridcolor: 'rgba(255,255,255,0.1)', color: 'white', zeroline: true, zerolinecolor: 'gray', zerolinewidth: 2, range: [0, Math.max(...yData) * 1.1] }, horizontalGrid, verticalGrid);
                     break;
                     
                 case 'pie':
@@ -1535,8 +1555,13 @@
                         name: 'Frequency'
                     }];
                     
-                    layout.xaxis = applyGridSettings({ title: xColumn, gridcolor: 'rgba(255,255,255,0.1)', color: 'white' }, verticalGrid, horizontalGrid);
-                    layout.yaxis = applyGridSettings({ title: 'Frequency', gridcolor: 'rgba(255,255,255,0.1)', color: 'white' }, horizontalGrid, verticalGrid);
+                    layout.xaxis = applyGridSettings({ 
+                        title: xColumn, 
+                        gridcolor: 'rgba(255,255,255,0.1)', 
+                        color: 'white',
+                        range: [Math.min(...xData), Math.max(...xData)]
+                    }, verticalGrid, horizontalGrid);
+                    layout.yaxis = applyGridSettings({ title: 'Frequency', gridcolor: 'rgba(255,255,255,0.1)', color: 'white', zeroline: true, zerolinecolor: 'gray', zerolinewidth: 2, range: [0, Math.max(...yData) * 1.1] }, horizontalGrid, verticalGrid);
                     break;
                     
                 case 'box':
@@ -1548,7 +1573,7 @@
                         boxpoints: 'outliers'
                     }];
                     
-                    layout.yaxis = applyGridSettings({ title: yColumn || 'Value', gridcolor: 'rgba(255,255,255,0.1)', color: 'white' }, horizontalGrid, verticalGrid);
+                    layout.yaxis = applyGridSettings({ title: yColumn || 'Value', gridcolor: 'rgba(255,255,255,0.1)', color: 'white', zeroline: true, zerolinecolor: 'gray', zerolinewidth: 2, range: [0, Math.max(...yData) * 1.1] }, horizontalGrid, verticalGrid);
                     break;
                     
                 case 'heatmap':
@@ -1576,8 +1601,12 @@
                         name: 'Heatmap'
                     }];
                     
-                    layout.xaxis = applyGridSettings({ title: xColumn, color: 'white' }, verticalGrid, horizontalGrid);
-                    layout.yaxis = applyGridSettings({ title: yColumn, color: 'white' }, horizontalGrid, verticalGrid);
+                    layout.xaxis = applyGridSettings({ 
+                        title: xColumn, 
+                        color: 'white',
+                        range: [-0.5, uniqueX.length - 0.5]
+                    }, verticalGrid, horizontalGrid);
+                    layout.yaxis = applyGridSettings({ title: yColumn, color: 'white', zeroline: true, zerolinecolor: 'gray', zerolinewidth: 2, range: [0, Math.max(...yData) * 1.1] }, horizontalGrid, verticalGrid);
                     break;
             }
             

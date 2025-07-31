@@ -1,3 +1,7 @@
+<!--
+filename: Juliet-Index.html
+date: 2025-07-31 17:24:21
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -576,8 +580,8 @@
             
             <div class="section">
                 <h3>Chart Information</h3>
-                <input class="input-field" placeholder="Chart Title">
-                <input class="input-field" placeholder="Subtitle">
+                <input class="input-field" id="chartTitle" placeholder="Chart Title">
+                <input class="input-field" id="chartSubtitle" placeholder="Subtitle">
                 <input class="input-field" placeholder="Footnote">
                 <input class="input-field" placeholder="Data Source">
             </div>
@@ -1165,11 +1169,10 @@
                 preview.id = 'dataPreview';
                 preview.className = 'data-preview-section';
                 preview.innerHTML = '<h3>📋 Data Preview</h3><div class="data-preview" id="dataPreviewContent"></div>';
-                // Insert after the chart container but before the generate button
-                const chartContainer = document.querySelector('.chart-container');
+                // Insert after the generate button
                 const generateBtn = document.getElementById('generateBtnMain');
                 if (generateBtn) {
-                    chartContainer.parentNode.insertBefore(preview, generateBtn);
+                    generateBtn.parentNode.insertBefore(preview, generateBtn.nextSibling);
                 } else {
                     document.querySelector('.main-area').appendChild(preview);
                 }
@@ -1303,7 +1306,8 @@
             const autoSpacing = document.getElementById('autoSpacing').checked;
             const horizontalGrid = document.getElementById('horizontalGrid').checked;
             const verticalGrid = document.getElementById('verticalGrid').checked;
-            let title = document.getElementById('chartTitle') ? document.getElementById('chartTitle').value : `${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart`;
+            const title = document.getElementById('chartTitle') ? document.getElementById('chartTitle').value : `${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart`;
+            const subtitle = document.getElementById('chartSubtitle') ? document.getElementById('chartSubtitle').value : '';
             
             if (!xColumn || (!yColumn && !['pie', 'histogram'].includes(chartType))) {
                 showStatus('❌ Please select the required columns for your chart.', 'error');
@@ -1322,6 +1326,7 @@
                     zColumn,
                     colorColumn,
                     title,
+                    subtitle,
                     horizontalGrid,
                     verticalGrid
                 });
@@ -1394,7 +1399,7 @@
         }
 
         function createPlotlyConfig(chartType, data, options) {
-            const { xColumn, yColumn, zColumn, colorColumn, title, horizontalGrid, verticalGrid } = options;
+            const { xColumn, yColumn, zColumn, colorColumn, title, subtitle, horizontalGrid, verticalGrid } = options;
             
             const xData = data.map(row => row[xColumn]);
             const yData = yColumn ? data.map(row => row[yColumn]) : [];
@@ -1402,13 +1407,50 @@
             const colorData = colorColumn ? data.map(row => row[colorColumn]) : [];
             
             let plotData = [];
+            let titleText = title;
+            let subtitleLineCount = 0;
+            if (subtitle) {
+                // Use client-side wrapping for now to avoid async issues
+                const wrapResult = wrapText(subtitle, 80); // Increased width for better wrapping
+                titleText = `${title}<br><span style="font-size: 14px; color: rgba(255,255,255,0.8);">${wrapResult.text}</span>`;
+                subtitleLineCount = wrapResult.lineCount;
+            }
+            
+            function wrapText(text, width) {
+                const words = text.split(' ');
+                const lines = [];
+                let currentLine = '';
+                
+                for (let word of words) {
+                    if ((currentLine + word).length <= width) {
+                        currentLine += (currentLine ? ' ' : '') + word;
+                    } else {
+                        if (currentLine) {
+                            lines.push(currentLine);
+                        }
+                        currentLine = word;
+                    }
+                }
+                
+                if (currentLine) {
+                    lines.push(currentLine);
+                }
+                
+                return {
+                    text: lines.join('<br>'),
+                    lineCount: lines.length
+                };
+            }
+            
             let layout = {
                 title: {
-                    text: title,
-                    font: { size: 18, color: 'white' }
+                    text: titleText,
+                    font: { size: 18, color: 'white' },
+                    x: 0.5,
+                    xanchor: 'center'
                 },
                 showlegend: true,
-                margin: { t: 60, b: 50, l: 50, r: 50 },
+                margin: { t: subtitle ? (60 + (subtitleLineCount * 20)) : 60, b: 50, l: 50, r: 50 },
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 font: { color: 'white' }
@@ -1658,8 +1700,8 @@
             radioInputs.forEach(radio => {
                 radio.addEventListener('change', function() {
                     handleDataOrientationChange();
+                    });
                 });
-            });
 
             // Initialize
             showStatus('🚀 Interactive charting application ready! Upload a CSV or Excel file to get started.', 'success');

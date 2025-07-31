@@ -1,5 +1,6 @@
 # app.py
-# 2025-01-28 16:55:00
+# filename: app.py
+# date: 2025-07-31 17:17:59
 # Updated to use hybrid storage system with user management
 
 from flask import Flask, request, jsonify
@@ -385,6 +386,43 @@ def auto_spacing():
             'success': True,
             'xaxis_config': xaxis_config,
             'interval_type': interval_type
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/subtitle-width', methods=['POST'])
+def calculate_subtitle_width():
+    """
+    Calculate optimal subtitle width based on chart container and font size
+    """
+    try:
+        body = request.get_json()
+        subtitle_text = body.get('subtitle', '')
+        chart_width = body.get('chart_width', 800)  # Default chart width
+        font_size = body.get('font_size', 14)  # Subtitle font size
+        
+        # Calculate optimal width based on chart container and font size
+        # Approximate characters per line = (chart_width * 0.8) / (font_size * 0.6)
+        # 0.8 accounts for padding, 0.6 is approximate character width ratio
+        optimal_width = int((chart_width * 0.8) / (font_size * 0.6))
+        
+        # Ensure reasonable bounds (not too narrow, not too wide)
+        optimal_width = max(40, min(120, optimal_width))
+        
+        # Apply text wrapping
+        import textwrap
+        wrapped_lines = textwrap.wrap(subtitle_text, width=optimal_width)
+        wrapped_text = '<br>'.join(wrapped_lines)
+        
+        return jsonify({
+            'success': True,
+            'optimal_width': optimal_width,
+            'wrapped_text': wrapped_text,
+            'line_count': len(wrapped_lines)
         })
         
     except Exception as e:

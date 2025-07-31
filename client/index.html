@@ -425,49 +425,49 @@
         <div class="content">
             <!-- Left Sidebar -->
             <div class="sidebar">
-                <div class="upload-section" id="uploadSection">
-                    <h3>📁 Upload Your Data File</h3>
-                    <p>Drag and drop or click to select CSV or Excel files</p>
-                    <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls">
-                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Choose File</button>
-                    <p><small>Supported formats: CSV, Excel (.xlsx, .xls) • Max size: 10MB</small></p>
-                    
+            <div class="upload-section" id="uploadSection">
+                <h3>📁 Upload Your Data File</h3>
+                <p>Drag and drop or click to select CSV or Excel files</p>
+                <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Choose File</button>
+                <p><small>Supported formats: CSV, Excel (.xlsx, .xls) • Max size: 10MB</small></p>
+                
                     <div class="control-group" style="margin-top: 20px;">
-                        <label for="dataOrientation">📋 Data Orientation</label>
-                        <select id="dataOrientation" onchange="handleDataOrientationChange()">
-                            <option value="vertical">📊 Vertical (Columns as Series)</option>
-                            <option value="horizontal">📈 Horizontal (Rows as Series)</option>
-                        </select>
-                        <small style="display: block; margin-top: 5px; color: #6b7280;">
-                            Vertical: Each column is a data series<br>
-                            Horizontal: Each row is a data series
-                        </small>
-                    </div>
+                    <label for="dataOrientation">📋 Data Orientation</label>
+                    <select id="dataOrientation" onchange="handleDataOrientationChange()">
+                        <option value="vertical">📊 Vertical (Columns as Series)</option>
+                        <option value="horizontal">📈 Horizontal (Rows as Series)</option>
+                    </select>
+                    <small style="display: block; margin-top: 5px; color: #6b7280;">
+                        Vertical: Each column is a data series<br>
+                        Horizontal: Each row is a data series
+                    </small>
                 </div>
+            </div>
                 
                 <button class="generate-btn" id="generateBtn" onclick="generateChart()" disabled>
                     🎨 Generate Interactive Chart
                 </button>
-                
-                <div class="status" id="status"></div>
-                
-                <div class="loading" id="loading">
-                    <div class="spinner"></div>
-                    <p>Processing your file...</p>
-                </div>
+            
+            <div class="status" id="status"></div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing your file...</p>
+            </div>
                 
                 <!-- Data Stats Section -->
                 <div id="dataStats" style="display: none;"></div>
-                
-                <!-- User Files Section -->
-                <div class="user-files-section" id="userFilesSection">
-                    <h3>📁 Your Files</h3>
-                    <div id="userFiles">
-                        <p>Loading your files...</p>
-                    </div>
+            
+            <!-- User Files Section -->
+            <div class="user-files-section" id="userFilesSection">
+                <h3>📁 Your Files</h3>
+                <div id="userFiles">
+                    <p>Loading your files...</p>
                 </div>
             </div>
-            
+                </div>
+                
             <!-- Main Content Area -->
             <div class="main-content">
                 <!-- Chart Container -->
@@ -479,80 +479,80 @@
                 <div class="controls-section" id="controls" style="display: none;">
                     <h3>📊 Chart Configuration</h3>
                     <div class="controls" id="controlsGrid">
-                        <div class="control-group">
-                            <label for="chartType">📈 Chart Type</label>
-                            <select id="chartType" onchange="updateColumnOptions()">
+                <div class="control-group">
+                    <label for="chartType">📈 Chart Type</label>
+                    <select id="chartType" onchange="updateColumnOptions()">
                                 <option value="vertical_bar">Vertical Bar Chart</option>
                                 <option value="horizontal_bar">Horizontal Bar Chart</option>
-                                <option value="line">Line Chart</option>
-                                <option value="scatter">Scatter Plot</option>
-                                <option value="pie">Pie Chart</option>
-                                <option value="histogram">Histogram</option>
-                                <option value="box">Box Plot</option>
-                                <option value="heatmap">Heatmap</option>
-                                <option value="3d_scatter">3D Scatter</option>
-                            </select>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label for="xColumn">🔢 X-Axis Column</label>
-                            <select id="xColumn"></select>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label for="yColumn">📊 Y-Axis Column</label>
-                            <select id="yColumn"></select>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label for="zColumn">📈 Z-Axis Column (3D only)</label>
-                            <select id="zColumn">
-                                <option value="">None</option>
-                            </select>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label for="colorColumn">🎨 Color Column</label>
-                            <select id="colorColumn">
-                                <option value="">None</option>
-                            </select>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label for="chartTitle">🏷️ Chart Title</label>
-                            <input type="text" id="chartTitle" placeholder="Auto-generated title">
-                        </div>
-                        
-                        <div class="control-group">
-                            <label for="aggregation">🔄 Aggregation</label>
-                            <select id="aggregation">
-                                <option value="none">No Aggregation</option>
-                                <option value="count">Count</option>
-                                <option value="sum">Sum</option>
-                                <option value="average">Average</option>
-                                <option value="max">Maximum</option>
-                                <option value="min">Minimum</option>
-                            </select>
-                        </div>
-                        
-                        <div class="control-group">
-                            <label for="maxItems">📏 Max Items to Show</label>
-                            <select id="maxItems">
-                                <option value="10">Top 10</option>
-                                <option value="20">Top 20</option>
-                                <option value="50">Top 50</option>
-                                <option value="all">Show All</option>
-                            </select>
-                        </div>
-                        
-                        <div class="control-group">
+                        <option value="line">Line Chart</option>
+                        <option value="scatter">Scatter Plot</option>
+                        <option value="pie">Pie Chart</option>
+                        <option value="histogram">Histogram</option>
+                        <option value="box">Box Plot</option>
+                        <option value="heatmap">Heatmap</option>
+                        <option value="3d_scatter">3D Scatter</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="xColumn">🔢 X-Axis Column</label>
+                    <select id="xColumn"></select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="yColumn">📊 Y-Axis Column</label>
+                    <select id="yColumn"></select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="zColumn">📈 Z-Axis Column (3D only)</label>
+                    <select id="zColumn">
+                        <option value="">None</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="colorColumn">🎨 Color Column</label>
+                    <select id="colorColumn">
+                        <option value="">None</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="chartTitle">🏷️ Chart Title</label>
+                    <input type="text" id="chartTitle" placeholder="Auto-generated title">
+                </div>
+                
+                <div class="control-group">
+                    <label for="aggregation">🔄 Aggregation</label>
+                    <select id="aggregation">
+                        <option value="none">No Aggregation</option>
+                        <option value="count">Count</option>
+                        <option value="sum">Sum</option>
+                        <option value="average">Average</option>
+                        <option value="max">Maximum</option>
+                        <option value="min">Minimum</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="maxItems">📏 Max Items to Show</label>
+                    <select id="maxItems">
+                        <option value="10">Top 10</option>
+                        <option value="20">Top 20</option>
+                        <option value="50">Top 50</option>
+                        <option value="all">Show All</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
                             <label for="autoSpacing">📏 X-axis Auto Spacing</label>
                             <select id="autoSpacing">
                                 <option value="no">No</option>
                                 <option value="yes">Yes</option>
-                            </select>
-                        </div>
-                        
+                    </select>
+            </div>
+            
 
                     </div>
                 </div>
@@ -561,14 +561,14 @@
                 <div class="data-preview-section" id="dataPreview" style="display: none;">
                     <h3>📋 Data Preview</h3>
                     <div class="data-preview" id="dataPreviewContent"></div>
-                </div>
-                
+            </div>
+            
                 <!-- Export Section -->
                 <div class="export-section" id="exportSection" style="display: none;">
-                    <h3>💾 Export Options</h3>
-                    <button class="export-btn" onclick="exportAsImage('png')">📸 Export as PNG</button>
-                    <button class="export-btn" onclick="exportAsImage('svg')">🎨 Export as SVG</button>
-                    <button class="export-btn" onclick="exportAsHTML()">🌐 Export as HTML</button>
+                <h3>💾 Export Options</h3>
+                <button class="export-btn" onclick="exportAsImage('png')">📸 Export as PNG</button>
+                <button class="export-btn" onclick="exportAsImage('svg')">🎨 Export as SVG</button>
+                <button class="export-btn" onclick="exportAsHTML()">🌐 Export as HTML</button>
                 <button class="export-btn" onclick="exportData()">📄 Export Data as CSV</button>
                 <button class="export-btn" onclick="exportChartConfig()">⚙️ Export Chart Config</button>
             </div>

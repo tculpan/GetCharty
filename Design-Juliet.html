@@ -1,3 +1,7 @@
+<!--
+filename: Design-Juliet.html
+date: 2025-01-27 15:30:00
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -349,6 +353,77 @@
             letter-spacing: 0.5px;
         }
 
+        .data-preview-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .data-preview-section h3 {
+            color: #e94560;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.3);
+        }
+
+        .data-preview-content {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .data-preview-content p {
+            color: #a8a8a8;
+            font-size: 14px;
+            text-align: center;
+            margin: 0;
+        }
+
+        .chart-preview {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .chart-preview h2 {
+            color: #e94560;
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.3);
+        }
+
+        .chart-display {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 300px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .button-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
         @media (max-width: 768px) {
             .sidebar-layout {
                 grid-template-columns: 1fr;
@@ -438,6 +513,10 @@
                     <option>📡 Radar Chart</option>
                     <option>📊 Box Plot</option>
                 </select>
+            </div>
+            
+            <div class="section">
+                <button class="btn-primary" style="width: 100%; padding: 15px 20px; margin: 10px 0;">🚀 Generate Chart</button>
             </div>
             
             <div class="section">
@@ -534,12 +613,25 @@
         </div>
         
         <div class="main-area">
+            <!-- Chart Preview Area -->
             <div class="chart-container">
-                <div class="chart-placeholder">
-                    <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;">📊</div>
-                    <h2>Chart Preview Area</h2>
-                    <p>Upload data and configure settings to see your chart</p>
-                    <button class="btn-primary" style="width: auto; padding: 15px 30px; margin: 20px auto; display: block;">🚀 Generate Chart</button>
+                <div class="chart-preview">
+                    <h2>Chart Preview</h2>
+                    <div class="chart-display">
+                        <!-- Chart will be rendered here -->
+                        <div class="chart-placeholder">
+                            <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;">📊</div>
+                            <p>Upload data and configure settings to see your chart</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Data Preview Section -->
+            <div class="data-preview-section">
+                <h3>📋 Data Preview</h3>
+                <div class="data-preview-content">
+                    <p>Data preview will appear here after file upload</p>
                 </div>
             </div>
         </div>

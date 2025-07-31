@@ -1,5 +1,7 @@
-#5. Configuration Updates
 # config.py
+# filename: config.py
+# date: 2025-07-31 17:17:59
+# Configuration file for date formats and quarter definitions
 DATE_FORMATS = [
     '%Y-%m-%d',
     '%m/%d/%Y',

@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GetCharty Analytics - Design Hotel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            min-height: 100vh;
+            color: #ffffff;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 1rem 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            color: #e94560;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+        }
+
+        .header p {
+            color: #a8a8a8;
+            font-size: 1.1rem;
+        }
+
+        .top-nav {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 0.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            background: rgba(233, 69, 96, 0.2);
+            color: #e94560;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+        }
+
+        .nav-btn:hover {
+            background: rgba(233, 69, 96, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .chart-display {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            margin-bottom: 2rem;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #a8a8a8;
+            font-size: 1.2rem;
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .minimal-sidebar {
+            width: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            height: fit-content;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #e94560;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #a8a8a8;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #e94560;
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: #a8a8a8;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e94560, #533483);
+            color: white;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+        }
+
+        .orientation-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .orientation-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            font-size: 0.9rem;
+        }
+
+        .orientation-option:hover {
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        .orientation-option input[type="radio"] {
+            accent-color: #e94560;
+        }
+
+        .orientation-icon {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chart-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .chart-type-btn {
+            padding: 1rem 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #ffffff;
+        }
+
+        .chart-type-btn:hover {
+            border-color: #e94560;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.2);
+        }
+
+        .chart-type-btn.active {
+            background: rgba(233, 69, 96, 0.3);
+            color: white;
+            border-color: #e94560;
+            box-shadow: 0 0 15px rgba(233, 69, 96, 0.3);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .toggle-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .toggle-btn {
+            padding: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            color: #ffffff;
+        }
+
+        .toggle-btn.active {
+            background: rgba(233, 69, 96, 0.3);
+            color: white;
+            border-color: #e94560;
+            box-shadow: 0 0 15px rgba(233, 69, 96, 0.3);
+        }
+
+        .toggle-btn:hover {
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        .advanced-dropdown {
+            position: relative;
+        }
+
+        .dropdown-btn {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            text-align: left;
+            color: #ffffff;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            color: #ffffff;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(233, 69, 96, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .main-layout {
+                flex-direction: column;
+            }
+            
+            .minimal-sidebar {
+                width: 100%;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .toggle-group {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .chart-type-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="neon-text">📊 GetCharty Analytics</h1>
+        <p>Transform your data into insights</p>
+    </div>
+
+    <div class="top-nav">
+        <button class="nav-btn">☰ Menu</button>
+        <button class="nav-btn">💾 Save</button>
+        <button class="nav-btn">📤 Export</button>
+        <button class="nav-btn">⚙️ Settings</button>
+        <button class="nav-btn">🌙</button>
+    </div>
+
+    <div class="container">
+        <div class="chart-display">
+            Your Chart Goes Here
+        </div>
+
+        <div class="main-layout">
+            <div class="minimal-sidebar">
+                <div class="section-title">📁 File Upload</div>
+                <div class="form-group">
+                    <input type="file" class="form-control" accept=".csv,.xlsx,.xls" placeholder="Choose File">
+                </div>
+
+                <div class="section-title">📐 Data Orientation</div>
+                <div class="orientation-group">
+                    <label class="orientation-option">
+                        <input type="radio" name="orientation" value="horizontal">
+                        <span class="orientation-icon">──</span>
+                        Horizontal
+                    </label>
+                    <label class="orientation-option">
+                        <input type="radio" name="orientation" value="vertical" checked>
+                        <span class="orientation-icon">│</span>
+                        Vertical
+                    </label>
+                </div>
+
+                <button class="btn btn-primary">Generate Chart</button>
+            </div>
+
+            <div class="main-content">
+                <div class="content-card">
+                    <div class="section-title">📊 Chart Type Selector</div>
+                    <div class="chart-type-grid">
+                        <button class="chart-type-btn active">📊 Bar</button>
+                        <button class="chart-type-btn">📈 Line</button>
+                        <button class="chart-type-btn">🍕 Pie</button>
+                        <button class="chart-type-btn">📉 Scat</button>
+                        <button class="chart-type-btn">📊 Hist</button>
+                        <button class="chart-type-btn">📈 Box</button>
+                        <button class="chart-type-btn">📊 Heat</button>
+                        <button class="chart-type-btn">📊 3D</button>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <div class="section-title">📝 Chart Titles</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="title">Title</label>
+                            <input type="text" id="title" class="form-control" placeholder="Enter title">
+                        </div>
+                        <div class="form-group">
+                            <label for="subtitle">Subtitle</label>
+                            <input type="text" id="subtitle" class="form-control" placeholder="Enter subtitle">
+                        </div>
+                        <div class="form-group">
+                            <label for="footnote">Footnote</label>
+                            <input type="text" id="footnote" class="form-control" placeholder="Enter footnote">
+                        </div>
+                        <div class="form-group">
+                            <label for="source">Source</label>
+                            <input type="text" id="source" class="form-control" placeholder="Enter source">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <div class="section-title">📏 Axes Labels</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="xAxis">X-Axis</label>
+                            <input type="text" id="xAxis" class="form-control" placeholder="Enter X-axis label">
+                        </div>
+                        <div class="form-group">
+                            <label for="yAxis">Y-Axis</label>
+                            <input type="text" id="yAxis" class="form-control" placeholder="Enter Y-axis label">
+                        </div>
+                        <div class="form-group">
+                            <label for="yPrefix">Y-Prefix</label>
+                            <input type="text" id="yPrefix" class="form-control" placeholder="Enter Y-prefix">
+                        </div>
+                        <div class="form-group">
+                            <label for="ySuffix">Y-Suffix</label>
+                            <input type="text" id="ySuffix" class="form-control" placeholder="Enter Y-suffix">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <div class="section-title">⚙️ Binary Controls</div>
+                    <div class="toggle-group">
+                        <button class="toggle-btn active">H-Ln</button>
+                        <button class="toggle-btn">V-Ln</button>
+                        <button class="toggle-btn active">X-Lbl</button>
+                        <button class="toggle-btn active">X-Sp</button>
+                        <button class="toggle-btn active">Y-Lbl</button>
+                        <button class="toggle-btn">Y-Sp</button>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <div class="section-title">🎨 Advanced Options</div>
+                    <div class="advanced-dropdown">
+                        <button class="dropdown-btn" onclick="toggleDropdown()">▼ More Options</button>
+                        <div class="dropdown-content" id="advancedDropdown">
+                            <div class="dropdown-item">• Color Schemes</div>
+                            <div class="dropdown-item">• Font Selection</div>
+                            <div class="dropdown-item">• Grid Styling</div>
+                            <div class="dropdown-item">• Animation Settings</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle buttons
+        document.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.classList.toggle('active');
+            });
+        });
+
+        // Chart type buttons
+        document.querySelectorAll('.chart-type-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Advanced dropdown
+        function toggleDropdown() {
+            const dropdown = document.getElementById('advancedDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('advancedDropdown');
+            if (!event.target.matches('.dropdown-btn')) {
+                dropdown.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html> 

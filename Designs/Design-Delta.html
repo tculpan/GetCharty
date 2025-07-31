@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GetCharty Analytics - Design Delta</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #3498db 100%);
+            min-height: 100vh;
+            color: #2c3e50;
+        }
+
+        .title-bar {
+            background: #2c3e50;
+            color: white;
+            padding: 0.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .title-bar h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+
+        .menu-bar {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .menu-item {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .close-btn {
+            background: #e74c3c;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .toolbar {
+            background: #34495e;
+            padding: 0.5rem 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .tool-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .tool-btn:hover {
+            background: #2980b9;
+        }
+
+        .container {
+            display: flex;
+            min-height: calc(100vh - 120px);
+            padding: 1rem;
+            gap: 1rem;
+        }
+
+        .tool-panel {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .workspace {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .chart-workspace {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            border: 2px dashed #dee2e6;
+            color: #6c757d;
+            font-size: 1.2rem;
+        }
+
+        .properties-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            font-size: 0.9rem;
+        }
+
+        .radio-option:hover {
+            border-color: #3498db;
+        }
+
+        .radio-option input[type="radio"] {
+            accent-color: #3498db;
+        }
+
+        .toggle-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .toggle-btn {
+            padding: 0.5rem;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .toggle-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .toggle-btn:hover {
+            border-color: #3498db;
+        }
+
+        .chart-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .chart-type-btn {
+            padding: 0.75rem 0.25rem;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        .chart-type-btn:hover {
+            border-color: #3498db;
+        }
+
+        .chart-type-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .advanced-dropdown {
+            position: relative;
+        }
+
+        .dropdown-btn {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 0.5rem;
+            }
+            
+            .tool-panel {
+                width: 100%;
+            }
+            
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="title-bar">
+        <h1>📊 GetCharty Analytics</h1>
+        <div class="menu-bar">
+            <button class="menu-item">File</button>
+            <button class="menu-item">Edit</button>
+            <button class="menu-item">View</button>
+            <button class="menu-item">Help</button>
+        </div>
+        <button class="close-btn">×</button>
+    </div>
+
+    <div class="toolbar">
+        <button class="tool-btn">📁</button>
+        <button class="tool-btn">💾</button>
+        <button class="tool-btn">📤</button>
+        <button class="tool-btn">🔄</button>
+        <button class="tool-btn">⚙️</button>
+        <button class="tool-btn">❓</button>
+    </div>
+
+    <div class="container">
+        <div class="tool-panel">
+            <div class="section-title">📁 File Upload</div>
+            <div class="form-group">
+                <label for="fileInput">Choose File</label>
+                <input type="file" id="fileInput" class="form-control" accept=".csv,.xlsx,.xls">
+            </div>
+            <button class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;">Upload</button>
+
+            <div class="section-title">📐 Data Layout</div>
+            <div class="radio-group">
+                <label class="radio-option">
+                    <input type="radio" name="layout" value="vertical">
+                    Vertical
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="layout" value="horizontal" checked>
+                    Horizontal
+                </label>
+            </div>
+
+            <div class="section-title">🎯 Generate</div>
+            <button class="btn btn-primary" style="width: 100%;">Create Chart</button>
+        </div>
+
+        <div class="workspace">
+            <div class="chart-workspace">
+                Chart Workspace
+            </div>
+
+            <div class="properties-panel">
+                <div class="section-title">📝 Macro Elements</div>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="title">Title</label>
+                        <input type="text" id="title" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="subtitle">Subtitle</label>
+                        <input type="text" id="subtitle" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="footnote">Footnote</label>
+                        <input type="text" id="footnote" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="source">Source</label>
+                    <input type="text" id="source" class="form-control">
+                </div>
+
+                <div class="section-title">📏 Micro Elements</div>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="xAxis">X-Axis</label>
+                        <input type="text" id="xAxis" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="yAxis">Y-Axis</label>
+                        <input type="text" id="yAxis" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="yPrefix">Y-Prefix</label>
+                        <input type="text" id="yPrefix" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="ySuffix">Y-Suffix</label>
+                    <input type="text" id="ySuffix" class="form-control">
+                </div>
+
+                <div class="section-title">⚙️ Binary Controls</div>
+                <div class="toggle-group">
+                    <button class="toggle-btn active">H-Ln</button>
+                    <button class="toggle-btn">V-Ln</button>
+                    <button class="toggle-btn active">X-Lbl</button>
+                    <button class="toggle-btn active">X-Sp</button>
+                    <button class="toggle-btn active">Y-Lbl</button>
+                    <button class="toggle-btn">Y-Sp</button>
+                </div>
+
+                <div class="section-title">📊 Chart Type Selector</div>
+                <div class="chart-type-grid">
+                    <button class="chart-type-btn active">📊 Bar</button>
+                    <button class="chart-type-btn">📈 Line</button>
+                    <button class="chart-type-btn">🍕 Pie</button>
+                    <button class="chart-type-btn">📉 Scat</button>
+                    <button class="chart-type-btn">📊 Hist</button>
+                    <button class="chart-type-btn">📈 Box</button>
+                    <button class="chart-type-btn">📊 Heat</button>
+                    <button class="chart-type-btn">📊 3D</button>
+                </div>
+
+                <div class="section-title">🎨 Advanced Options</div>
+                <div class="advanced-dropdown">
+                    <button class="dropdown-btn" onclick="toggleDropdown()">▼ More Options</button>
+                    <div class="dropdown-content" id="advancedDropdown">
+                        <div class="dropdown-item">• Color Schemes</div>
+                        <div class="dropdown-item">• Font Selection</div>
+                        <div class="dropdown-item">• Grid Styling</div>
+                        <div class="dropdown-item">• Animation Settings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle buttons
+        document.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.classList.toggle('active');
+            });
+        });
+
+        // Chart type buttons
+        document.querySelectorAll('.chart-type-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Advanced dropdown
+        function toggleDropdown() {
+            const dropdown = document.getElementById('advancedDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('advancedDropdown');
+            if (!event.target.matches('.dropdown-btn')) {
+                dropdown.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html> 

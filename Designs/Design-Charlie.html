@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GetCharty Analytics - Design Charlie</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            color: #2c3e50;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #20bf6b;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .top-nav {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            background: #20bf6b;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .nav-btn:hover {
+            background: #16a085;
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .chart-display {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            border: 2px dashed #dee2e6;
+            color: #6c757d;
+            font-size: 1.2rem;
+        }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #20bf6b;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .upload-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .file-input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #20bf6b;
+            box-shadow: 0 0 0 3px rgba(32, 191, 107, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #20bf6b, #16a085);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(32, 191, 107, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .radio-option:hover {
+            border-color: #20bf6b;
+        }
+
+        .radio-option input[type="radio"] {
+            accent-color: #20bf6b;
+        }
+
+        .collapsible {
+            margin-bottom: 2rem;
+        }
+
+        .collapsible-header {
+            background: rgba(32, 191, 107, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            color: #20bf6b;
+            transition: all 0.3s ease;
+        }
+
+        .collapsible-header:hover {
+            background: rgba(32, 191, 107, 0.2);
+        }
+
+        .collapsible-content {
+            display: none;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+
+        .collapsible-content.show {
+            display: block;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .toggle-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .toggle-btn {
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .toggle-btn.active {
+            background: #20bf6b;
+            color: white;
+            border-color: #20bf6b;
+        }
+
+        .toggle-btn:hover {
+            border-color: #20bf6b;
+        }
+
+        .chart-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .chart-type-btn {
+            padding: 1rem 0.5rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .chart-type-btn:hover {
+            border-color: #20bf6b;
+            transform: translateY(-2px);
+        }
+
+        .chart-type-btn.active {
+            background: #20bf6b;
+            color: white;
+            border-color: #20bf6b;
+        }
+
+        .advanced-dropdown {
+            position: relative;
+        }
+
+        .dropdown-btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        @media (max-width: 768px) {
+            .upload-section {
+                flex-direction: column;
+            }
+            
+            .radio-group {
+                flex-direction: column;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .toggle-group {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .chart-type-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 GetCharty Analytics</h1>
+        <p>Transform your data into insights</p>
+    </div>
+
+    <div class="top-nav">
+        <button class="nav-btn">☰ Menu</button>
+        <button class="nav-btn">📁 Upload</button>
+        <button class="nav-btn">⚙️ Settings</button>
+        <button class="nav-btn">💾 Save</button>
+        <button class="nav-btn">📤 Export</button>
+    </div>
+
+    <div class="container">
+        <div class="chart-display">
+            Your Chart Goes Here
+        </div>
+
+        <div class="control-panel">
+            <div class="upload-section">
+                <div class="file-input">
+                    <input type="file" class="form-control" accept=".csv,.xlsx,.xls" placeholder="Choose File">
+                </div>
+                <button class="btn btn-primary">Upload</button>
+                <button class="btn btn-secondary">🔄 Refresh</button>
+            </div>
+
+            <div class="radio-group">
+                <label class="radio-option">
+                    <input type="radio" name="layout" value="vertical">
+                    ○ Vertical
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="layout" value="horizontal" checked>
+                    ● Horizontal
+                </label>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; margin-bottom: 2rem;">🎯 Generate Chart</button>
+
+            <div class="collapsible">
+                <div class="collapsible-header" onclick="toggleCollapsible('designPanel')">
+                    ▼ DESIGN PANEL (Click to expand)
+                    <span>📝</span>
+                </div>
+                <div class="collapsible-content" id="designPanel">
+                    <div class="section-title">📝 Macro Elements</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="title">Title</label>
+                            <input type="text" id="title" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="subtitle">Subtitle</label>
+                            <input type="text" id="subtitle" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="footnote">Footnote</label>
+                            <input type="text" id="footnote" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="source">Source</label>
+                            <input type="text" id="source" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="section-title">📏 Micro Elements</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="xAxis">X-Axis</label>
+                            <input type="text" id="xAxis" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="yAxis">Y-Axis</label>
+                            <input type="text" id="yAxis" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="yPrefix">Y-Prefix</label>
+                            <input type="text" id="yPrefix" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="ySuffix">Y-Suffix</label>
+                            <input type="text" id="ySuffix" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="section-title">⚙️ Binary Controls</div>
+                    <div class="toggle-group">
+                        <button class="toggle-btn active">H-Ln</button>
+                        <button class="toggle-btn">V-Ln</button>
+                        <button class="toggle-btn active">X-Lbl</button>
+                        <button class="toggle-btn active">X-Sp</button>
+                        <button class="toggle-btn active">Y-Lbl</button>
+                        <button class="toggle-btn">Y-Sp</button>
+                    </div>
+
+                    <div class="section-title">📊 Chart Type Selector</div>
+                    <div class="chart-type-grid">
+                        <button class="chart-type-btn active">📊 Bar</button>
+                        <button class="chart-type-btn">📈 Line</button>
+                        <button class="chart-type-btn">🍕 Pie</button>
+                        <button class="chart-type-btn">📉 Scat</button>
+                        <button class="chart-type-btn">📊 Hist</button>
+                        <button class="chart-type-btn">📈 Box</button>
+                        <button class="chart-type-btn">📊 Heat</button>
+                        <button class="chart-type-btn">📊 3D</button>
+                        <button class="chart-type-btn">📊 Area</button>
+                        <button class="chart-type-btn">📊 Bubble</button>
+                    </div>
+
+                    <div class="section-title">🎨 Advanced Options</div>
+                    <div class="advanced-dropdown">
+                        <button class="dropdown-btn" onclick="toggleDropdown()">▼ More Options</button>
+                        <div class="dropdown-content" id="advancedDropdown">
+                            <div class="dropdown-item">• Color Schemes</div>
+                            <div class="dropdown-item">• Font Selection</div>
+                            <div class="dropdown-item">• Grid Styling</div>
+                            <div class="dropdown-item">• Animation Settings</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle collapsible sections
+        function toggleCollapsible(id) {
+            const content = document.getElementById(id);
+            content.classList.toggle('show');
+        }
+
+        // Toggle buttons
+        document.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.classList.toggle('active');
+            });
+        });
+
+        // Chart type buttons
+        document.querySelectorAll('.chart-type-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Advanced dropdown
+        function toggleDropdown() {
+            const dropdown = document.getElementById('advancedDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('advancedDropdown');
+            if (!event.target.matches('.dropdown-btn')) {
+                dropdown.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html> 

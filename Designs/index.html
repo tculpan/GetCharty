@@ -1,0 +1,1740 @@
+<!--
+    File: client/index.html
+    28 July 2025: 1546
+    ChartDomain - Professional Data Visualization Platform
+    Complete HTML file with quarterly spacing integration
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GetCharty -- A New, Better Way to Make Charts</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #8c3eab 0%, #46344d 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            display: flex;
+            min-height: calc(100vh - 200px);
+        }
+        
+        .sidebar {
+            width: 25%;
+            background: #f8fafc;
+            padding: 30px;
+            border-right: 1px solid #e5e7eb;
+        }
+        
+        .main-content {
+            width: 75%;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .upload-section {
+            background: white;
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-section:hover {
+            border-color: #4facfe;
+            background: #f0f9ff;
+        }
+        
+        .upload-section.dragover {
+            border-color: #4facfe;
+            background: #dbeafe;
+            transform: scale(1.02);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #46344d 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin: 10px;
+            width: 100%;
+        }
+        
+        .upload-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .control-group {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .control-group select, .control-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+        
+        .control-group select:focus, .control-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+        
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin: 20px 0;
+            width: 100%;
+        }
+        
+        .generate-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .chart-container {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+        
+        .chart-container.has-chart {
+            min-height: 500px;
+            display: block;
+        }
+        
+        .chart-container.has-chart #plotlyChart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls-section {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .data-preview-section {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #374151;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #e5e7eb;
+            }
+            
+            .main-content {
+                width: 100%;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .data-preview {
+            margin: 20px 0;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            overflow-x: auto;
+            max-height: 400px;
+        }
+        
+        .data-preview table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        
+        .data-preview th,
+        .data-preview td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .data-preview th {
+            background: #374151;
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+
+        
+        .export-section {
+            margin: 30px 0;
+            display: none;
+        }
+        
+        .export-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            margin: 0 10px 10px 0;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .export-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+        }
+        
+        .status.error {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+        }
+        
+        .status.warning {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #9238b0;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        
+        /* New styles for quarterly data */
+        .date-controls {
+            background: #e0f2fe;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .date-controls h4 {
+            color: #0369a1;
+            margin-bottom: 15px;
+        }
+        
+        .quarter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+
+        
+
+        
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>No Mess, No Fuss -- Get Charty</h1>
+            <p>Process CSV/Excel files and create interactive charts</p>
+            <p>Don't worry, we're in Alpha -- it WILL crash. It's not you, it's us!</p>
+        </div>
+        
+        <div class="content">
+            <!-- Left Sidebar -->
+            <div class="sidebar">
+                <div class="upload-section" id="uploadSection">
+                    <h3>📁 Upload Your Data File</h3>
+                    <p>Drag and drop or click to select CSV or Excel files</p>
+                    <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls">
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Choose File</button>
+                    <p><small>Supported formats: CSV, Excel (.xlsx, .xls) • Max size: 10MB</small></p>
+                    
+                    <div class="control-group" style="margin-top: 20px;">
+                        <label for="dataOrientation">📋 Data Orientation</label>
+                        <select id="dataOrientation" onchange="handleDataOrientationChange()">
+                            <option value="vertical">📊 Vertical (Columns as Series)</option>
+                            <option value="horizontal">📈 Horizontal (Rows as Series)</option>
+                        </select>
+                        <small style="display: block; margin-top: 5px; color: #6b7280;">
+                            Vertical: Each column is a data series<br>
+                            Horizontal: Each row is a data series
+                        </small>
+                    </div>
+                </div>
+                
+                <button class="generate-btn" id="generateBtn" onclick="generateChart()" disabled>
+                    🎨 Generate Interactive Chart
+                </button>
+                
+                <div class="status" id="status"></div>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Processing your file...</p>
+                </div>
+                
+                <!-- Data Stats Section -->
+                <div id="dataStats" style="display: none;"></div>
+                
+                <!-- User Files Section -->
+                <div class="user-files-section" id="userFilesSection">
+                    <h3>📁 Your Files</h3>
+                    <div id="userFiles">
+                        <p>Loading your files...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content Area -->
+            <div class="main-content">
+                <!-- Chart Container -->
+                <div class="chart-container" id="chartContainer">
+                    <div id="plotlyChart">Your Chart Goes Here</div>
+                </div>
+                
+                <!-- Controls Section -->
+                <div class="controls-section" id="controls" style="display: none;">
+                    <h3>📊 Chart Configuration</h3>
+                    <div class="controls" id="controlsGrid">
+                        <div class="control-group">
+                            <label for="chartType">📈 Chart Type</label>
+                            <select id="chartType" onchange="updateColumnOptions()">
+                                <option value="vertical_bar">Vertical Bar Chart</option>
+                                <option value="horizontal_bar">Horizontal Bar Chart</option>
+                                <option value="line">Line Chart</option>
+                                <option value="scatter">Scatter Plot</option>
+                                <option value="pie">Pie Chart</option>
+                                <option value="histogram">Histogram</option>
+                                <option value="box">Box Plot</option>
+                                <option value="heatmap">Heatmap</option>
+                                <option value="3d_scatter">3D Scatter</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="xColumn">🔢 X-Axis Column</label>
+                            <select id="xColumn"></select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="yColumn">📊 Y-Axis Column</label>
+                            <select id="yColumn"></select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="zColumn">📈 Z-Axis Column (3D only)</label>
+                            <select id="zColumn">
+                                <option value="">None</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="colorColumn">🎨 Color Column</label>
+                            <select id="colorColumn">
+                                <option value="">None</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="chartTitle">🏷️ Chart Title</label>
+                            <input type="text" id="chartTitle" placeholder="Auto-generated title">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="aggregation">🔄 Aggregation</label>
+                            <select id="aggregation">
+                                <option value="none">No Aggregation</option>
+                                <option value="count">Count</option>
+                                <option value="sum">Sum</option>
+                                <option value="average">Average</option>
+                                <option value="max">Maximum</option>
+                                <option value="min">Minimum</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="maxItems">📏 Max Items to Show</label>
+                            <select id="maxItems">
+                                <option value="10">Top 10</option>
+                                <option value="20">Top 20</option>
+                                <option value="50">Top 50</option>
+                                <option value="all">Show All</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="autoSpacing">📏 X-axis Auto Spacing</label>
+                            <select id="autoSpacing">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                            </select>
+                        </div>
+                        
+
+                    </div>
+                </div>
+                
+                <!-- Data Preview Section -->
+                <div class="data-preview-section" id="dataPreview" style="display: none;">
+                    <h3>📋 Data Preview</h3>
+                    <div class="data-preview" id="dataPreviewContent"></div>
+                </div>
+                
+                <!-- Export Section -->
+                <div class="export-section" id="exportSection" style="display: none;">
+                    <h3>💾 Export Options</h3>
+                    <button class="export-btn" onclick="exportAsImage('png')">📸 Export as PNG</button>
+                    <button class="export-btn" onclick="exportAsImage('svg')">🎨 Export as SVG</button>
+                    <button class="export-btn" onclick="exportAsHTML()">🌐 Export as HTML</button>
+                <button class="export-btn" onclick="exportData()">📄 Export Data as CSV</button>
+                <button class="export-btn" onclick="exportChartConfig()">⚙️ Export Chart Config</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API configuration
+        const API_ENDPOINT = 'http://localhost:5000';
+        
+        // Session management
+        let sessionId = localStorage.getItem('getcharty_session_id') || generateSessionId();
+        localStorage.setItem('getcharty_session_id', sessionId);
+        
+        let currentData = [];
+        let currentChart = null;
+        let processedData = [];
+        let rawData = []; // Store original unprocessed data
+        let currentFileId = null; // Store current file ID from server
+        
+
+        
+        function generateSessionId() {
+            return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+
+        
+
+        
+
+        
+
+        
+        function handleDataOrientationChange() {
+            if (rawData.length > 0) {
+                // Reprocess the data with new orientation
+                const orientation = document.getElementById('dataOrientation').value;
+                currentData = orientation === 'horizontal' ? transposeData(rawData) : rawData;
+                
+                // Update UI
+                displayDataStats(currentData);
+                populateColumnSelectors(currentData);
+                showDataPreview(currentData);
+                
+                showStatus(`✅ Data reoriented to ${orientation} format!`, 'success');
+            }
+        }
+        
+        function transposeData(data) {
+            if (!data || data.length === 0) return [];
+            
+            // Get all unique keys from all rows
+            const allKeys = [...new Set(data.flatMap(row => Object.keys(row)))];
+            
+            // Create transposed structure
+            const transposed = [];
+            
+            // First, create a row for each original column
+            allKeys.forEach((key, index) => {
+                const newRow = { 'Field': key };
+                
+                // Add values from each original row as new columns
+                data.forEach((originalRow, rowIndex) => {
+                    newRow[`Row_${rowIndex + 1}`] = originalRow[key] || null;
+                });
+                
+                transposed.push(newRow);
+            });
+            
+            return transposed;
+        }
+        
+        function showStatus(message, type = 'success') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 4000);
+            }
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+        
+        // Enhanced file upload handling
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+        
+        const uploadSection = document.getElementById('uploadSection');
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+        
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+        
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('fileInput').files = files;
+                handleFileUpload({ target: { files: files } });
+            }
+        });
+        
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // File validation
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.size > maxSize) {
+                showStatus('❌ File size exceeds 10MB limit. Please upload a smaller file.', 'error');
+                return;
+            }
+            
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            if (!['csv', 'xlsx', 'xls'].includes(fileExtension)) {
+                showStatus('❌ Please upload a CSV or Excel file (.csv, .xlsx, .xls)', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            showStatus('🔄 Processing your file...', 'warning');
+            
+            try {
+                let data;
+                
+                if (fileExtension === 'csv') {
+                    const text = await file.text();
+                    const result = Papa.parse(text, {
+                        header: true,
+                        skipEmptyLines: true,
+                        dynamicTyping: true,
+                        transformHeader: (header) => header.trim()
+                    });
+                    
+                    if (result.errors.length > 0) {
+                        console.warn('CSV parsing warnings:', result.errors);
+                    }
+                    
+                    data = result.data;
+                } else {
+                    // Excel file processing
+                    const arrayBuffer = await file.arrayBuffer();
+                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    data = XLSX.utils.sheet_to_json(worksheet, { defval: null });
+                }
+                
+                if (!data || data.length === 0) {
+                    throw new Error('No data found in the file');
+                }
+                
+                // Clean and validate data
+                const cleanedData = cleanData(data);
+                
+                if (cleanedData.length === 0) {
+                    throw new Error('No valid data rows found after cleaning');
+                }
+                
+                // Convert data to CSV for server processing
+                const csvContent = Papa.unparse(cleanedData);
+                
+                // Send to server for processing
+                const response = await fetch(`${API_ENDPOINT}/process-file`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        filename: file.name,
+                        content: csvContent,
+                        session_id: sessionId,
+                        chart_config: {
+                            chart_type: 'bar'
+                        }
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Server processing failed');
+                }
+                
+                const serverResponse = await response.json();
+                
+                // Store server response data
+                currentData = serverResponse.data;
+                currentFileId = serverResponse.file_id;
+                
+                // Store raw data and apply orientation
+                rawData = cleanedData;
+                const orientation = document.getElementById('dataOrientation').value;
+                currentData = orientation === 'horizontal' ? transposeData(currentData) : currentData;
+                
+
+                
+                displayDataStats(currentData);
+                populateColumnSelectors(currentData);
+                showDataPreview(currentData);
+                
+                // Reset chart container for new file
+                const chartContainer = document.getElementById('chartContainer');
+                const plotlyChart = document.getElementById('plotlyChart');
+                chartContainer.classList.remove('has-chart');
+                plotlyChart.innerHTML = 'Your Chart Goes Here';
+                document.getElementById('exportSection').style.display = 'none';
+                
+                document.getElementById('controls').style.display = 'block';
+                document.getElementById('generateBtn').disabled = false;
+                
+                showStatus(`✅ Successfully processed ${file.name}! Found ${currentData.length} rows with ${Object.keys(currentData[0]).length} columns. File ID: ${currentFileId}`, 'success');
+                
+            } catch (error) {
+                showStatus(`❌ Error processing file: ${error.message}`, 'error');
+                console.error('File processing error:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        function cleanData(data) {
+            if (!Array.isArray(data) || data.length === 0) return [];
+            
+            // Remove completely empty rows
+            const cleaned = data.filter(row => {
+                return Object.values(row).some(value => 
+                    value !== null && value !== undefined && value !== ''
+                );
+            });
+            
+            // Convert string numbers to actual numbers where appropriate
+            return cleaned.map(row => {
+                const cleanRow = {};
+                Object.entries(row).forEach(([key, value]) => {
+                    if (typeof value === 'string') {
+                        // Try to convert string numbers
+                        const numValue = parseFloat(value);
+                        if (!isNaN(numValue) && isFinite(numValue) && value.trim() !== '') {
+                            cleanRow[key] = numValue;
+                        } else {
+                            cleanRow[key] = value;
+                        }
+                    } else {
+                        cleanRow[key] = value;
+                    }
+                });
+                return cleanRow;
+            });
+        }
+        
+        function displayDataStats(data) {
+            if (!data.length) return;
+            
+            const dataStatsElement = document.getElementById('dataStats');
+            if (!dataStatsElement) {
+                console.warn('dataStats element not found');
+                return;
+            }
+            
+            const columns = Object.keys(data[0]);
+            const numericColumns = columns.filter(col => 
+                data.some(row => typeof row[col] === 'number')
+            );
+            const textColumns = columns.filter(col => 
+                data.some(row => typeof row[col] === 'string')
+            );
+            
+            const statsHtml = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">${data.length.toLocaleString()}</div>
+                        <div class="stat-label">Total Rows</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${columns.length}</div>
+                        <div class="stat-label">Total Columns</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${numericColumns.length}</div>
+                        <div class="stat-label">Numeric Columns</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${textColumns.length}</div>
+                        <div class="stat-label">Text Columns</div>
+                    </div>
+                </div>
+            `;
+            
+            dataStatsElement.innerHTML = statsHtml;
+            dataStatsElement.style.display = 'block';
+        }
+        
+        function populateColumnSelectors(data) {
+            if (!data.length) return;
+            
+            const columns = Object.keys(data[0]);
+            const selectors = ['xColumn', 'yColumn', 'zColumn', 'colorColumn'];
+            
+            selectors.forEach(selectorId => {
+                const selector = document.getElementById(selectorId);
+                if (!selector) {
+                    console.warn(`Selector ${selectorId} not found`);
+                    return;
+                }
+                
+                const currentValue = selector.value;
+                selector.innerHTML = '';
+                
+                // Add "None" option for optional columns
+                if (['zColumn', 'colorColumn'].includes(selectorId)) {
+                    selector.add(new Option('None', ''));
+                }
+                
+                columns.forEach(col => {
+                    const option = new Option(col, col);
+                    selector.add(option);
+                });
+                
+                // Restore previous selection if still valid
+                if (columns.includes(currentValue)) {
+                    selector.value = currentValue;
+                }
+            });
+            
+            // Set intelligent defaults
+            if (columns.length >= 2) {
+                const xColumn = document.getElementById('xColumn');
+                const yColumn = document.getElementById('yColumn');
+                const zColumn = document.getElementById('zColumn');
+                
+                if (xColumn) xColumn.value = columns[0];
+                if (yColumn) yColumn.value = columns[1];
+                if (zColumn && columns.length >= 3) {
+                    zColumn.value = columns[2];
+                }
+            }
+            
+            updateColumnOptions();
+        }
+        
+        function updateColumnOptions() {
+            const chartType = document.getElementById('chartType').value;
+            const yColumnGroup = document.getElementById('yColumn').parentElement;
+            const zColumnGroup = document.getElementById('zColumn').parentElement;
+            const colorColumnGroup = document.getElementById('colorColumn').parentElement;
+            
+            // Show/hide column selectors based on chart type
+            if (['pie', 'histogram'].includes(chartType)) {
+                yColumnGroup.style.display = 'none';
+            } else {
+                yColumnGroup.style.display = 'block';
+            }
+            
+            if (chartType === '3d_scatter') {
+                zColumnGroup.style.display = 'block';
+            } else {
+                zColumnGroup.style.display = 'none';
+            }
+            
+            // Color column is useful for scatter plots and some others
+            if (['scatter', '3d_scatter', 'bar'].includes(chartType)) {
+                colorColumnGroup.style.display = 'block';
+            } else {
+                colorColumnGroup.style.display = 'none';
+            }
+        }
+        
+        function showDataPreview(data) {
+            if (!data.length) return;
+            
+            const preview = document.getElementById('dataPreview');
+            const previewContent = document.getElementById('dataPreviewContent');
+            
+            if (!preview || !previewContent) {
+                console.warn('Data preview elements not found');
+                return;
+            }
+            
+            const columns = Object.keys(data[0]);
+            const previewRows = data.slice(0, 10); // Show first 10 rows
+            
+            let html = `<p><strong>Data Preview (First ${previewRows.length} rows of ${data.length})</strong></p>`;
+            html += '<div style="overflow-x: auto;"><table><thead><tr>';
+            
+            // Headers
+            columns.forEach(col => {
+                html += `<th>${col}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            // Rows
+            previewRows.forEach(row => {
+                html += '<tr>';
+                columns.forEach(col => {
+                    let value = row[col];
+                    if (value === null || value === undefined) {
+                        value = '<em style="color: #999;">null</em>';
+                    } else if (typeof value === 'number') {
+                        value = value.toLocaleString();
+                    }
+                    html += `<td>${value}</td>`;
+                });
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div>';
+            previewContent.innerHTML = html;
+            preview.style.display = 'block';
+        }
+        
+        function prepareChartData() {
+            const chartType = document.getElementById('chartType').value;
+            const xColumn = document.getElementById('xColumn').value;
+            const yColumn = document.getElementById('yColumn').value;
+            const aggregation = document.getElementById('aggregation').value;
+            const maxItems = document.getElementById('maxItems').value;
+            
+            if (!currentData.length || !xColumn) {
+                throw new Error('Missing required data or column selection');
+            }
+            
+            // Use current data
+            let dataToProcess = currentData;
+            let processedData = [...dataToProcess];
+            
+            // Handle aggregation
+            if (aggregation !== 'none' && ['pie', 'vertical_bar', 'horizontal_bar'].includes(chartType)) {
+                const grouped = {};
+                
+                processedData.forEach(row => {
+                    const key = row[xColumn];
+                    if (key === null || key === undefined) return;
+                    
+                    if (!grouped[key]) {
+                        grouped[key] = { count: 0, sum: 0, values: [] };
+                    }
+                    
+                    grouped[key].count++;
+                    
+                    if (yColumn && typeof row[yColumn] === 'number') {
+                        grouped[key].sum += row[yColumn];
+                        grouped[key].values.push(row[yColumn]);
+                    }
+                });
+                
+                processedData = Object.entries(grouped).map(([key, data]) => {
+                    let value;
+                    switch (aggregation) {
+                        case 'count':
+                            value = data.count;
+                            break;
+                        case 'sum':
+                            value = data.sum;
+                            break;
+                        case 'average':
+                            value = data.values.length ? data.sum / data.values.length : 0;
+                            break;
+                        case 'max':
+                            value = data.values.length ? Math.max(...data.values) : 0;
+                            break;
+                        case 'min':
+                            value = data.values.length ? Math.min(...data.values) : 0;
+                            break;
+                        default:
+                            value = data.count;
+                    }
+                    
+                    return { [xColumn]: key, [yColumn || 'value']: value };
+                });
+            }
+            
+            // Sort and limit items
+            if (['pie', 'vertical_bar', 'horizontal_bar'].includes(chartType) && aggregation !== 'none') {
+                const valueKey = yColumn || 'value';
+                processedData.sort((a, b) => b[valueKey] - a[valueKey]);
+                
+                if (maxItems !== 'all') {
+                    processedData = processedData.slice(0, parseInt(maxItems));
+                }
+            }
+            
+            return processedData;
+        }
+        
+        async function generateChart() {
+            if (!currentData.length) {
+                showStatus('❌ No data available. Please upload a file first.', 'error');
+                return;
+            }
+            
+            const chartType = document.getElementById('chartType').value;
+            const xColumn = document.getElementById('xColumn').value;
+            const yColumn = document.getElementById('yColumn').value;
+            const zColumn = document.getElementById('zColumn').value;
+            const colorColumn = document.getElementById('colorColumn').value;
+            const autoSpacing = document.getElementById('autoSpacing').value === 'yes';
+            let title = document.getElementById('chartTitle').value || `${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart`;
+            
+
+            
+            if (!xColumn || (!yColumn && !['pie', 'histogram'].includes(chartType))) {
+                showStatus('❌ Please select the required columns for your chart.', 'error');
+                return;
+            }
+            
+            try {
+                showLoading(true);
+                showStatus('🎨 Generating your interactive chart...', 'warning');
+                
+                processedData = prepareChartData();
+                
+                let plotlyConfig = createPlotlyConfig(chartType, processedData, {
+                    xColumn,
+                    yColumn,
+                    zColumn,
+                    colorColumn,
+                    title
+                });
+                
+                // Apply auto-spacing if enabled
+                if (autoSpacing) {
+                    try {
+                        const xData = processedData.map(row => row[xColumn]);
+                        const spacingResponse = await fetch(`${API_ENDPOINT}/api/auto-spacing`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                x_labels: xData,
+                                chart_type: chartType
+                            })
+                        });
+                        
+                        if (spacingResponse.ok) {
+                            const spacingData = await spacingResponse.json();
+                            if (spacingData.success) {
+                                // Apply the auto-spacing configuration
+                                plotlyConfig.layout.xaxis = {
+                                    ...plotlyConfig.layout.xaxis,
+                                    ...spacingData.xaxis_config
+                                };
+                                showStatus('✅ Auto-spacing applied successfully!', 'success');
+                            }
+                        }
+                    } catch (error) {
+                        console.warn('Auto-spacing failed, using default spacing:', error);
+                        showStatus('⚠️ Auto-spacing failed, using default spacing', 'warning');
+                    }
+                }
+                
+                const plotlyChart = document.getElementById('plotlyChart');
+                plotlyChart.innerHTML = ''; // Clear the placeholder text
+                Plotly.newPlot('plotlyChart', plotlyConfig.data, plotlyConfig.layout, plotlyConfig.config);
+                
+                const chartContainer = document.getElementById('chartContainer');
+                chartContainer.style.display = 'block';
+                chartContainer.classList.add('has-chart');
+                document.getElementById('exportSection').style.display = 'block';
+                
+                showStatus(`✅ Interactive chart generated successfully! Showing ${processedData.length} data points.`, 'success');
+                
+            } catch (error) {
+                showStatus(`❌ Error generating chart: ${error.message}`, 'error');
+                console.error('Chart generation error:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        function createPlotlyConfig(chartType, data, options) {
+            const { xColumn, yColumn, zColumn, colorColumn, title } = options;
+            
+            const xData = data.map(row => row[xColumn]);
+            const yData = yColumn ? data.map(row => row[yColumn]) : [];
+            const zData = zColumn ? data.map(row => row[zColumn]) : [];
+            const colorData = colorColumn ? data.map(row => row[colorColumn]) : [];
+            
+            let plotData = [];
+            let layout = {
+                title: {
+                    text: title,
+                    font: { size: 18 }
+                },
+                showlegend: true,
+                margin: { t: 60, b: 50, l: 50, r: 50 },
+                paper_bgcolor: 'white',
+                plot_bgcolor: 'white'
+            };
+            
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToAdd: ['drawline', 'drawopenpath', 'drawclosedpath', 'drawcircle', 'drawrect', 'eraseshape'],
+                displaylogo: false
+            };
+            
+            switch (chartType) {
+                case 'vertical_bar':
+                    plotData = [{
+                        type: 'bar',
+                        x: xData,
+                        y: yData,
+                        orientation: 'v',
+                        marker: {
+                            color: colorData.length ? colorData : '#4facfe',
+                            colorscale: colorData.length ? 'Viridis' : undefined,
+                            showscale: colorData.length > 0
+                        },
+                        name: yColumn || 'Values'
+                    }];
+                    
+                    layout.xaxis = {
+                        title: xColumn,
+                        gridcolor: '#e5e7eb'
+                    };
+                    layout.yaxis = {
+                        title: yColumn || 'Value',
+                        gridcolor: '#e5e7eb'
+                    };
+                    break;
+                    
+                case 'horizontal_bar':
+                    plotData = [{
+                        type: 'bar',
+                        x: yData,
+                        y: xData,
+                        orientation: 'h',
+                        marker: {
+                            color: colorData.length ? colorData : '#4facfe',
+                            colorscale: colorData.length ? 'Viridis' : undefined,
+                            showscale: colorData.length > 0
+                        },
+                        name: yColumn || 'Values'
+                    }];
+                    
+                    layout.xaxis = {
+                        title: yColumn || 'Value',
+                        gridcolor: '#e5e7eb'
+                    };
+                    layout.yaxis = {
+                        title: xColumn,
+                        gridcolor: '#e5e7eb'
+                    };
+                    break;
+                    
+                case 'line':
+                    plotData = [{
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        x: xData,
+                        y: yData,
+                        line: { color: '#4facfe', width: 3 },
+                        marker: { size: 6, color: '#4facfe' },
+                        name: yColumn || 'Values'
+                    }];
+                    
+                    layout.xaxis = { title: xColumn, gridcolor: '#e5e7eb' };
+                    layout.yaxis = { title: yColumn || 'Value', gridcolor: '#e5e7eb' };
+                    break;
+                    
+                case 'scatter':
+                    plotData = [{
+                        type: 'scatter',
+                        mode: 'markers',
+                        x: xData,
+                        y: yData,
+                        marker: {
+                            size: 8,
+                            color: colorData.length ? colorData : '#4facfe',
+                            colorscale: colorData.length ? 'Viridis' : undefined,
+                            showscale: colorData.length > 0,
+                            colorbar: colorData.length ? { title: colorColumn } : undefined
+                        },
+                        text: colorData.length ? colorData.map((val, i) => `${xColumn}: ${xData[i]}<br>${yColumn}: ${yData[i]}<br>${colorColumn}: ${val}`) : undefined,
+                        hovertemplate: colorData.length ? '%{text}<extra></extra>' : undefined,
+                        name: 'Data Points'
+                    }];
+                    
+                    layout.xaxis = { title: xColumn, gridcolor: '#e5e7eb' };
+                    layout.yaxis = { title: yColumn, gridcolor: '#e5e7eb' };
+                    break;
+                    
+                case '3d_scatter':
+                    plotData = [{
+                        type: 'scatter3d',
+                        mode: 'markers',
+                        x: xData,
+                        y: yData,
+                        z: zData,
+                        marker: {
+                            size: 5,
+                            color: colorData.length ? colorData : '#4facfe',
+                            colorscale: colorData.length ? 'Viridis' : undefined,
+                            showscale: colorData.length > 0,
+                            colorbar: colorData.length ? { title: colorColumn } : undefined
+                        },
+                        text: colorData.length ? colorData.map((val, i) => `${xColumn}: ${xData[i]}<br>${yColumn}: ${yData[i]}<br>${zColumn}: ${zData[i]}<br>${colorColumn}: ${val}`) : undefined,
+                        hovertemplate: colorData.length ? '%{text}<extra></extra>' : undefined,
+                        name: '3D Data Points'
+                    }];
+                    
+                    layout.scene = {
+                        xaxis: { title: xColumn },
+                        yaxis: { title: yColumn },
+                        zaxis: { title: zColumn }
+                    };
+                    break;
+                    
+                case 'pie':
+                    const pieValues = yColumn ? yData : xData.map(() => 1);
+                    plotData = [{
+                        type: 'pie',
+                        labels: xData,
+                        values: pieValues,
+                        textinfo: 'label+percent',
+                        textposition: 'auto',
+                        marker: {
+                            colors: generatePlotlyColors(xData.length)
+                        },
+                        name: 'Distribution'
+                    }];
+                    break;
+                    
+                case 'histogram':
+                    plotData = [{
+                        type: 'histogram',
+                        x: xData,
+                        nbinsx: 30,
+                        marker: { color: '#4facfe', opacity: 0.7 },
+                        name: 'Frequency'
+                    }];
+                    
+                    layout.xaxis = { title: xColumn, gridcolor: '#e5e7eb' };
+                    layout.yaxis = { title: 'Frequency', gridcolor: '#e5e7eb' };
+                    break;
+                    
+                case 'box':
+                    plotData = [{
+                        type: 'box',
+                        y: yData,
+                        name: yColumn || 'Values',
+                        marker: { color: '#4facfe' },
+                        boxpoints: 'outliers'
+                    }];
+                    
+                    layout.yaxis = { title: yColumn || 'Value', gridcolor: '#e5e7eb' };
+                    break;
+                    
+                case 'heatmap':
+                    // Create a simple heatmap from the data
+                    const uniqueX = [...new Set(xData)];
+                    const uniqueY = [...new Set(yData)];
+                    
+                    const zMatrix = Array(uniqueY.length).fill().map(() => Array(uniqueX.length).fill(0));
+                    
+                    data.forEach(row => {
+                        const xIdx = uniqueX.indexOf(row[xColumn]);
+                        const yIdx = uniqueY.indexOf(row[yColumn]);
+                        if (xIdx !== -1 && yIdx !== -1) {
+                            zMatrix[yIdx][xIdx] += 1; // Count occurrences
+                        }
+                    });
+                    
+                    plotData = [{
+                        type: 'heatmap',
+                        z: zMatrix,
+                        x: uniqueX,
+                        y: uniqueY,
+                        colorscale: 'Viridis',
+                        showscale: true,
+                        name: 'Heatmap'
+                    }];
+                    
+                    layout.xaxis = { title: xColumn };
+                    layout.yaxis = { title: yColumn };
+                    break;
+            }
+            
+            return { data: plotData, layout, config };
+        }
+        
+        function generatePlotlyColors(count) {
+            const colors = [
+                '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+                '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
+            ];
+            
+            if (count <= colors.length) {
+                return colors.slice(0, count);
+            }
+            
+            // Generate additional colors
+            const additionalColors = [];
+            for (let i = colors.length; i < count; i++) {
+                const hue = (i * 137.508) % 360;
+                additionalColors.push(`hsl(${hue}, 70%, 60%)`);
+            }
+            
+            return [...colors, ...additionalColors];
+        }
+        
+        function exportAsImage(format) {
+            const plotlyDiv = document.getElementById('plotlyChart');
+            if (!plotlyDiv || !plotlyDiv.data) {
+                showStatus('❌ No chart to export. Generate a chart first.', 'error');
+                return;
+            }
+            
+            const config = {
+                format: format,
+                width: 1200,
+                height: 700,
+                scale: 2
+            };
+            
+            Plotly.downloadImage(plotlyDiv, config).then(() => {
+                showStatus(`✅ Chart exported as ${format.toUpperCase()} image!`, 'success');
+            }).catch(error => {
+                showStatus(`❌ Error exporting image: ${error.message}`, 'error');
+            });
+        }
+        
+        function exportAsHTML() {
+            const plotlyDiv = document.getElementById('plotlyChart');
+            if (!plotlyDiv || !plotlyDiv.data) {
+                showStatus('❌ No chart to export. Generate a chart first.', 'error');
+                return;
+            }
+            
+            const title = document.getElementById('chartTitle').value || 'Data Visualization';
+            
+            const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"><\/script>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            margin: 0;
+            padding: 20px; 
+            background: #f8fafc;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 { 
+            color: #374151; 
+            margin-bottom: 20px; 
+            text-align: center;
+        }
+        .chart-container { 
+            width: 100%; 
+            height: 600px; 
+        }
+        .timestamp { 
+            color: #6b7280; 
+            font-size: 0.9rem; 
+            margin-top: 20px; 
+            text-align: center;
+        }
+        
+        /* User Files Section Styles */
+        .user-files-section {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .user-files-section h3 {
+            color: #374151;
+            margin-bottom: 15px;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .file-item.in-memory {
+            border-left-color: #10b981;
+        }
+        
+        .file-item.in-database {
+            border-left-color: #3b82f6;
+        }
+        
+        .file-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .file-info h4 {
+            margin: 0 0 5px 0;
+            color: #374151;
+        }
+        
+        .file-info p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .storage-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 5px;
+        }
+        
+        .file-item.in-memory .storage-badge {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .file-item.in-database .storage-badge {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+    <\/style>
+</head>
+<body>
+    <div class="container">
+        <h1>${title}</h1>
+        <div class="chart-container" id="chart"></div>
+        <div class="timestamp">Generated on ${new Date().toLocaleString()}</div>
+    </div>
+    <script>
+        var plotData = ${JSON.stringify(plotlyDiv.data)};
+        var plotLayout = ${JSON.stringify(plotlyDiv.layout)};
+        var plotConfig = ${JSON.stringify(plotlyDiv.config)};
+        Plotly.newPlot('chart', plotData, plotLayout, plotConfig);
+    <\/script>
+</body>
+</html>`;
+            
+            downloadFile(html, 'interactive_chart.html', 'text/html');
+            showStatus('✅ Interactive chart exported as HTML file!', 'success');
+        }
+        
+        function exportData() {
+            if (!processedData.length) {
+                showStatus('❌ No processed data to export. Generate a chart first.', 'error');
+                return;
+            }
+            
+            const csv = Papa.unparse(processedData);
+            downloadFile(csv, 'chart_data.csv', 'text/csv');
+            showStatus('✅ Data exported as CSV file!', 'success');
+        }
+        
+        function exportChartConfig() {
+            if (!processedData.length) {
+                showStatus('❌ No chart configuration to export. Generate a chart first.', 'error');
+                return;
+            }
+            
+            const config = {
+                chartType: document.getElementById('chartType').value,
+                dataOrientation: document.getElementById('dataOrientation').value,
+                xColumn: document.getElementById('xColumn').value,
+                yColumn: document.getElementById('yColumn').value,
+                zColumn: document.getElementById('zColumn').value,
+                colorColumn: document.getElementById('colorColumn').value,
+                title: document.getElementById('chartTitle').value,
+                aggregation: document.getElementById('aggregation').value,
+                maxItems: document.getElementById('maxItems').value,
+
+                timestamp: new Date().toISOString(),
+                dataPreview: processedData.slice(0, 5) // Include sample data
+            };
+            
+            const json = JSON.stringify(config, null, 2);
+            downloadFile(json, 'chart_config.json', 'application/json');
+            showStatus('✅ Chart configuration exported as JSON!', 'success');
+        }
+        
+        function downloadFile(content, filename, contentType) {
+            const blob = new Blob([content], { type: contentType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+        
+        // File management functions
+        async function loadUserFiles() {
+            try {
+                const response = await fetch(`${API_ENDPOINT}/api/files?session_id=${sessionId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load user files');
+                }
+                
+                const data = await response.json();
+                displayUserFiles(data.files);
+            } catch (error) {
+                console.error('Error loading user files:', error);
+            }
+        }
+        
+        function displayUserFiles(files) {
+            const fileListContainer = document.getElementById('userFiles');
+            if (!fileListContainer) return;
+            
+            if (files.length === 0) {
+                fileListContainer.innerHTML = '<p>No files uploaded yet.</p>';
+                return;
+            }
+            
+            const filesHtml = files.map(file => `
+                <div class="file-item ${file.in_memory ? 'in-memory' : 'in-database'}">
+                    <div class="file-info">
+                        <h4>${file.filename}</h4>
+                        <p>${file.total_records} records, ${file.columns.length} columns</p>
+                        <span class="storage-badge">${file.in_memory ? 'In Memory' : 'In Database'}</span>
+                    </div>
+                    <div class="file-actions">
+                        <button onclick="loadFile('${file.file_id}')" class="btn btn-primary">Load</button>
+                        <button onclick="deleteFile('${file.file_id}')" class="btn btn-danger">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            fileListContainer.innerHTML = filesHtml;
+        }
+        
+        async function loadFile(fileId) {
+            try {
+                showLoading(true);
+                const response = await fetch(`${API_ENDPOINT}/api/files/${fileId}?session_id=${sessionId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load file');
+                }
+                
+                const data = await response.json();
+                
+                // Update current data
+                currentData = data.data;
+                currentFileId = fileId;
+                
+                // Update UI
+                displayDataStats(currentData);
+                populateColumnSelectors(currentData);
+                showDataPreview(currentData);
+                
+                // Reset chart container for loaded file
+                const chartContainer = document.getElementById('chartContainer');
+                const plotlyChart = document.getElementById('plotlyChart');
+                chartContainer.classList.remove('has-chart');
+                plotlyChart.innerHTML = 'Your Chart Goes Here';
+                document.getElementById('exportSection').style.display = 'none';
+                
+                document.getElementById('controls').style.display = 'block';
+                document.getElementById('generateBtn').disabled = false;
+                
+                showStatus(`✅ Loaded file with ${currentData.length} records`, 'success');
+                
+            } catch (error) {
+                showStatus(`❌ Error loading file: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function deleteFile(fileId) {
+            if (!confirm('Are you sure you want to delete this file?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_ENDPOINT}/api/files/${fileId}?session_id=${sessionId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to delete file');
+                }
+                
+                showStatus('✅ File deleted successfully', 'success');
+                loadUserFiles(); // Refresh file list
+                
+            } catch (error) {
+                showStatus(`❌ Error deleting file: ${error.message}`, 'error');
+            }
+        }
+        
+        // Initialize the application
+        window.addEventListener('load', () => {
+            showStatus('🚀 Interactive charting application ready! Upload a CSV or Excel file to get started.', 'success');
+            loadUserFiles(); // Load user's existing files
+        });
+        
+        // Handle window resize for chart responsiveness
+        window.addEventListener('resize', () => {
+            const plotlyDiv = document.getElementById('plotlyChart');
+            if (plotlyDiv && plotlyDiv.data) {
+                Plotly.Plots.resize(plotlyDiv);
+            }
+        });
+        
+    </script>
+</body>
+</html>

@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GraphBuilder - Sidebar Layout</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            height: 100vh;
+            background: #0f172a;
+            color: white;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, #1e293b, #0f172a);
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid #334155;
+        }
+
+        .sidebar h2 {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            color: #e2e8f0;
+        }
+
+        .main-area {
+            background: #f1f5f9;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section h3 {
+            color: #64748b;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            background: #1e293b;
+            color: white;
+            margin: 6px 0;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .input-field::placeholder {
+            color: #64748b;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-group .input-field {
+            flex: 1;
+        }
+
+        .chart-type-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .chart-type-btn {
+            border: 2px solid #475569;
+            background: #1e293b;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+            color: #94a3b8;
+            padding: 12px 8px;
+            text-align: center;
+        }
+
+        .chart-type-btn .icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .chart-type-btn .title {
+            font-size: 10px;
+            color: #64748b;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+
+        .chart-type-btn:hover {
+            border-color: #3b82f6;
+            background: #1e40af;
+            color: white;
+        }
+
+        .chart-type-btn.active {
+            border-color: #3b82f6;
+            background: #1e40af;
+            color: white;
+        }
+
+        .chart-type-btn:hover .title,
+        .chart-type-btn.active .title {
+            color: #e2e8f0;
+        }
+
+        .more-charts-dropdown {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            background: #1e293b;
+            color: #e2e8f0;
+            margin: 12px 0 0 0;
+            font-size: 14px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .more-charts-dropdown:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #475569;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #3b82f6;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .display-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 12px 0;
+            padding: 8px 0;
+        }
+
+        .display-option span {
+            font-size: 14px;
+            color: #e2e8f0;
+        }
+
+        .dropdown {
+            padding: 8px 10px;
+            border: 1px solid #475569;
+            border-radius: 4px;
+            background: #1e293b;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            min-width: 80px;
+        }
+
+        .dropdown:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin: 12px 0;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #e2e8f0;
+        }
+
+        .radio-label input[type="radio"] {
+            accent-color: #3b82f6;
+        }
+
+        .file-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed #475569;
+            border-radius: 6px;
+            background: #1e293b;
+            color: #64748b;
+            text-align: center;
+            margin: 10px 0;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-input:hover {
+            border-color: #3b82f6;
+            background: #1e40af;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            margin: 15px 0;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #d1d5db;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .chart-placeholder {
+            text-align: center;
+            color: #64748b;
+        }
+
+        .chart-placeholder h2 {
+            color: #374151;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .chart-placeholder p {
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        .orientation-label {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                height: auto;
+                max-height: 50vh;
+            }
+            
+            .main-area {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar-layout">
+        <div class="sidebar">
+            <h2>📊 GraphBuilder</h2>
+            
+            <div class="section">
+                <h3>Data Import</h3>
+                <input type="file" class="file-input" accept=".csv,.xlsx">
+                
+                <div class="orientation-label">Original Data Orientation</div>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="orientation" checked>
+                        Horizontal
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="orientation">
+                        Vertical
+                    </label>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>Chart Type</h3>
+                <div class="chart-type-grid">
+                    <div class="chart-type-btn active" title="Line Chart">
+                        <div class="icon">📈</div>
+                        <div class="title">Line</div>
+                    </div>
+                    <div class="chart-type-btn" title="Bar Chart">
+                        <div class="icon">📊</div>
+                        <div class="title">Bar</div>
+                    </div>
+                    <div class="chart-type-btn" title="Stacked Bar Chart">
+                        <div class="icon">📊</div>
+                        <div class="title">Stacked Bar</div>
+                    </div>
+                    <div class="chart-type-btn" title="Horizontal Bar Chart">
+                        <div class="icon">📊</div>
+                        <div class="title">Horizontal Bar</div>
+                    </div>
+                    <div class="chart-type-btn" title="Horizontal Stacked Bar Chart">
+                        <div class="icon">📊</div>
+                        <div class="title">Horizontal Stacked Bar</div>
+                    </div>
+                    <div class="chart-type-btn" title="Scatter Plot">
+                        <div class="icon">🎯</div>
+                        <div class="title">Scatter</div>
+                    </div>
+                    <div class="chart-type-btn" title="Pie Chart">
+                        <div class="icon">🥧</div>
+                        <div class="title">Pie</div>
+                    </div>
+                    <div class="chart-type-btn" title="Two-ring Donut Chart">
+                        <div class="icon">🍩</div>
+                        <div class="title">Two-ring Donut</div>
+                    </div>
+                </div>
+                <select class="more-charts-dropdown">
+                    <option>📋 More Chart Types</option>
+                    <option>📋 Area Chart</option>
+                    <option>📊 Histogram</option>
+                    <option>📈 Step Chart</option>
+                    <option>🌡️ Gauge Chart</option>
+                    <option>🗺️ Heatmap</option>
+                    <option>🌊 Waterfall Chart</option>
+                    <option>📈 Candlestick Chart</option>
+                    <option>🎯 Bubble Chart</option>
+                    <option>📊 Funnel Chart</option>
+                    <option>🌳 Treemap</option>
+                    <option>📡 Radar Chart</option>
+                    <option>📊 Box Plot</option>
+                </select>
+            </div>
+            
+            <div class="section">
+                <h3>Chart Information</h3>
+                <input class="input-field" placeholder="Chart Title">
+                <input class="input-field" placeholder="Subtitle">
+                <input class="input-field" placeholder="Footnote">
+                <input class="input-field" placeholder="Data Source">
+            </div>
+            
+            <div class="section">
+                <h3>Axis Labels</h3>
+                <input class="input-field" placeholder="X-Axis Title">
+                <input class="input-field" placeholder="Y-Axis Title">
+                <div class="input-group">
+                    <input class="input-field" placeholder="Y-Prefix">
+                    <input class="input-field" placeholder="Y-Suffix">
+                </div>
+                <div style="margin-top: 12px;">
+                    <label style="display: block; color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 600;">Y-Axis Denominator</label>
+                    <input class="input-field" placeholder="eg. 100; 1,000,000">
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>Display Options</h3>
+                
+                <div class="display-option">
+                    <span>Horizontal Grid Lines</span>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="display-option">
+                    <span>Vertical Grid Lines</span>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="display-option">
+                    <span>X-Axis Labels</span>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="display-option">
+                    <span>Auto X-Spacing</span>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="display-option">
+                    <span>Y-Axis Labels</span>
+                    <select class="dropdown">
+                        <option>On</option>
+                        <option>Off</option>
+                        <option>Top Only</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Advanced Styling</h3>
+                <select class="input-field">
+                    <option>🎨 Color Schemes</option>
+                    <option>🌈 Vibrant</option>
+                    <option>💼 Professional</option>
+                    <option>🌙 Dark Mode</option>
+                    <option>🌸 Pastel</option>
+                </select>
+                <select class="input-field">
+                    <option>📝 Font Families</option>
+                    <option>Arial</option>
+                    <option>Helvetica</option>
+                    <option>Georgia</option>
+                    <option>Times New Roman</option>
+                </select>
+                <select class="input-field">
+                    <option>🎯 Element Colors</option>
+                    <option>Title Color</option>
+                    <option>Axis Color</option>
+                    <option>Grid Color</option>
+                    <option>Background Color</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="main-area">
+            <div class="chart-container">
+                <div class="chart-placeholder">
+                    <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;">📊</div>
+                    <h2>Chart Preview Area</h2>
+                    <p>Upload data and configure settings to see your chart</p>
+                    <button class="btn-primary" style="width: auto; padding: 15px 30px; margin: 20px auto; display: block;">🚀 Generate Chart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Chart type selection
+            const chartTypeBtns = document.querySelectorAll('.chart-type-btn');
+            chartTypeBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    chartTypeBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Reset the more charts dropdown when a main chart type is selected
+                    const moreChartsDropdown = document.querySelector('.more-charts-dropdown');
+                    moreChartsDropdown.selectedIndex = 0;
+                });
+            });
+
+            // More chart types dropdown
+            const moreChartsDropdown = document.querySelector('.more-charts-dropdown');
+            moreChartsDropdown.addEventListener('change', function() {
+                if (this.selectedIndex > 0) {
+                    // Deselect all main chart type buttons when a dropdown option is selected
+                    chartTypeBtns.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Visual feedback that a dropdown option is selected
+                    this.style.borderColor = '#3b82f6';
+                    this.style.background = '#1e40af';
+                } else {
+                    // Reset dropdown styling when "More Chart Types" is selected
+                    this.style.borderColor = '#475569';
+                    this.style.background = '#1e293b';
+                }
+            });
+
+            // File input styling
+            const fileInput = document.querySelector('input[type="file"]');
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    this.style.borderColor = '#10b981';
+                    this.style.backgroundColor = '#1e293b';
+                    this.style.color = '#10b981';
+                    this.textContent = `Selected: ${this.files[0].name}`;
+                }
+            });
+
+            // Add hover effects
+            const buttons = document.querySelectorAll('button, .chart-type-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('mouseenter', function() {
+                    if (!this.classList.contains('active')) {
+                        this.style.transform = 'translateY(-1px)';
+                    }
+                });
+                
+                btn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+
+            // Radio button functionality
+            const radioInputs = document.querySelectorAll('input[type="radio"]');
+            radioInputs.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    // Add visual feedback when selection changes
+                    const labels = document.querySelectorAll('.radio-label');
+                    labels.forEach(label => {
+                        if (label.querySelector('input').checked) {
+                            label.style.color = '#3b82f6';
+                        } else {
+                            label.style.color = '#e2e8f0';
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

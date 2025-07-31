@@ -1,6 +1,6 @@
 <!--
 filename: Juliet-Index.html
-date: 2025-07-31 17:24:21
+date: 2025-07-31 17:42:18
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -1409,11 +1409,14 @@ date: 2025-07-31 17:24:21
             let plotData = [];
             let titleText = title;
             let subtitleLineCount = 0;
+            let marginTop = 60;
+            
             if (subtitle) {
                 // Use client-side wrapping for now to avoid async issues
                 const wrapResult = wrapText(subtitle, 80); // Increased width for better wrapping
                 titleText = `${title}<br><span style="font-size: 14px; color: rgba(255,255,255,0.8);">${wrapResult.text}</span>`;
                 subtitleLineCount = wrapResult.lineCount;
+                marginTop = 60 + (subtitleLineCount * 20);
             }
             
             function wrapText(text, width) {
@@ -1450,7 +1453,7 @@ date: 2025-07-31 17:24:21
                     xanchor: 'center'
                 },
                 showlegend: true,
-                margin: { t: subtitle ? (60 + (subtitleLineCount * 20)) : 60, b: 50, l: 50, r: 50 },
+                margin: { t: marginTop, b: 50, l: 50, r: 50 },
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 font: { color: 'white' }

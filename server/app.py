@@ -1,6 +1,6 @@
 # app.py
 # filename: app.py
-# date: 2025-07-31 17:17:59
+# date: 2025-07-31 17:39:50
 # Updated to use hybrid storage system with user management
 
 from flask import Flask, request, jsonify
@@ -14,6 +14,7 @@ import uuid
 from datetime import datetime, timedelta
 from utils.hybrid_storage import storage_manager
 from utils.user_manager import user_manager
+import textwrap
 
 # Import API modules
 from api.quarterly_stats import register_quarterly_stats_routes
@@ -414,7 +415,6 @@ def calculate_subtitle_width():
         optimal_width = max(40, min(120, optimal_width))
         
         # Apply text wrapping
-        import textwrap
         wrapped_lines = textwrap.wrap(subtitle_text, width=optimal_width)
         wrapped_text = '<br>'.join(wrapped_lines)
         
@@ -908,6 +908,55 @@ def apply_default_spacing(x_labels):
         'ticktext': ticktext,
         'tickangle': 45
     }
+
+def create_simple_title(title, subtitle, chart_width=800):
+    """Simple title builder with proper wrapping and margin calculation"""
+    # Calculate responsive wrap width
+    wrap_width = 60 if chart_width < 600 else 80
+    
+    # Wrap subtitle properly using Python's textwrap
+    wrapped_lines = textwrap.wrap(subtitle, width=wrap_width)
+    wrapped_text = "<br>".join(wrapped_lines)
+    
+    # Format with proper styling for dark theme
+    title_html = f"<span style='font-size:20px; color:#ffffff; font-weight:bold'>{title}</span>"
+    subtitle_html = f"<span style='font-size:14px; color:rgba(255,255,255,0.8)'>{wrapped_text}</span>"
+    
+    return {
+        'title_text': f"{title_html}<br>{subtitle_html}",
+        'line_count': len(wrapped_lines) + 1,
+        'margin_top': 60 + (len(wrapped_lines) * 20)
+    }
+
+@app.route('/api/simple-title', methods=['POST'])
+def create_simple_title_endpoint():
+    """Create simple title with subtitle using proper wrapping"""
+    try:
+        body = request.get_json()
+        title = body.get('title', '')
+        subtitle = body.get('subtitle', '')
+        chart_width = body.get('chart_width', 800)
+        
+        if not title:
+            return jsonify({
+                'success': False,
+                'error': 'Title is required'
+            }), 400
+        
+        result = create_simple_title(title, subtitle, chart_width)
+        
+        return jsonify({
+            'success': True,
+            'title_text': result['title_text'],
+            'line_count': result['line_count'],
+            'margin_top': result['margin_top']
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 # Register API routes
 register_quarterly_stats_routes(app)

@@ -1,6 +1,6 @@
 <!--
 filename: Juliet-Index.html
-date: 2025-07-31 17:42:18
+date: 2025-08-01 14:19:32
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -706,6 +706,7 @@ date: 2025-07-31 17:42:18
         </div>
         
         <div class="main-area">
+            <!-- Chart Container -->
             <div class="chart-container" id="chartContainer">
                 <div id="plotlyChart" class="chart-placeholder">
                     <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;">📊</div>
@@ -1407,42 +1408,15 @@ date: 2025-07-31 17:42:18
             const colorData = colorColumn ? data.map(row => row[colorColumn]) : [];
             
             let plotData = [];
-            let titleText = title;
-            let subtitleLineCount = 0;
-            let marginTop = 60;
+            
+            // Handle title and subtitle with proper wrapping
+            let titleText = title || '';
+            let marginTop = 55; // Reduced from 80 (about 31% reduction)
             
             if (subtitle) {
-                // Use client-side wrapping for now to avoid async issues
-                const wrapResult = wrapText(subtitle, 80); // Increased width for better wrapping
-                titleText = `${title}<br><span style="font-size: 14px; color: rgba(255,255,255,0.8);">${wrapResult.text}</span>`;
-                subtitleLineCount = wrapResult.lineCount;
-                marginTop = 60 + (subtitleLineCount * 20);
-            }
-            
-            function wrapText(text, width) {
-                const words = text.split(' ');
-                const lines = [];
-                let currentLine = '';
-                
-                for (let word of words) {
-                    if ((currentLine + word).length <= width) {
-                        currentLine += (currentLine ? ' ' : '') + word;
-                    } else {
-                        if (currentLine) {
-                            lines.push(currentLine);
-                        }
-                        currentLine = word;
-                    }
-                }
-                
-                if (currentLine) {
-                    lines.push(currentLine);
-                }
-                
-                return {
-                    text: lines.join('<br>'),
-                    lineCount: lines.length
-                };
+                const wrappedSubtitle = wrapSubtitleText(subtitle);
+                titleText = `${title}<br><span style="font-size: 14px; color: rgba(255,255,255,0.8);">${wrappedSubtitle}</span>`;
+                marginTop = 70 + (wrappedSubtitle.split('<br>').length * 14); // Reduced from 100 + (lines * 20) to 70 + (lines * 14) (about 30% reduction)
             }
             
             let layout = {
@@ -1450,7 +1424,9 @@ date: 2025-07-31 17:42:18
                     text: titleText,
                     font: { size: 18, color: 'white' },
                     x: 0.5,
-                    xanchor: 'center'
+                    xanchor: 'center',
+                    y: 0.95, // Moved down slightly from 0.98 to give more top space
+                    yanchor: 'top'
                 },
                 showlegend: true,
                 margin: { t: marginTop, b: 50, l: 50, r: 50 },
@@ -1676,6 +1652,31 @@ date: 2025-07-31 17:42:18
             }
             
             return [...colors, ...additionalColors];
+        }
+
+        function wrapSubtitleText(text) {
+            // Simple word-based wrapping
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+            const maxWidth = 80; // Characters per line
+            
+            for (let word of words) {
+                if ((currentLine + word).length <= maxWidth) {
+                    currentLine += (currentLine ? ' ' : '') + word;
+                } else {
+                    if (currentLine) {
+                        lines.push(currentLine);
+                    }
+                    currentLine = word;
+                }
+            }
+            
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+            
+            return lines.join('<br>');
         }
 
         // Chart type selection

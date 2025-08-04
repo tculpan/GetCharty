@@ -1,6 +1,6 @@
 <!--
 filename: Juliet-Index.html
-date: 2025-08-04 16:47:52
+date: 2025-08-04 22:57:54
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -335,11 +335,9 @@ date: 2025-08-04 16:47:52
         }
 
         .chart-container.has-chart {
-            min-height: 500px;
             display: block;
-            height: auto; /* Allow expansion for annotations */
             overflow: visible; /* Allow annotations to be visible */
-            padding-bottom: 200px; /* Extra space for annotations */
+            padding-bottom: 200px; /* Base padding, overridden by JavaScript */
         }
         
         .chart-container.has-chart #plotlyChart {
@@ -1379,6 +1377,28 @@ date: 2025-08-04 16:47:52
                 const plotlyChart = document.getElementById('plotlyChart');
                 if (plotlyChart) {
                     plotlyChart.innerHTML = ''; // Clear the placeholder text
+                    
+                    // BEFORE chart render - calculate padding based on estimated width
+                    const containerWidth = document.getElementById('chartContainer').offsetWidth;
+                    const estimatedChartWidth = containerWidth - 160; // Approximate chart width
+                    
+                    console.log('Before render calculations:');
+                    console.log('- Container width:', containerWidth, 'px');
+                    console.log('- Container height:', document.getElementById('chartContainer').offsetHeight, 'px');
+                    console.log('- Estimated chart width:', estimatedChartWidth, 'px');
+                    console.log('- Footnote text:', footnote);
+                    console.log('- Source text:', source);
+                    
+                    // Calculate lines before render
+                    const footnoteLines = footnote ? wrapFootnoteText(footnote).split('<br>').length : 0;
+                    const sourceLines = source ? wrapSourceText(source).split('<br>').length : 0;
+                    
+                    console.log('- Footnote lines calculated:', footnoteLines);
+                    console.log('- Source lines calculated:', sourceLines);
+                    
+                    // Set padding before render
+                    adjustContainerPadding(footnoteLines, sourceLines);
+                    
                     Plotly.newPlot('plotlyChart', plotlyConfig.data, plotlyConfig.layout, plotlyConfig.config)
                         .then(function() {
                             // Measure chart dimensions after rendering
@@ -1753,7 +1773,7 @@ date: 2025-08-04 16:47:52
             // Get chart width for pixel calculation
             const chartContainer = document.getElementById('chartContainer');
             const chartWidth = chartContainer ? chartContainer.offsetWidth : 700; // fallback to 700px
-            const maxPixelWidth = calculateAnnotationWidth(chartWidth, 0.4);
+            const maxPixelWidth = calculateAnnotationWidth(chartWidth, 0.35);
             
             return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
         }
@@ -1762,7 +1782,7 @@ date: 2025-08-04 16:47:52
             // Get chart width for pixel calculation
             const chartContainer = document.getElementById('chartContainer');
             const chartWidth = chartContainer ? chartContainer.offsetWidth : 700; // fallback to 700px
-            const maxPixelWidth = calculateAnnotationWidth(chartWidth, 0.4);
+            const maxPixelWidth = calculateAnnotationWidth(chartWidth, 0.35);
             
             return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
         }
@@ -1799,10 +1819,59 @@ date: 2025-08-04 16:47:52
             return lines.join('<br>');
         }
 
-        function calculateAnnotationWidth(chartWidth, percentage = 0.4) {
-            // Calculate 40% of chart width in pixels
+        function calculateAnnotationWidth(chartWidth, percentage = 0.35) {
+            // Calculate 35% of chart width in pixels
             return chartWidth * percentage;
         }
+
+        function adjustContainerPadding(footnoteLines, sourceLines) {
+            const chartContainer = document.getElementById('chartContainer');
+            if (chartContainer) {
+                const basePadding = 60; // Base padding
+                const lineHeight = 18; // Approximate line height for annotations
+                const maxLines = Math.max(footnoteLines, sourceLines);
+                const dynamicPadding = basePadding + (maxLines * lineHeight);
+                
+                // Calculate total container height
+                const chartHeight = 500; // Fixed Plotly chart height
+                const topPadding = 40; // CSS top padding
+                const bottomPadding = dynamicPadding; // Calculated padding
+                const annotationHeight = maxLines * lineHeight; // Height needed for annotations
+                const totalHeight = chartHeight + topPadding + bottomPadding + annotationHeight;
+                
+                console.log('Adjusting container height:');
+                console.log('- Footnote lines:', footnoteLines);
+                console.log('- Source lines:', sourceLines);
+                console.log('- Max lines:', maxLines);
+                console.log('- Dynamic padding:', dynamicPadding, 'px');
+                console.log('- Chart height:', chartHeight, 'px');
+                console.log('- Top padding:', topPadding, 'px');
+                console.log('- Bottom padding:', bottomPadding, 'px');
+                console.log('- Annotation height:', annotationHeight, 'px');
+                console.log('- Total height:', totalHeight, 'px');
+                console.log('- Container height BEFORE:', chartContainer.offsetHeight, 'px');
+                
+                chartContainer.style.setProperty('padding-bottom', `${dynamicPadding}px`, 'important');
+                chartContainer.style.setProperty('height', `${totalHeight}px`, 'important');
+                
+                // Force a reflow to ensure the height change takes effect
+                chartContainer.offsetHeight;
+                
+                console.log('- New padding:', chartContainer.style.paddingBottom);
+                console.log('- New height:', chartContainer.style.height);
+                
+                // Check height after a brief delay to ensure DOM update
+                setTimeout(() => {
+                    console.log('- Container height AFTER (delayed):', chartContainer.offsetHeight, 'px');
+                }, 10);
+                
+                console.log('- Container height AFTER:', chartContainer.offsetHeight, 'px');
+            } else {
+                console.error('Chart container not found!');
+            }
+        }
+
+
 
         function measureChartDimensions() {
             const chartDiv = document.getElementById('plotlyChart');
@@ -1817,15 +1886,16 @@ date: 2025-08-04 16:47:52
             // Get paper width (entire chart container)
             const paperWidth = chartDiv.offsetWidth;
             
-            // Calculate wrapping widths (40% of chart width)
-            const footnoteWrappingWidth = chartWidth * 0.4;
-            const sourceWrappingWidth = chartWidth * 0.4;
+            // Calculate wrapping widths (35% of chart width)
+            const footnoteWrappingWidth = chartWidth * 0.35;
+            const sourceWrappingWidth = chartWidth * 0.35;
             
             console.log('Chart Dimensions:');
             console.log('a) Width of chart:', chartWidth, 'px');
-            console.log('b) Width of paper:', paperWidth, 'px');
-            console.log('c) Wrapping width for footnote:', footnoteWrappingWidth, 'px');
-            console.log('d) Wrapping width for source note:', sourceWrappingWidth, 'px');
+            console.log('b) Height of chart div:', chartDiv.offsetHeight, 'px');
+            console.log('c) Width of paper:', paperWidth, 'px');
+            console.log('d) Wrapping width for footnote:', footnoteWrappingWidth, 'px');
+            console.log('e) Wrapping width for source note:', sourceWrappingWidth, 'px');
             
             return {
                 chartWidth,

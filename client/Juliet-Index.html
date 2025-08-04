@@ -1,6 +1,6 @@
 <!--
 filename: Juliet-Index.html
-date: 2025-08-01 14:19:32
+date: 2025-08-04 16:36:06
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -337,11 +337,15 @@ date: 2025-08-01 14:19:32
         .chart-container.has-chart {
             min-height: 500px;
             display: block;
+            height: auto; /* Allow expansion for annotations */
+            overflow: visible; /* Allow annotations to be visible */
+            padding-bottom: 200px; /* Extra space for annotations */
         }
         
         .chart-container.has-chart #plotlyChart {
             width: 100%;
-            height: 100%;
+            height: 500px; /* Fixed height for chart area */
+            max-height: 500px; /* Ensure chart doesn't grow */
         }
 
         .chart-placeholder {
@@ -582,8 +586,8 @@ date: 2025-08-01 14:19:32
                 <h3>Chart Information</h3>
                 <input class="input-field" id="chartTitle" placeholder="Chart Title">
                 <input class="input-field" id="chartSubtitle" placeholder="Subtitle">
-                <input class="input-field" placeholder="Footnote">
-                <input class="input-field" placeholder="Data Source">
+                <input class="input-field" id="chartFootnote" placeholder="Footnote (appears below chart, left-aligned)">
+                <input class="input-field" id="chartSource" placeholder="Data Source (appears below chart, right-aligned)">
             </div>
             
             <div class="section">
@@ -1309,6 +1313,8 @@ date: 2025-08-01 14:19:32
             const verticalGrid = document.getElementById('verticalGrid').checked;
             const title = document.getElementById('chartTitle') ? document.getElementById('chartTitle').value : `${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart`;
             const subtitle = document.getElementById('chartSubtitle') ? document.getElementById('chartSubtitle').value : '';
+            const footnote = document.getElementById('chartFootnote') ? document.getElementById('chartFootnote').value : '';
+            const source = document.getElementById('chartSource') ? document.getElementById('chartSource').value : '';
             
             if (!xColumn || (!yColumn && !['pie', 'histogram'].includes(chartType))) {
                 showStatus('❌ Please select the required columns for your chart.', 'error');
@@ -1328,6 +1334,8 @@ date: 2025-08-01 14:19:32
                     colorColumn,
                     title,
                     subtitle,
+                    footnote,
+                    source,
                     horizontalGrid,
                     verticalGrid
                 });
@@ -1400,7 +1408,7 @@ date: 2025-08-01 14:19:32
         }
 
         function createPlotlyConfig(chartType, data, options) {
-            const { xColumn, yColumn, zColumn, colorColumn, title, subtitle, horizontalGrid, verticalGrid } = options;
+            const { xColumn, yColumn, zColumn, colorColumn, title, subtitle, footnote, source, horizontalGrid, verticalGrid } = options;
             
             const xData = data.map(row => row[xColumn]);
             const yData = yColumn ? data.map(row => row[yColumn]) : [];
@@ -1411,12 +1419,12 @@ date: 2025-08-01 14:19:32
             
             // Handle title and subtitle with proper wrapping
             let titleText = title || '';
-            let marginTop = 55; // Reduced from 80 (about 31% reduction)
+            let marginTop = 55; // Fixed margin for title
             
             if (subtitle) {
                 const wrappedSubtitle = wrapSubtitleText(subtitle);
                 titleText = `${title}<br><span style="font-size: 14px; color: rgba(255,255,255,0.8);">${wrappedSubtitle}</span>`;
-                marginTop = 70 + (wrappedSubtitle.split('<br>').length * 14); // Reduced from 100 + (lines * 20) to 70 + (lines * 14) (about 30% reduction)
+                marginTop = 70 + (wrappedSubtitle.split('<br>').length * 14);
             }
             
             let layout = {
@@ -1425,14 +1433,17 @@ date: 2025-08-01 14:19:32
                     font: { size: 18, color: 'white' },
                     x: 0.5,
                     xanchor: 'center',
-                    y: 0.95, // Moved down slightly from 0.98 to give more top space
+                    y: 0.95,
                     yanchor: 'top'
                 },
                 showlegend: true,
-                margin: { t: marginTop, b: 50, l: 50, r: 50 },
+                margin: { t: marginTop, b: 120, l: 80, r: 50 }, // Fixed bottom margin for annotations
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
-                font: { color: 'white' }
+                font: { color: 'white' },
+                height: 500, // Fixed chart height
+                width: 700, // Fixed chart width
+                autosize: false // Disable autosize to maintain fixed dimensions
             };
             
             const config = {
@@ -1631,6 +1642,61 @@ date: 2025-08-01 14:19:32
                     break;
             }
             
+            // Add footnote and source annotations if provided
+            if (footnote && footnote.trim()) {
+                if (!layout.annotations) {
+                    layout.annotations = [];
+                }
+                
+                layout.annotations.push({
+                    text: `<i>${wrapFootnoteText(footnote)}</i>`,
+                    xref: 'paper',
+                    yref: 'paper',
+                    x: 0, // flush left
+                    y: -0.15, // reduced from -0.25
+                    xanchor: 'left',
+                    yanchor: 'top',
+                    width: 0.4, // 40% width
+                    align: 'left',
+                    font: {
+                        size: 12,
+                        color: 'rgba(255,255,255,0.8)',
+                        family: 'Arial, sans-serif'
+                    },
+                    bgcolor: 'rgba(0,0,0,0)',
+                    bordercolor: 'rgba(0,0,0,0)',
+                    borderwidth: 0,
+                    showarrow: false
+                });
+            }
+            
+            if (source && source.trim()) {
+                if (!layout.annotations) {
+                    layout.annotations = [];
+                }
+                
+                layout.annotations.push({
+                    text: wrapSourceText(source),
+                    xref: 'paper',
+                    yref: 'paper',
+                    x: 1, // flush right
+                    y: -0.15, // reduced from -0.25
+                    xanchor: 'right',
+                    yanchor: 'top',
+                    width: 0.4, // 40% width
+                    align: 'right',
+                    font: {
+                        size: 12,
+                        color: 'rgba(255,255,255,0.8)',
+                        family: 'Arial, sans-serif'
+                    },
+                    bgcolor: 'rgba(0,0,0,0)',
+                    bordercolor: 'rgba(0,0,0,0)',
+                    borderwidth: 0,
+                    showarrow: false
+                });
+            }
+            
             return { data: plotData, layout, config };
         }
         
@@ -1660,6 +1726,56 @@ date: 2025-08-01 14:19:32
             const lines = [];
             let currentLine = '';
             const maxWidth = 80; // Characters per line
+            
+            for (let word of words) {
+                if ((currentLine + word).length <= maxWidth) {
+                    currentLine += (currentLine ? ' ' : '') + word;
+                } else {
+                    if (currentLine) {
+                        lines.push(currentLine);
+                    }
+                    currentLine = word;
+                }
+            }
+            
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+            
+            return lines.join('<br>');
+        }
+
+        function wrapFootnoteText(text) {
+            // Simple word-based wrapping for footnotes
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+            const maxWidth = 60; // Shorter width for footnotes (40% of chart)
+            
+            for (let word of words) {
+                if ((currentLine + word).length <= maxWidth) {
+                    currentLine += (currentLine ? ' ' : '') + word;
+                } else {
+                    if (currentLine) {
+                        lines.push(currentLine);
+                    }
+                    currentLine = word;
+                }
+            }
+            
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+            
+            return lines.join('<br>');
+        }
+
+        function wrapSourceText(text) {
+            // Simple word-based wrapping for source notes
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+            const maxWidth = 60; // Shorter width for source notes (40% of chart)
             
             for (let word of words) {
                 if ((currentLine + word).length <= maxWidth) {

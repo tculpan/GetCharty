@@ -1,6 +1,6 @@
 <!--
 filename: Juliet-Index.html
-date: 2025-08-04 16:36:06
+date: 2025-08-04 16:47:52
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -1379,7 +1379,11 @@ date: 2025-08-04 16:36:06
                 const plotlyChart = document.getElementById('plotlyChart');
                 if (plotlyChart) {
                     plotlyChart.innerHTML = ''; // Clear the placeholder text
-                    Plotly.newPlot('plotlyChart', plotlyConfig.data, plotlyConfig.layout, plotlyConfig.config);
+                    Plotly.newPlot('plotlyChart', plotlyConfig.data, plotlyConfig.layout, plotlyConfig.config)
+                        .then(function() {
+                            // Measure chart dimensions after rendering
+                            measureChartDimensions();
+                        });
                 }
                 
                 const chartContainer = document.getElementById('chartContainer');
@@ -1653,7 +1657,7 @@ date: 2025-08-04 16:36:06
                     xref: 'paper',
                     yref: 'paper',
                     x: 0, // flush left
-                    y: -0.15, // reduced from -0.25
+                    y: -0.15, // base position
                     xanchor: 'left',
                     yanchor: 'top',
                     width: 0.4, // 40% width
@@ -1680,7 +1684,7 @@ date: 2025-08-04 16:36:06
                     xref: 'paper',
                     yref: 'paper',
                     x: 1, // flush right
-                    y: -0.15, // reduced from -0.25
+                    y: -0.15, // same position as footnote
                     xanchor: 'right',
                     yanchor: 'top',
                     width: 0.4, // 40% width
@@ -1746,15 +1750,40 @@ date: 2025-08-04 16:36:06
         }
 
         function wrapFootnoteText(text) {
-            // Simple word-based wrapping for footnotes
+            // Get chart width for pixel calculation
+            const chartContainer = document.getElementById('chartContainer');
+            const chartWidth = chartContainer ? chartContainer.offsetWidth : 700; // fallback to 700px
+            const maxPixelWidth = calculateAnnotationWidth(chartWidth, 0.4);
+            
+            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
+        }
+
+        function wrapSourceText(text) {
+            // Get chart width for pixel calculation
+            const chartContainer = document.getElementById('chartContainer');
+            const chartWidth = chartContainer ? chartContainer.offsetWidth : 700; // fallback to 700px
+            const maxPixelWidth = calculateAnnotationWidth(chartWidth, 0.4);
+            
+            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
+        }
+
+        function wrapTextByPixelWidth(text, maxPixelWidth, fontSize = 12, fontFamily = 'Arial, sans-serif') {
+            // Create a canvas to measure text width
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.font = `${fontSize}px ${fontFamily}`;
+            
             const words = text.split(' ');
             const lines = [];
             let currentLine = '';
-            const maxWidth = 60; // Shorter width for footnotes (40% of chart)
             
             for (let word of words) {
-                if ((currentLine + word).length <= maxWidth) {
-                    currentLine += (currentLine ? ' ' : '') + word;
+                // Test if adding this word exceeds the pixel width
+                const testLine = currentLine + (currentLine ? ' ' : '') + word;
+                const testWidth = ctx.measureText(testLine).width;
+                
+                if (testWidth <= maxPixelWidth) {
+                    currentLine = testLine;
                 } else {
                     if (currentLine) {
                         lines.push(currentLine);
@@ -1770,29 +1799,40 @@ date: 2025-08-04 16:36:06
             return lines.join('<br>');
         }
 
-        function wrapSourceText(text) {
-            // Simple word-based wrapping for source notes
-            const words = text.split(' ');
-            const lines = [];
-            let currentLine = '';
-            const maxWidth = 60; // Shorter width for source notes (40% of chart)
-            
-            for (let word of words) {
-                if ((currentLine + word).length <= maxWidth) {
-                    currentLine += (currentLine ? ' ' : '') + word;
-                } else {
-                    if (currentLine) {
-                        lines.push(currentLine);
-                    }
-                    currentLine = word;
-                }
+        function calculateAnnotationWidth(chartWidth, percentage = 0.4) {
+            // Calculate 40% of chart width in pixels
+            return chartWidth * percentage;
+        }
+
+        function measureChartDimensions() {
+            const chartDiv = document.getElementById('plotlyChart');
+            if (!chartDiv) {
+                console.log('Chart div not found');
+                return null;
             }
             
-            if (currentLine) {
-                lines.push(currentLine);
-            }
+            // Get chart width (actual chart area)
+            const chartWidth = chartDiv.layout ? chartDiv.layout.width : chartDiv.offsetWidth;
             
-            return lines.join('<br>');
+            // Get paper width (entire chart container)
+            const paperWidth = chartDiv.offsetWidth;
+            
+            // Calculate wrapping widths (40% of chart width)
+            const footnoteWrappingWidth = chartWidth * 0.4;
+            const sourceWrappingWidth = chartWidth * 0.4;
+            
+            console.log('Chart Dimensions:');
+            console.log('a) Width of chart:', chartWidth, 'px');
+            console.log('b) Width of paper:', paperWidth, 'px');
+            console.log('c) Wrapping width for footnote:', footnoteWrappingWidth, 'px');
+            console.log('d) Wrapping width for source note:', sourceWrappingWidth, 'px');
+            
+            return {
+                chartWidth,
+                paperWidth,
+                footnoteWrappingWidth,
+                sourceWrappingWidth
+            };
         }
 
         // Chart type selection

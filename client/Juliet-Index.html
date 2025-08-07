@@ -1,6 +1,6 @@
 <!--
 filename: Juliet-Index.html
-date: 2025-08-07 23:01:33
+date: 2025-08-07 23:38:47
 Current working file - Dynamic container sizing for footnotes and source notes
 -->
 <!DOCTYPE html>
@@ -593,7 +593,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
             
             <div class="section">
                 <h3>Axis Labels</h3>
-                <input class="input-field" placeholder="X-Axis Title">
+                <input class="input-field" id="xAxisTitle" placeholder="X-Axis Title">
                 <input class="input-field" placeholder="Y-Axis Title">
                 <div class="input-group">
                     <input class="input-field" placeholder="Y-Prefix">
@@ -1130,6 +1130,51 @@ Current working file - Dynamic container sizing for footnotes and source notes
             }
         }
         
+        function clearExistingData() {
+            // Clear global data variables
+            currentData = [];
+            currentFileId = null;
+            rawData = [];
+            
+            // Clear chart container
+            const chartContainer = document.getElementById('chartContainer');
+            const plotlyChart = document.getElementById('plotlyChart');
+            if (chartContainer) chartContainer.classList.remove('has-chart');
+            if (plotlyChart) {
+                plotlyChart.innerHTML = `
+                    <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;">📊</div>
+                    <h2>Chart Preview Area</h2>
+                    <p>Upload data and configure settings to see your chart</p>
+                `;
+            }
+            
+            // Reset column selectors
+            const columnSelectors = ['xColumn', 'yColumn', 'zColumn', 'colorColumn'];
+            columnSelectors.forEach(selectorId => {
+                const selector = document.getElementById(selectorId);
+                if (selector) {
+                    selector.innerHTML = `<option>Select ${selectorId.replace('Column', '')}-Axis Column</option>`;
+                }
+            });
+            
+            // Disable generate buttons
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('generateBtnMain').disabled = true;
+            
+            // Clear form fields
+            const formFields = ['chartTitle', 'chartSubtitle', 'chartFootnote', 'chartSource', 'xAxisTitle'];
+            formFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) field.value = '';
+            });
+            
+            // Reset chart type to default
+            document.querySelectorAll('.chart-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector('[data-chart-type="vertical_bar"]').classList.add('active');
+        }
+
         function showLoading(show) {
             let loading = document.getElementById('loading');
             if (!loading) {
@@ -1142,6 +1187,12 @@ Current working file - Dynamic container sizing for footnotes and source notes
             loading.style.display = show ? 'block' : 'none';
         }
 
+        // Add click event to detect when file input is triggered
+        document.getElementById('fileInput').addEventListener('click', function() {
+            // Clear existing data when user starts selecting a new file
+            clearExistingData();
+        });
+        
         document.getElementById('fileInput').addEventListener('change', handleFileUpload);
         
         const uploadSection = document.querySelector('.upload-section');
@@ -1160,6 +1211,8 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 uploadSection.classList.remove('dragover');
                 const files = e.dataTransfer.files;
                 if (files.length > 0) {
+                    // Clear existing data when files are dropped
+                    clearExistingData();
                     document.getElementById('fileInput').files = files;
                     handleFileUpload({ target: { files: files } });
                 }
@@ -1615,6 +1668,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
             const subtitle = document.getElementById('chartSubtitle') ? document.getElementById('chartSubtitle').value : '';
             const footnote = document.getElementById('chartFootnote') ? document.getElementById('chartFootnote').value : '';
             const source = document.getElementById('chartSource') ? document.getElementById('chartSource').value : '';
+            const xAxisTitle = document.getElementById('xAxisTitle') ? document.getElementById('xAxisTitle').value : '';
             
             if (!xColumn || (!yColumn && !['pie', 'histogram'].includes(chartType))) {
                 showStatus('❌ Please select the required columns for your chart.', 'error');
@@ -1636,6 +1690,9 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 
                 processedData = prepareChartData();
                 
+                // Refresh data preview to show processed data before chart generation
+                showDataPreview(processedData);
+                
                 let plotlyConfig = createPlotlyConfig(chartType, processedData, {
                     xColumn,
                     yColumn,
@@ -1648,7 +1705,8 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     horizontalGrid,
                     verticalGrid,
                     topMargin,
-                    bottomMargin
+                    bottomMargin,
+                    xAxisTitle
                 });
                 
                 if (autoSpacing) {
@@ -1722,7 +1780,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
 
         // PLOTLY CONFIGURATION FUNCTION
         function createPlotlyConfig(chartType, data, options) {
-            const { xColumn, yColumn, zColumn, colorColumn, title, subtitle, footnote, source, horizontalGrid, verticalGrid, topMargin, bottomMargin } = options;
+            const { xColumn, yColumn, zColumn, colorColumn, title, subtitle, footnote, source, horizontalGrid, verticalGrid, topMargin, bottomMargin, xAxisTitle } = options;
             
             const xData = data.map(row => row[xColumn]);
             const yData = yColumn ? data.map(row => row[yColumn]) : [];
@@ -1782,7 +1840,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     }];
                     
                     layout.xaxis = applyGridSettings({
-                        title: xColumn,
+                        title: xAxisTitle || xColumn,
                         gridcolor: 'rgba(255,255,255,0.1)',
                         color: 'white',
                         range: [-0.5, xData.length - 0.5]
@@ -1840,7 +1898,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     }];
                     
                     layout.xaxis = applyGridSettings({ 
-                        title: xColumn, 
+                        title: xAxisTitle || xColumn, 
                         gridcolor: 'rgba(255,255,255,0.1)', 
                         color: 'white',
                         range: [-0.5, xData.length - 0.5]
@@ -1875,7 +1933,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     }];
                     
                     layout.xaxis = applyGridSettings({ 
-                        title: xColumn, 
+                        title: xAxisTitle || xColumn, 
                         gridcolor: 'rgba(255,255,255,0.1)', 
                         color: 'white',
                         range: [-0.5, xData.length - 0.5]
@@ -1916,7 +1974,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     }];
                     
                     layout.xaxis = applyGridSettings({ 
-                        title: xColumn, 
+                        title: xAxisTitle || xColumn, 
                         gridcolor: 'rgba(255,255,255,0.1)', 
                         color: 'white',
                         range: [Math.min(...xData), Math.max(...xData)]
@@ -1975,7 +2033,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     }];
                     
                     layout.xaxis = applyGridSettings({ 
-                        title: xColumn, 
+                        title: xAxisTitle || xColumn, 
                         color: 'white',
                         range: [-0.5, uniqueX.length - 0.5]
                     }, verticalGrid, horizontalGrid);

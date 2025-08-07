@@ -1,7 +1,6 @@
 <!--
 filename: Juliet-Index.html
-date: 2025-08-07 23:01:33
-Current working file - Dynamic container sizing for footnotes and source notes
+date: 2025-08-04 22:57:54
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -336,15 +335,15 @@ Current working file - Dynamic container sizing for footnotes and source notes
         }
 
         .chart-container.has-chart {
-            min-height: 500px;
             display: block;
-            height: auto;
-            overflow: visible;
-            padding: 40px 40px 20px 40px;
+            overflow: visible; /* Allow annotations to be visible */
+            padding-bottom: 200px; /* Base padding, overridden by JavaScript */
         }
         
         .chart-container.has-chart #plotlyChart {
             width: 100%;
+            height: 500px; /* Fixed height for chart area */
+            max-height: 500px; /* Ensure chart doesn't grow */
         }
 
         .chart-placeholder {
@@ -502,8 +501,6 @@ Current working file - Dynamic container sizing for footnotes and source notes
         }
     </style>
 </head>
-
-<!-- SECTION 2 OF 4 - HTML BODY AND SIDEBAR -->
 <body>
     <div class="sidebar-layout">
         <div class="sidebar">
@@ -726,7 +723,6 @@ Current working file - Dynamic container sizing for footnotes and source notes
         </div>
     </div>
 
-<!-- SECTION 3 OF 4 - JAVASCRIPT CORE FUNCTIONS -->
     <script>
         // API configuration
         const API_ENDPOINT = 'http://localhost:5000';
@@ -738,351 +734,20 @@ Current working file - Dynamic container sizing for footnotes and source notes
         let currentData = [];
         let currentChart = null;
         let processedData = [];
-        let rawData = [];
-        let currentFileId = null;
+        let rawData = []; // Store original unprocessed data
+        let currentFileId = null; // Store current file ID from server
 
         function generateSessionId() {
             return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         }
 
-        // Dynamic container sizing functions
-        function calculateDynamicMargins(title, subtitle, footnote, source) {
-            // Base margins
-            let topMargin = 80;
-            let bottomMargin = 80;
-            
-            // Font configurations matching Plotly's actual rendering
-            const titleFontSize = 18;
-            const subtitleFontSize = 14;
-            const annotationFontSize = 12;
-            const fontFamily = '-apple-system, BlinkMacSystemFont, sans-serif';
-            const chartWidth = 850; // Fixed chart width matching layout
-            const maxTextWidth = chartWidth * 0.85; // 85% of chart width for title/subtitle
-            
-            // Measure title if present
-            if (title) {
-                const titleMeasurements = measureTextDimensions(
-                    title,
-                    titleFontSize,
-                    fontFamily,
-                    maxTextWidth
-                );
-                topMargin = Math.max(80, titleMeasurements.requiredSpace + 50); // More base padding
-            }
-            
-            // Measure subtitle and add to top margin
-            if (subtitle) {
-                // For subtitle, we need to account for Plotly's HTML rendering
-                const formattedSubtitle = wrapSubtitleText(subtitle, 100); // Wrap at 100 chars
-                const subtitleMeasurements = measureTextDimensions(
-                    formattedSubtitle,
-                    subtitleFontSize,
-                    fontFamily,
-                    maxTextWidth
-                );
-                
-                // Add subtitle height to existing top margin with extra buffer
-                topMargin += subtitleMeasurements.requiredSpace;
-                
-                // Progressive safety buffer - more aggressive for longer text
-                const safetyBuffer = Math.min(50, Math.floor(subtitle.length / 30) * 8);
-                topMargin += safetyBuffer;
-            }
-            
-            // Measure footnote and source for bottom margin
-            if (footnote || source) {
-                let footnoteHeight = 0;
-                let sourceHeight = 0;
-                
-                if (footnote) {
-                    // Footnote uses 40% of chart width (340px for 850px chart)
-                    const footnoteMeasurements = measureTextDimensions(
-                        footnote,
-                        annotationFontSize,
-                        fontFamily,
-                        chartWidth * 0.3 // 30% of chart width
-                    );
-                    footnoteHeight = footnoteMeasurements.requiredSpace;
-                }
-                
-                if (source) {
-                    // Source also uses 30% of chart width (340px for 850px chart)
-                    const sourceText = source.startsWith('Source: ') ? source : 'Source: ' + source;
-                    const sourceMeasurements = measureTextDimensions(
-                        sourceText,
-                        annotationFontSize,
-                        fontFamily,
-                        chartWidth * 0.3 // 40% of chart width
-                    );
-                    sourceHeight = sourceMeasurements.requiredSpace;
-                }
-                
-                // Use the larger of the two since they're side by side
-                bottomMargin = 80 + Math.max(footnoteHeight, sourceHeight) + 20; // Extra padding
-            }
-            
-            // Add more aggressive safety margin (20% extra)
-            topMargin = Math.ceil(topMargin * 1.2);
-            bottomMargin = Math.ceil(bottomMargin * 1.15);
-            
-            console.log('Dynamic margins calculated:', { topMargin, bottomMargin });
-            
-            return { topMargin, bottomMargin };
-        }
-
-        function calculateContainerHeight(topMargin, bottomMargin) {
-            const fixedChartHeight = 400;
-            const containerPadding = 60;
-            
-            // Include extra buffer for very long text
-            const extraBuffer = Math.max(0, (topMargin + bottomMargin - 200) * 0.1);
-            
-            return fixedChartHeight + topMargin + bottomMargin + containerPadding + extraBuffer;
-        }
-
-        /**
-         * Post-render validation to check for overflow and adjust if needed
-         * Call this after Plotly renders the chart
-         */
-        function validateAndAdjustChartSpacing() {
-            setTimeout(() => {
-                const plotlyChart = document.getElementById('plotlyChart');
-                const chartContainer = document.getElementById('chartContainer');
-                
-                if (plotlyChart && plotlyChart._fullLayout) {
-                    // Get all text elements that might overflow
-                    const titleElements = plotlyChart.querySelectorAll('.gtitle');
-                    const annotations = plotlyChart.querySelectorAll('.annotation');
-                    const plotArea = plotlyChart.querySelector('.plot');
-                    
-                    if (titleElements.length > 0 && plotArea) {
-                        let maxTitleBottom = 0;
-                        
-                        // Find the lowest point of all title elements
-                        titleElements.forEach(element => {
-                            const bounds = element.getBoundingClientRect();
-                            maxTitleBottom = Math.max(maxTitleBottom, bounds.bottom);
-                        });
-                        
-                        const plotBounds = plotArea.getBoundingClientRect();
-                        const overlap = maxTitleBottom - plotBounds.top;
-                        
-                        if (overlap > 0) {
-                            console.warn(`Title/subtitle overflow detected: ${overlap}px`);
-                            
-                            // Adjust the layout margins more aggressively
-                            const currentLayout = plotlyChart._fullLayout;
-                            const newTopMargin = currentLayout.margin.t + overlap + 30; // 30px extra safety
-                            
-                            // Update container height
-                            const currentHeight = parseInt(chartContainer.style.height);
-                            const newHeight = currentHeight + overlap + 30;
-                            chartContainer.style.height = `${newHeight}px`;
-                            
-                            // Re-render with adjusted margins
-                            Plotly.relayout('plotlyChart', {
-                                'margin.t': newTopMargin
-                            });
-                        }
-                    }
-                    
-                    // Check footnote/source positioning
-                    if (annotations.length > 0) {
-                        annotations.forEach(annotation => {
-                            const bounds = annotation.getBoundingClientRect();
-                            const containerBounds = chartContainer.getBoundingClientRect();
-                            
-                            // If annotation is cut off at bottom
-                            if (bounds.bottom > containerBounds.bottom) {
-                                const currentHeight = parseInt(chartContainer.style.height);
-                                const overflow = bounds.bottom - containerBounds.bottom;
-                                chartContainer.style.height = `${currentHeight + overflow + 20}px`;
-                            }
-                        });
-                    }
-                }
-            }, 150); // Slightly longer delay to ensure render is complete
-        }
-
-        function syncContainerWithPlotly() {
-            const plotlyChart = document.getElementById('plotlyChart');
-            const chartContainer = document.getElementById('chartContainer');
-            
-            if (plotlyChart && chartContainer) {
-                const plotlyHeight = plotlyChart.layout ? plotlyChart.layout.height : 500;
-                const containerPadding = 60;
-                const totalHeight = plotlyHeight + containerPadding;
-                
-                chartContainer.style.height = `${totalHeight}px`;
-            }
-        }
-
-        // Text wrapping helper functions
-        function wrapSubtitleText(text, maxLength = 80) {
-            if (!text) return '';
-            const words = text.split(' ');
-            const lines = [];
-            let currentLine = '';
-            
-            words.forEach(word => {
-                if ((currentLine + ' ' + word).length > maxLength) {
-                    lines.push(currentLine.trim());
-                    currentLine = word;
-                } else {
-                    currentLine = currentLine ? currentLine + ' ' + word : word;
-                }
-            });
-            
-            if (currentLine) {
-                lines.push(currentLine.trim());
-            }
-            
-            return lines.join('<br>');
-        }
-
-        function wrapFootnoteText(text, maxLength = 100) {
-            if (!text) return '';
-            return wrapSubtitleText(text, maxLength);
-        }
-
-        function wrapSourceText(text, maxLength = 60) {
-            if (!text) return '';
-            if (!text.startsWith('Source: ')) {
-                text = 'Source: ' + text;
-            }
-            return wrapSubtitleText(text, maxLength);
-        }
-
-        /**
-         * Wraps text to fit within a specific percentage of chart width
-         * Used for footnotes and sources to ensure proper 40% width constraint
-         */
-        function wrapTextToWidth(text, widthPercentage) {
-            // Use fixed chart width (850px) from Plotly layout
-            const chartWidth = 850;
-            const maxPixelWidth = chartWidth * (widthPercentage / 100);
-            
-            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
-        }
-
-        function wrapTextByPixelWidth(text, maxPixelWidth, fontSize = 12, fontFamily = 'Arial, sans-serif') {
-            // Create a canvas to measure text width
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.font = `${fontSize}px ${fontFamily}`;
-            
-            const words = text.split(' ');
-            const lines = [];
-            let currentLine = '';
-            
-            for (let word of words) {
-                // Test if adding this word exceeds the pixel width
-                const testLine = currentLine + (currentLine ? ' ' : '') + word;
-                const testWidth = ctx.measureText(testLine).width;
-                
-                if (testWidth <= maxPixelWidth) {
-                    currentLine = testLine;
-                } else {
-                    if (currentLine) {
-                        lines.push(currentLine);
-                    }
-                    currentLine = word;
-                }
-            }
-            
-            if (currentLine) {
-                lines.push(currentLine);
-            }
-            
-            return lines.join('<br>');
-        }
-
-        function wrapFootnoteText(text) {
-            // Use fixed chart width (850px) and wrap to 30% width
-            const chartWidth = 850;
-            const maxPixelWidth = chartWidth * 0.3; // 30% of chart width = 340px
-            
-            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
-        }
-
-        function wrapSourceText(text) {
-            // Ensure source starts with "Source: "
-            if (!text.startsWith('Source: ')) {
-                text = 'Source: ' + text;
-            }
-            
-            // Use fixed chart width (850px) and wrap to 30% width
-            const chartWidth = 850;
-            const maxPixelWidth = chartWidth * 0.3; // 30% of chart width = 340px
-            
-            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
-        }
-
-        /**
-         * Measures actual rendered text dimensions using a hidden DOM element
-         * This replaces the hardcoded 16px-per-line assumption
-         */
-        function measureTextDimensions(text, fontSize, fontFamily, maxWidth) {
-            // Create invisible measuring container
-            const measuringDiv = document.createElement('div');
-            measuringDiv.style.cssText = `
-                position: absolute;
-                visibility: hidden;
-                left: -9999px;
-                width: ${maxWidth}px;
-                font-size: ${fontSize}px;
-                font-family: ${fontFamily};
-                line-height: 1.5;
-                white-space: normal;
-                word-wrap: break-word;
-                word-break: break-word;
-                color: white;
-            `;
-            
-            measuringDiv.innerHTML = text.replace(/\n/g, '<br>'); // Handle line breaks
-            document.body.appendChild(measuringDiv);
-            
-            // Measure actual height
-            const totalHeight = measuringDiv.offsetHeight;
-            
-            // Measure single line height for line count calculation
-            const singleLineDiv = document.createElement('div');
-            singleLineDiv.style.cssText = measuringDiv.style.cssText;
-            singleLineDiv.innerHTML = 'Ag'; // Test string with ascender and descender
-            document.body.appendChild(singleLineDiv);
-            
-            const singleLineHeight = singleLineDiv.offsetHeight;
-            const numberOfLines = Math.ceil(totalHeight / singleLineHeight);
-            
-            // Clean up
-            document.body.removeChild(measuringDiv);
-            document.body.removeChild(singleLineDiv);
-            
-            return {
-                totalHeight: totalHeight,
-                numberOfLines: numberOfLines,
-                lineHeight: singleLineHeight,
-                requiredSpace: totalHeight + (fontSize * 0.8) // More padding
-            };
-        }
-
-        function measureChartDimensions() {
-            const plotlyChart = document.getElementById('plotlyChart');
-            if (plotlyChart && plotlyChart._fullLayout) {
-                console.log('Chart dimensions:', {
-                    width: plotlyChart._fullLayout.width,
-                    height: plotlyChart._fullLayout.height,
-                    marginTop: plotlyChart._fullLayout.margin.t,
-                    marginBottom: plotlyChart._fullLayout.margin.b
-                });
-            }
-        }
-
         function handleDataOrientationChange() {
             if (rawData.length > 0) {
+                // Reprocess the data with new orientation
                 const orientation = document.querySelector('input[name="dataOrientation"]:checked').value;
                 currentData = orientation === 'horizontal' ? transposeData(rawData) : rawData;
                 
+                // Update UI
                 displayDataStats(currentData);
                 populateColumnSelectors(currentData);
                 showDataPreview(currentData);
@@ -1094,12 +759,17 @@ Current working file - Dynamic container sizing for footnotes and source notes
         function transposeData(data) {
             if (!data || data.length === 0) return [];
             
+            // Get all unique keys from all rows
             const allKeys = [...new Set(data.flatMap(row => Object.keys(row)))];
+            
+            // Create transposed structure
             const transposed = [];
             
+            // First, create a row for each original column
             allKeys.forEach((key, index) => {
                 const newRow = { 'Field': key };
                 
+                // Add values from each original row as new columns
                 data.forEach((originalRow, rowIndex) => {
                     newRow[`Row_${rowIndex + 1}`] = originalRow[key] || null;
                 });
@@ -1111,6 +781,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
         }
         
         function showStatus(message, type = 'success') {
+            // Create status element if it doesn't exist
             let status = document.getElementById('status');
             if (!status) {
                 status = document.createElement('div');
@@ -1142,6 +813,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
             loading.style.display = show ? 'block' : 'none';
         }
 
+        // Enhanced file upload handling
         document.getElementById('fileInput').addEventListener('change', handleFileUpload);
         
         const uploadSection = document.querySelector('.upload-section');
@@ -1170,7 +842,8 @@ Current working file - Dynamic container sizing for footnotes and source notes
             const file = event.target.files[0];
             if (!file) return;
             
-            const maxSize = 10 * 1024 * 1024;
+            // File validation
+            const maxSize = 10 * 1024 * 1024; // 10MB
             if (file.size > maxSize) {
                 showStatus('❌ File size exceeds 10MB limit. Please upload a smaller file.', 'error');
                 return;
@@ -1196,10 +869,12 @@ Current working file - Dynamic container sizing for footnotes and source notes
                         dynamicTyping: true,
                         transformHeader: (header) => header.trim(),
                         transform: (value, header) => {
+                            // Clean up values and handle common data issues
                             if (typeof value === 'string') {
                                 value = value.trim();
+                                // Skip rows that are likely headers or metadata
                                 if (header.toLowerCase().includes('date') && value.toLowerCase() === 'date') {
-                                    return null;
+                                    return null; // This will be filtered out
                                 }
                             }
                             return value;
@@ -1212,6 +887,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     
                     data = result.data;
                 } else {
+                    // Excel file processing
                     const arrayBuffer = await file.arrayBuffer();
                     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
                     const sheetName = workbook.SheetNames[0];
@@ -1223,14 +899,17 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     throw new Error('No data found in the file');
                 }
                 
+                // Clean and validate data
                 const cleanedData = cleanData(data);
                 
                 if (cleanedData.length === 0) {
                     throw new Error('No valid data rows found after cleaning');
                 }
                 
+                // Convert data to CSV for server processing
                 const csvContent = Papa.unparse(cleanedData);
                 
+                // Send to server for processing
                 const response = await fetch(`${API_ENDPOINT}/process-file`, {
                     method: 'POST',
                     headers: {
@@ -1253,9 +932,11 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 
                 const serverResponse = await response.json();
                 
+                // Store server response data
                 currentData = serverResponse.data;
                 currentFileId = serverResponse.file_id;
                 
+                // Store raw data and apply orientation
                 rawData = cleanedData;
                 const orientation = document.querySelector('input[name="dataOrientation"]:checked').value;
                 currentData = orientation === 'horizontal' ? transposeData(currentData) : currentData;
@@ -1264,6 +945,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 populateColumnSelectors(currentData);
                 showDataPreview(currentData);
                 
+                // Reset chart container for new file
                 const chartContainer = document.getElementById('chartContainer');
                 const plotlyChart = document.getElementById('plotlyChart');
                 if (chartContainer) chartContainer.classList.remove('has-chart');
@@ -1295,10 +977,10 @@ Current working file - Dynamic container sizing for footnotes and source notes
             for (const col of columns) {
                 const sampleValues = data.slice(0, 5).map(row => String(row[col] || '')).filter(val => val.trim() !== '');
                 const datePatterns = [
-                    /\d{4}-\d{2}-\d{2}/,
-                    /\d{2}-\d{2}-\d{2}/,
-                    /\d{1,2}\/\d{1,2}\/\d{2,4}/,
-                    /\d{1,2}-\w{3}-\d{2,4}/,
+                    /\d{4}-\d{2}-\d{2}/, // YYYY-MM-DD
+                    /\d{2}-\d{2}-\d{2}/, // MM-DD-YY or DD-MM-YY
+                    /\d{1,2}\/\d{1,2}\/\d{2,4}/, // M/D/YY or M/D/YYYY
+                    /\d{1,2}-\w{3}-\d{2,4}/, // DD-MMM-YY or DD-MMM-YYYY
                 ];
                 
                 const dateMatches = sampleValues.filter(val => 
@@ -1315,12 +997,14 @@ Current working file - Dynamic container sizing for footnotes and source notes
         function cleanData(data) {
             if (!Array.isArray(data) || data.length === 0) return [];
             
+            // Remove completely empty rows
             const cleaned = data.filter(row => {
                 return Object.values(row).some(value => 
                     value !== null && value !== undefined && value !== ''
                 );
             });
             
+            // Detect if first row is a header by checking if it contains common header keywords
             const headerKeywords = ['date', 'time', 'period', 'year', 'month', 'day', 'quarter', 'week', 'id', 'name', 'description', 'category', 'type', 'value', 'amount', 'count', 'total', 'sum', 'average', 'max', 'min'];
             const firstRow = cleaned[0];
             let isFirstRowHeader = false;
@@ -1331,8 +1015,10 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     headerKeywords.some(keyword => val.includes(keyword))
                 ).length;
                 
+                // If more than 50% of first row values match header keywords, treat it as header
                 isFirstRowHeader = headerMatchCount > firstRowValues.length * 0.5;
                 
+                // Additional check: if first row has mostly string values and subsequent rows have mixed types
                 if (!isFirstRowHeader && cleaned.length > 1) {
                     const secondRow = cleaned[1];
                     const firstRowTypes = Object.values(firstRow).map(val => typeof val);
@@ -1341,14 +1027,17 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     const firstRowStringCount = firstRowTypes.filter(type => type === 'string').length;
                     const secondRowNumberCount = secondRowTypes.filter(type => type === 'number').length;
                     
+                    // If first row is mostly strings and second row has numbers, first row might be header
                     if (firstRowStringCount > firstRowTypes.length * 0.7 && secondRowNumberCount > 0) {
                         isFirstRowHeader = true;
                     }
                 }
             }
             
+            // Remove header row if detected
             let dataRows = isFirstRowHeader ? cleaned.slice(1) : cleaned;
             
+            // Additional filter: remove any rows where the first column contains header-like values
             const firstColumnKey = Object.keys(dataRows[0] || {})[0];
             if (firstColumnKey) {
                 dataRows = dataRows.filter(row => {
@@ -1358,10 +1047,12 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 });
             }
             
+            // Convert string numbers to actual numbers where appropriate
             const cleanedRows = dataRows.map(row => {
                 const cleanRow = {};
                 Object.entries(row).forEach(([key, value]) => {
                     if (typeof value === 'string') {
+                        // Try to convert string numbers
                         const numValue = parseFloat(value);
                         if (!isNaN(numValue) && isFinite(numValue) && value.trim() !== '') {
                             cleanRow[key] = numValue;
@@ -1375,14 +1066,14 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 return cleanRow;
             });
             
+            // Final filter: remove any rows that look like headers or metadata
             return cleanedRows.filter(row => {
                 const firstValue = String(Object.values(row)[0] || '').toLowerCase().trim();
                 const headerKeywords = ['date', 'time', 'period', 'header', 'title', 'name', 'id', 'row', 'index', 'total', 'sum', 'average'];
                 return !headerKeywords.some(keyword => firstValue.includes(keyword));
             });
         }
-
-        // DATA DISPLAY FUNCTIONS
+        
         function displayDataStats(data) {
             if (!data.length) return;
             
@@ -1442,6 +1133,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 const currentValue = selector.value;
                 selector.innerHTML = '';
                 
+                // Add "None" option for optional columns
                 if (['zColumn', 'colorColumn'].includes(selectorId)) {
                     selector.add(new Option('None', ''));
                 }
@@ -1451,11 +1143,13 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     selector.add(option);
                 });
                 
+                // Restore previous selection if still valid
                 if (columns.includes(currentValue)) {
                     selector.value = currentValue;
                 }
             });
             
+            // Set intelligent defaults
             if (columns.length >= 2) {
                 const xColumn = document.getElementById('xColumn');
                 const yColumn = document.getElementById('yColumn');
@@ -1478,6 +1172,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 preview.id = 'dataPreview';
                 preview.className = 'data-preview-section';
                 preview.innerHTML = '<h3>📋 Data Preview</h3><div class="data-preview" id="dataPreviewContent"></div>';
+                // Insert after the generate button
                 const generateBtn = document.getElementById('generateBtnMain');
                 if (generateBtn) {
                     generateBtn.parentNode.insertBefore(preview, generateBtn.nextSibling);
@@ -1490,16 +1185,18 @@ Current working file - Dynamic container sizing for footnotes and source notes
             if (!previewContent) return;
             
             const columns = Object.keys(data[0]);
-            const previewRows = data.slice(0, 10);
+            const previewRows = data.slice(0, 10); // Show first 10 rows
             
             let html = `<p><strong>Data Preview (First ${previewRows.length} rows of ${data.length})</strong></p>`;
             html += '<div style="overflow-x: auto;"><table><thead><tr>';
             
+            // Headers
             columns.forEach(col => {
                 html += `<th>${col}</th>`;
             });
             html += '</tr></thead><tbody>';
             
+            // Rows
             previewRows.forEach(row => {
                 html += '<tr>';
                 columns.forEach(col => {
@@ -1518,8 +1215,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
             previewContent.innerHTML = html;
             preview.style.display = 'block';
         }
-
-        // DATA PROCESSING FUNCTIONS
+        
         function prepareChartData() {
             const chartType = getSelectedChartType();
             const xColumn = document.getElementById('xColumn').value;
@@ -1531,9 +1227,11 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 throw new Error('Missing required data or column selection');
             }
             
+            // Use current data
             let dataToProcess = currentData;
             let processedData = [...dataToProcess];
             
+            // Handle aggregation
             if (aggregation !== 'none' && ['pie', 'vertical_bar', 'horizontal_bar'].includes(chartType)) {
                 const grouped = {};
                 
@@ -1579,6 +1277,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 });
             }
             
+            // Sort and limit items
             if (['pie', 'vertical_bar', 'horizontal_bar'].includes(chartType) && aggregation !== 'none') {
                 const valueKey = yColumn || 'value';
                 processedData.sort((a, b) => b[valueKey] - a[valueKey]);
@@ -1595,8 +1294,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
             const activeBtn = document.querySelector('.chart-type-btn.active');
             return activeBtn ? activeBtn.getAttribute('data-chart-type') : 'vertical_bar';
         }
-
-        // MAIN CHART GENERATION FUNCTION
+        
         async function generateChart() {
             if (!currentData.length) {
                 showStatus('❌ No data available. Please upload a file first.', 'error');
@@ -1625,15 +1323,6 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 showLoading(true);
                 showStatus('🎨 Generating your interactive chart...', 'warning');
                 
-                // Calculate required dimensions FIRST
-                const { topMargin, bottomMargin } = calculateDynamicMargins(title, subtitle, footnote, source);
-                const containerHeight = calculateContainerHeight(topMargin, bottomMargin);
-                
-                // Update container height
-                const chartContainer = document.getElementById('chartContainer');
-                chartContainer.style.height = `${containerHeight}px`;
-                chartContainer.style.minHeight = 'unset';
-                
                 processedData = prepareChartData();
                 
                 let plotlyConfig = createPlotlyConfig(chartType, processedData, {
@@ -1646,11 +1335,10 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     footnote,
                     source,
                     horizontalGrid,
-                    verticalGrid,
-                    topMargin,
-                    bottomMargin
+                    verticalGrid
                 });
                 
+                // Apply auto-spacing if enabled
                 if (autoSpacing) {
                     try {
                         const xData = processedData.map(row => row[xColumn]);
@@ -1668,6 +1356,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                         if (spacingResponse.ok) {
                             const spacingData = await spacingResponse.json();
                             if (spacingData.success) {
+                                // Apply the auto-spacing configuration while preserving grid settings
                                 plotlyConfig.layout.xaxis = {
                                     ...plotlyConfig.layout.xaxis,
                                     ...spacingData.xaxis_config,
@@ -1687,15 +1376,37 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 
                 const plotlyChart = document.getElementById('plotlyChart');
                 if (plotlyChart) {
-                    plotlyChart.innerHTML = '';
+                    plotlyChart.innerHTML = ''; // Clear the placeholder text
+                    
+                    // BEFORE chart render - calculate padding based on estimated width
+                    const containerWidth = document.getElementById('chartContainer').offsetWidth;
+                    const estimatedChartWidth = containerWidth - 160; // Approximate chart width
+                    
+                    console.log('Before render calculations:');
+                    console.log('- Container width:', containerWidth, 'px');
+                    console.log('- Container height:', document.getElementById('chartContainer').offsetHeight, 'px');
+                    console.log('- Estimated chart width:', estimatedChartWidth, 'px');
+                    console.log('- Footnote text:', footnote);
+                    console.log('- Source text:', source);
+                    
+                    // Calculate lines before render
+                    const footnoteLines = footnote ? wrapFootnoteText(footnote).split('<br>').length : 0;
+                    const sourceLines = source ? wrapSourceText(source).split('<br>').length : 0;
+                    
+                    console.log('- Footnote lines calculated:', footnoteLines);
+                    console.log('- Source lines calculated:', sourceLines);
+                    
+                    // Set padding before render
+                    adjustContainerPadding(footnoteLines, sourceLines);
+                    
                     Plotly.newPlot('plotlyChart', plotlyConfig.data, plotlyConfig.layout, plotlyConfig.config)
                         .then(function() {
-                            syncContainerWithPlotly();
+                            // Measure chart dimensions after rendering
                             measureChartDimensions();
-                            validateAndAdjustChartSpacing(); // Validate and adjust for text overflow
                         });
                 }
                 
+                const chartContainer = document.getElementById('chartContainer');
                 if (chartContainer) {
                     chartContainer.classList.add('has-chart');
                 }
@@ -1720,9 +1431,8 @@ Current working file - Dynamic container sizing for footnotes and source notes
             return axisConfig;
         }
 
-        // PLOTLY CONFIGURATION FUNCTION
         function createPlotlyConfig(chartType, data, options) {
-            const { xColumn, yColumn, zColumn, colorColumn, title, subtitle, footnote, source, horizontalGrid, verticalGrid, topMargin, bottomMargin } = options;
+            const { xColumn, yColumn, zColumn, colorColumn, title, subtitle, footnote, source, horizontalGrid, verticalGrid } = options;
             
             const xData = data.map(row => row[xColumn]);
             const yData = yColumn ? data.map(row => row[yColumn]) : [];
@@ -1731,10 +1441,14 @@ Current working file - Dynamic container sizing for footnotes and source notes
             
             let plotData = [];
             
+            // Handle title and subtitle with proper wrapping
             let titleText = title || '';
+            let marginTop = 55; // Fixed margin for title
+            
             if (subtitle) {
                 const wrappedSubtitle = wrapSubtitleText(subtitle);
                 titleText = `${title}<br><span style="font-size: 14px; color: rgba(255,255,255,0.8);">${wrappedSubtitle}</span>`;
+                marginTop = 70 + (wrappedSubtitle.split('<br>').length * 14);
             }
             
             let layout = {
@@ -1742,21 +1456,18 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     text: titleText,
                     font: { size: 18, color: 'white' },
                     x: 0.5,
-                    xanchor: 'center'
+                    xanchor: 'center',
+                    y: 0.95,
+                    yanchor: 'top'
                 },
                 showlegend: true,
-                margin: { 
-                    t: topMargin,
-                    b: bottomMargin, 
-                    l: 80,
-                    r: 50
-                },
+                margin: { t: marginTop, b: 120, l: 80, r: 50 }, // Fixed bottom margin for annotations
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 font: { color: 'white' },
-                height: 400 + topMargin + bottomMargin,
-                width: 850,  // Fixed width matching the attached file
-                autosize: false
+                height: 500, // Fixed chart height
+                width: 700, // Fixed chart width
+                autosize: false // Disable autosize to maintain fixed dimensions
             };
             
             const config = {
@@ -1824,7 +1535,8 @@ Current working file - Dynamic container sizing for footnotes and source notes
                         color: 'white',
                         zeroline: true,
                         zerolinecolor: 'gray',
-                        zerolinewidth: 2
+                        zerolinewidth: 2,
+                        range: [0, Math.max(...xData) * 1.1]
                     }, verticalGrid, horizontalGrid);
                     break;
                     
@@ -1845,15 +1557,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                         color: 'white',
                         range: [-0.5, xData.length - 0.5]
                     }, verticalGrid, horizontalGrid);
-                    layout.yaxis = applyGridSettings({ 
-                        title: yColumn || 'Value', 
-                        gridcolor: 'rgba(255,255,255,0.1)', 
-                        color: 'white', 
-                        zeroline: true, 
-                        zerolinecolor: 'gray', 
-                        zerolinewidth: 2, 
-                        range: [0, Math.max(...yData) * 1.1] 
-                    }, horizontalGrid, verticalGrid);
+                    layout.yaxis = applyGridSettings({ title: yColumn || 'Value', gridcolor: 'rgba(255,255,255,0.1)', color: 'white', zeroline: true, zerolinecolor: 'gray', zerolinewidth: 2, range: [0, Math.max(...yData) * 1.1] }, horizontalGrid, verticalGrid);
                     break;
                     
                 case 'scatter':
@@ -1880,15 +1584,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                         color: 'white',
                         range: [-0.5, xData.length - 0.5]
                     }, verticalGrid, horizontalGrid);
-                    layout.yaxis = applyGridSettings({ 
-                        title: yColumn, 
-                        gridcolor: 'rgba(255,255,255,0.1)', 
-                        color: 'white', 
-                        zeroline: true, 
-                        zerolinecolor: 'gray', 
-                        zerolinewidth: 2, 
-                        range: [0, Math.max(...yData) * 1.1] 
-                    }, horizontalGrid, verticalGrid);
+                    layout.yaxis = applyGridSettings({ title: yColumn, gridcolor: 'rgba(255,255,255,0.1)', color: 'white', zeroline: true, zerolinecolor: 'gray', zerolinewidth: 2, range: [0, Math.max(...yData) * 1.1] }, horizontalGrid, verticalGrid);
                     break;
                     
                 case 'pie':
@@ -1921,14 +1617,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                         color: 'white',
                         range: [Math.min(...xData), Math.max(...xData)]
                     }, verticalGrid, horizontalGrid);
-                    layout.yaxis = applyGridSettings({ 
-                        title: 'Frequency', 
-                        gridcolor: 'rgba(255,255,255,0.1)', 
-                        color: 'white', 
-                        zeroline: true, 
-                        zerolinecolor: 'gray', 
-                        zerolinewidth: 2 
-                    }, horizontalGrid, verticalGrid);
+                    layout.yaxis = applyGridSettings({ title: 'Frequency', gridcolor: 'rgba(255,255,255,0.1)', color: 'white', zeroline: true, zerolinecolor: 'gray', zerolinewidth: 2, range: [0, Math.max(...yData) * 1.1] }, horizontalGrid, verticalGrid);
                     break;
                     
                 case 'box':
@@ -1940,17 +1629,11 @@ Current working file - Dynamic container sizing for footnotes and source notes
                         boxpoints: 'outliers'
                     }];
                     
-                    layout.yaxis = applyGridSettings({ 
-                        title: yColumn || 'Value', 
-                        gridcolor: 'rgba(255,255,255,0.1)', 
-                        color: 'white', 
-                        zeroline: true, 
-                        zerolinecolor: 'gray', 
-                        zerolinewidth: 2 
-                    }, horizontalGrid, verticalGrid);
+                    layout.yaxis = applyGridSettings({ title: yColumn || 'Value', gridcolor: 'rgba(255,255,255,0.1)', color: 'white', zeroline: true, zerolinecolor: 'gray', zerolinewidth: 2, range: [0, Math.max(...yData) * 1.1] }, horizontalGrid, verticalGrid);
                     break;
                     
                 case 'heatmap':
+                    // Create a simple heatmap from the data
                     const uniqueX = [...new Set(xData)];
                     const uniqueY = [...new Set(yData)];
                     
@@ -1960,7 +1643,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                         const xIdx = uniqueX.indexOf(row[xColumn]);
                         const yIdx = uniqueY.indexOf(row[yColumn]);
                         if (xIdx !== -1 && yIdx !== -1) {
-                            zMatrix[yIdx][xIdx] += 1;
+                            zMatrix[yIdx][xIdx] += 1; // Count occurrences
                         }
                     });
                     
@@ -1979,13 +1662,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                         color: 'white',
                         range: [-0.5, uniqueX.length - 0.5]
                     }, verticalGrid, horizontalGrid);
-                    layout.yaxis = applyGridSettings({ 
-                        title: yColumn, 
-                        color: 'white', 
-                        zeroline: true, 
-                        zerolinecolor: 'gray', 
-                        zerolinewidth: 2 
-                    }, horizontalGrid, verticalGrid);
+                    layout.yaxis = applyGridSettings({ title: yColumn, color: 'white', zeroline: true, zerolinecolor: 'gray', zerolinewidth: 2, range: [0, Math.max(...yData) * 1.1] }, horizontalGrid, verticalGrid);
                     break;
             }
             
@@ -2003,7 +1680,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     y: -0.15, // base position
                     xanchor: 'left',
                     yanchor: 'top',
-                    width: 0.3, // 30% width
+                    width: 0.4, // 40% width
                     align: 'left',
                     font: {
                         size: 12,
@@ -2030,7 +1707,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     y: -0.15, // same position as footnote
                     xanchor: 'right',
                     yanchor: 'top',
-                    width: 0.3, // 30% width
+                    width: 0.4, // 40% width
                     align: 'right',
                     font: {
                         size: 12,
@@ -2057,6 +1734,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 return colors.slice(0, count);
             }
             
+            // Generate additional colors
             const additionalColors = [];
             for (let i = colors.length; i < count; i++) {
                 const hue = (i * 137.508) % 360;
@@ -2066,61 +1744,198 @@ Current working file - Dynamic container sizing for footnotes and source notes
             return [...colors, ...additionalColors];
         }
 
-        // EVENT LISTENERS FOR UI INTERACTIONS
-        
-        // Chart type selection
-        document.querySelectorAll('.chart-type-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                showStatus(`Chart type changed to ${this.querySelector('.title').textContent}`, 'success');
-            });
-        });
-
-        // Data orientation change listener
-        document.querySelectorAll('input[name="dataOrientation"]').forEach(radio => {
-            radio.addEventListener('change', handleDataOrientationChange);
-        });
-
-        // Auto-generate chart on column selection change (optional)
-        ['xColumn', 'yColumn'].forEach(id => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.addEventListener('change', () => {
-                    if (currentData.length > 0) {
-                        const xCol = document.getElementById('xColumn').value;
-                        const yCol = document.getElementById('yColumn').value;
-                        if (xCol && (yCol || getSelectedChartType() === 'pie')) {
-                            // Auto-generate chart when both columns are selected
-                            // Uncomment the line below if you want auto-generation
-                            // generateChart();
-                        }
+        function wrapSubtitleText(text) {
+            // Simple word-based wrapping
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+            const maxWidth = 80; // Characters per line
+            
+            for (let word of words) {
+                if ((currentLine + word).length <= maxWidth) {
+                    currentLine += (currentLine ? ' ' : '') + word;
+                } else {
+                    if (currentLine) {
+                        lines.push(currentLine);
                     }
-                });
+                    currentLine = word;
+                }
             }
-        });
+            
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+            
+            return lines.join('<br>');
+        }
 
-        // Initialize tooltips for chart type buttons
-        document.querySelectorAll('.chart-type-btn').forEach(btn => {
-            btn.addEventListener('mouseenter', function() {
-                const title = this.getAttribute('title');
-                if (title) {
-                    // Could add a tooltip display here if needed
+        function wrapFootnoteText(text) {
+            // Get chart width for pixel calculation
+            const chartContainer = document.getElementById('chartContainer');
+            const chartWidth = chartContainer ? chartContainer.offsetWidth : 700; // fallback to 700px
+            const maxPixelWidth = calculateAnnotationWidth(chartWidth, 0.35);
+            
+            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
+        }
+
+        function wrapSourceText(text) {
+            // Get chart width for pixel calculation
+            const chartContainer = document.getElementById('chartContainer');
+            const chartWidth = chartContainer ? chartContainer.offsetWidth : 700; // fallback to 700px
+            const maxPixelWidth = calculateAnnotationWidth(chartWidth, 0.35);
+            
+            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
+        }
+
+        function wrapTextByPixelWidth(text, maxPixelWidth, fontSize = 12, fontFamily = 'Arial, sans-serif') {
+            // Create a canvas to measure text width
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.font = `${fontSize}px ${fontFamily}`;
+            
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            for (let word of words) {
+                // Test if adding this word exceeds the pixel width
+                const testLine = currentLine + (currentLine ? ' ' : '') + word;
+                const testWidth = ctx.measureText(testLine).width;
+                
+                if (testWidth <= maxPixelWidth) {
+                    currentLine = testLine;
+                } else {
+                    if (currentLine) {
+                        lines.push(currentLine);
+                    }
+                    currentLine = word;
+                }
+            }
+            
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+            
+            return lines.join('<br>');
+        }
+
+        function calculateAnnotationWidth(chartWidth, percentage = 0.35) {
+            // Calculate 35% of chart width in pixels
+            return chartWidth * percentage;
+        }
+
+        function adjustContainerPadding(footnoteLines, sourceLines) {
+            const chartContainer = document.getElementById('chartContainer');
+            if (chartContainer) {
+                const basePadding = 60; // Base padding
+                const lineHeight = 18; // Approximate line height for annotations
+                const maxLines = Math.max(footnoteLines, sourceLines);
+                const dynamicPadding = basePadding + (maxLines * lineHeight);
+                
+                // Calculate total container height
+                const chartHeight = 500; // Fixed Plotly chart height
+                const topPadding = 40; // CSS top padding
+                const bottomPadding = dynamicPadding; // Calculated padding
+                const annotationHeight = maxLines * lineHeight; // Height needed for annotations
+                const totalHeight = chartHeight + topPadding + bottomPadding + annotationHeight;
+                
+                console.log('Adjusting container height:');
+                console.log('- Footnote lines:', footnoteLines);
+                console.log('- Source lines:', sourceLines);
+                console.log('- Max lines:', maxLines);
+                console.log('- Dynamic padding:', dynamicPadding, 'px');
+                console.log('- Chart height:', chartHeight, 'px');
+                console.log('- Top padding:', topPadding, 'px');
+                console.log('- Bottom padding:', bottomPadding, 'px');
+                console.log('- Annotation height:', annotationHeight, 'px');
+                console.log('- Total height:', totalHeight, 'px');
+                console.log('- Container height BEFORE:', chartContainer.offsetHeight, 'px');
+                
+                chartContainer.style.setProperty('padding-bottom', `${dynamicPadding}px`, 'important');
+                chartContainer.style.setProperty('height', `${totalHeight}px`, 'important');
+                
+                // Force a reflow to ensure the height change takes effect
+                chartContainer.offsetHeight;
+                
+                console.log('- New padding:', chartContainer.style.paddingBottom);
+                console.log('- New height:', chartContainer.style.height);
+                
+                // Check height after a brief delay to ensure DOM update
+                setTimeout(() => {
+                    console.log('- Container height AFTER (delayed):', chartContainer.offsetHeight, 'px');
+                }, 10);
+                
+                console.log('- Container height AFTER:', chartContainer.offsetHeight, 'px');
+            } else {
+                console.error('Chart container not found!');
+            }
+        }
+
+
+
+        function measureChartDimensions() {
+            const chartDiv = document.getElementById('plotlyChart');
+            if (!chartDiv) {
+                console.log('Chart div not found');
+                return null;
+            }
+            
+            // Get chart width (actual chart area)
+            const chartWidth = chartDiv.layout ? chartDiv.layout.width : chartDiv.offsetWidth;
+            
+            // Get paper width (entire chart container)
+            const paperWidth = chartDiv.offsetWidth;
+            
+            // Calculate wrapping widths (35% of chart width)
+            const footnoteWrappingWidth = chartWidth * 0.35;
+            const sourceWrappingWidth = chartWidth * 0.35;
+            
+            console.log('Chart Dimensions:');
+            console.log('a) Width of chart:', chartWidth, 'px');
+            console.log('b) Height of chart div:', chartDiv.offsetHeight, 'px');
+            console.log('c) Width of paper:', paperWidth, 'px');
+            console.log('d) Wrapping width for footnote:', footnoteWrappingWidth, 'px');
+            console.log('e) Wrapping width for source note:', sourceWrappingWidth, 'px');
+            
+            return {
+                chartWidth,
+                paperWidth,
+                footnoteWrappingWidth,
+                sourceWrappingWidth
+            };
+        }
+
+        // Chart type selection
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartTypeBtns = document.querySelectorAll('.chart-type-btn');
+            chartTypeBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    chartTypeBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // File input styling
+            const fileInput = document.querySelector('input[type="file"]');
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    this.style.borderColor = '#e94560';
+                    this.style.backgroundColor = 'rgba(233, 69, 96, 0.1)';
+                    this.style.color = '#e94560';
                 }
             });
-        });
 
-        // Window resize handler for responsive chart
-        window.addEventListener('resize', () => {
-            if (currentChart) {
-                Plotly.Plots.resize('plotlyChart');
-            }
-        });
+            // Radio button functionality
+            const radioInputs = document.querySelectorAll('input[type="radio"]');
+            radioInputs.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    handleDataOrientationChange();
+                    });
+                });
 
-        // Initialize the application
-        console.log('GetCharty initialized successfully!');
-        console.log('Session ID:', sessionId);
-        
+            // Initialize
+            showStatus('🚀 Interactive charting application ready! Upload a CSV or Excel file to get started.', 'success');
+        });
     </script>
 </body>
-</html>
+</html> 

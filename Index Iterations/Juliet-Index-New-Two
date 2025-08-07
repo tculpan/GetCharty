@@ -1,7 +1,7 @@
 <!--
-filename: Juliet-Index.html
-date: 2025-08-07 23:01:33
-Current working file - Dynamic container sizing for footnotes and source notes
+filename: Juliet-Index-Updated.html - SECTION 1 OF 4
+date: 2025-08-05
+Dynamic container sizing for footnotes and source notes
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -748,16 +748,15 @@ Current working file - Dynamic container sizing for footnotes and source notes
         // Dynamic container sizing functions
         function calculateDynamicMargins(title, subtitle, footnote, source) {
             // Base margins
-            let topMargin = 80;
-            let bottomMargin = 80;
+            let topMargin = 60;
+            let bottomMargin = 60;
             
-            // Font configurations matching Plotly's actual rendering
+            // Font configurations
             const titleFontSize = 18;
             const subtitleFontSize = 14;
             const annotationFontSize = 12;
             const fontFamily = '-apple-system, BlinkMacSystemFont, sans-serif';
-            const chartWidth = 850; // Fixed chart width matching layout
-            const maxTextWidth = chartWidth * 0.85; // 85% of chart width for title/subtitle
+            const maxTextWidth = 600; // 80% of typical chart width (700px)
             
             // Measure title if present
             if (title) {
@@ -767,25 +766,22 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     fontFamily,
                     maxTextWidth
                 );
-                topMargin = Math.max(80, titleMeasurements.requiredSpace + 50); // More base padding
+                topMargin = Math.max(60, titleMeasurements.requiredSpace + 40); // 40px base padding
             }
             
             // Measure subtitle and add to top margin
             if (subtitle) {
-                // For subtitle, we need to account for Plotly's HTML rendering
-                const formattedSubtitle = wrapSubtitleText(subtitle, 100); // Wrap at 100 chars
                 const subtitleMeasurements = measureTextDimensions(
-                    formattedSubtitle,
+                    subtitle,
                     subtitleFontSize,
                     fontFamily,
                     maxTextWidth
                 );
-                
-                // Add subtitle height to existing top margin with extra buffer
+                // Add subtitle height to existing top margin
                 topMargin += subtitleMeasurements.requiredSpace;
                 
-                // Progressive safety buffer - more aggressive for longer text
-                const safetyBuffer = Math.min(50, Math.floor(subtitle.length / 30) * 8);
+                // Add safety buffer based on text length (progressive scaling)
+                const safetyBuffer = Math.min(30, Math.floor(subtitle.length / 50) * 5);
                 topMargin += safetyBuffer;
             }
             
@@ -795,35 +791,32 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 let sourceHeight = 0;
                 
                 if (footnote) {
-                    // Footnote uses 40% of chart width (340px for 850px chart)
                     const footnoteMeasurements = measureTextDimensions(
                         footnote,
                         annotationFontSize,
                         fontFamily,
-                        chartWidth * 0.3 // 30% of chart width
+                        maxTextWidth * 0.6 // Footnotes use less width
                     );
                     footnoteHeight = footnoteMeasurements.requiredSpace;
                 }
                 
                 if (source) {
-                    // Source also uses 30% of chart width (340px for 850px chart)
-                    const sourceText = source.startsWith('Source: ') ? source : 'Source: ' + source;
                     const sourceMeasurements = measureTextDimensions(
-                        sourceText,
+                        source.startsWith('Source: ') ? source : 'Source: ' + source,
                         annotationFontSize,
                         fontFamily,
-                        chartWidth * 0.3 // 40% of chart width
+                        maxTextWidth * 0.4 // Sources use even less width
                     );
                     sourceHeight = sourceMeasurements.requiredSpace;
                 }
                 
                 // Use the larger of the two since they're side by side
-                bottomMargin = 80 + Math.max(footnoteHeight, sourceHeight) + 20; // Extra padding
+                bottomMargin = 60 + Math.max(footnoteHeight, sourceHeight);
             }
             
-            // Add more aggressive safety margin (20% extra)
-            topMargin = Math.ceil(topMargin * 1.2);
-            bottomMargin = Math.ceil(bottomMargin * 1.15);
+            // Add final safety margin (10% extra)
+            topMargin = Math.ceil(topMargin * 1.1);
+            bottomMargin = Math.ceil(bottomMargin * 1.1);
             
             console.log('Dynamic margins calculated:', { topMargin, bottomMargin });
             
@@ -850,58 +843,33 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 const chartContainer = document.getElementById('chartContainer');
                 
                 if (plotlyChart && plotlyChart._fullLayout) {
-                    // Get all text elements that might overflow
-                    const titleElements = plotlyChart.querySelectorAll('.gtitle');
-                    const annotations = plotlyChart.querySelectorAll('.annotation');
-                    const plotArea = plotlyChart.querySelector('.plot');
-                    
-                    if (titleElements.length > 0 && plotArea) {
-                        let maxTitleBottom = 0;
+                    // Check if title/subtitle is overlapping with plot area
+                    const titleElement = plotlyChart.querySelector('.gtitle');
+                    if (titleElement) {
+                        const titleBounds = titleElement.getBoundingClientRect();
+                        const plotArea = plotlyChart.querySelector('.plot');
                         
-                        // Find the lowest point of all title elements
-                        titleElements.forEach(element => {
-                            const bounds = element.getBoundingClientRect();
-                            maxTitleBottom = Math.max(maxTitleBottom, bounds.bottom);
-                        });
-                        
-                        const plotBounds = plotArea.getBoundingClientRect();
-                        const overlap = maxTitleBottom - plotBounds.top;
-                        
-                        if (overlap > 0) {
-                            console.warn(`Title/subtitle overflow detected: ${overlap}px`);
+                        if (plotArea) {
+                            const plotBounds = plotArea.getBoundingClientRect();
+                            const overlap = titleBounds.bottom - plotBounds.top;
                             
-                            // Adjust the layout margins more aggressively
-                            const currentLayout = plotlyChart._fullLayout;
-                            const newTopMargin = currentLayout.margin.t + overlap + 30; // 30px extra safety
-                            
-                            // Update container height
-                            const currentHeight = parseInt(chartContainer.style.height);
-                            const newHeight = currentHeight + overlap + 30;
-                            chartContainer.style.height = `${newHeight}px`;
-                            
-                            // Re-render with adjusted margins
-                            Plotly.relayout('plotlyChart', {
-                                'margin.t': newTopMargin
-                            });
+                            if (overlap > 0) {
+                                console.warn(`Title overflow detected: ${overlap}px`);
+                                
+                                // Adjust the container height
+                                const currentHeight = parseInt(chartContainer.style.height);
+                                const newHeight = currentHeight + overlap + 20; // 20px safety
+                                chartContainer.style.height = `${newHeight}px`;
+                                
+                                // Re-render with adjusted margins
+                                const currentLayout = plotlyChart._fullLayout;
+                                currentLayout.margin.t += overlap + 20;
+                                Plotly.relayout('plotlyChart', currentLayout);
+                            }
                         }
                     }
-                    
-                    // Check footnote/source positioning
-                    if (annotations.length > 0) {
-                        annotations.forEach(annotation => {
-                            const bounds = annotation.getBoundingClientRect();
-                            const containerBounds = chartContainer.getBoundingClientRect();
-                            
-                            // If annotation is cut off at bottom
-                            if (bounds.bottom > containerBounds.bottom) {
-                                const currentHeight = parseInt(chartContainer.style.height);
-                                const overflow = bounds.bottom - containerBounds.bottom;
-                                chartContainer.style.height = `${currentHeight + overflow + 20}px`;
-                            }
-                        });
-                    }
                 }
-            }, 150); // Slightly longer delay to ensure render is complete
+            }, 100); // Small delay to ensure render is complete
         }
 
         function syncContainerWithPlotly() {
@@ -954,71 +922,6 @@ Current working file - Dynamic container sizing for footnotes and source notes
         }
 
         /**
-         * Wraps text to fit within a specific percentage of chart width
-         * Used for footnotes and sources to ensure proper 40% width constraint
-         */
-        function wrapTextToWidth(text, widthPercentage) {
-            // Use fixed chart width (850px) from Plotly layout
-            const chartWidth = 850;
-            const maxPixelWidth = chartWidth * (widthPercentage / 100);
-            
-            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
-        }
-
-        function wrapTextByPixelWidth(text, maxPixelWidth, fontSize = 12, fontFamily = 'Arial, sans-serif') {
-            // Create a canvas to measure text width
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.font = `${fontSize}px ${fontFamily}`;
-            
-            const words = text.split(' ');
-            const lines = [];
-            let currentLine = '';
-            
-            for (let word of words) {
-                // Test if adding this word exceeds the pixel width
-                const testLine = currentLine + (currentLine ? ' ' : '') + word;
-                const testWidth = ctx.measureText(testLine).width;
-                
-                if (testWidth <= maxPixelWidth) {
-                    currentLine = testLine;
-                } else {
-                    if (currentLine) {
-                        lines.push(currentLine);
-                    }
-                    currentLine = word;
-                }
-            }
-            
-            if (currentLine) {
-                lines.push(currentLine);
-            }
-            
-            return lines.join('<br>');
-        }
-
-        function wrapFootnoteText(text) {
-            // Use fixed chart width (850px) and wrap to 30% width
-            const chartWidth = 850;
-            const maxPixelWidth = chartWidth * 0.3; // 30% of chart width = 340px
-            
-            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
-        }
-
-        function wrapSourceText(text) {
-            // Ensure source starts with "Source: "
-            if (!text.startsWith('Source: ')) {
-                text = 'Source: ' + text;
-            }
-            
-            // Use fixed chart width (850px) and wrap to 30% width
-            const chartWidth = 850;
-            const maxPixelWidth = chartWidth * 0.3; // 30% of chart width = 340px
-            
-            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
-        }
-
-        /**
          * Measures actual rendered text dimensions using a hidden DOM element
          * This replaces the hardcoded 16px-per-line assumption
          */
@@ -1032,14 +935,13 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 width: ${maxWidth}px;
                 font-size: ${fontSize}px;
                 font-family: ${fontFamily};
-                line-height: 1.5;
+                line-height: 1.4;
                 white-space: normal;
                 word-wrap: break-word;
-                word-break: break-word;
                 color: white;
             `;
             
-            measuringDiv.innerHTML = text.replace(/\n/g, '<br>'); // Handle line breaks
+            measuringDiv.innerText = text;
             document.body.appendChild(measuringDiv);
             
             // Measure actual height
@@ -1048,7 +950,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
             // Measure single line height for line count calculation
             const singleLineDiv = document.createElement('div');
             singleLineDiv.style.cssText = measuringDiv.style.cssText;
-            singleLineDiv.innerHTML = 'Ag'; // Test string with ascender and descender
+            singleLineDiv.innerText = 'Ag'; // Test string with ascender and descender
             document.body.appendChild(singleLineDiv);
             
             const singleLineHeight = singleLineDiv.offsetHeight;
@@ -1062,7 +964,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 totalHeight: totalHeight,
                 numberOfLines: numberOfLines,
                 lineHeight: singleLineHeight,
-                requiredSpace: totalHeight + (fontSize * 0.8) // More padding
+                requiredSpace: totalHeight + (fontSize * 0.5) // Add padding
             };
         }
 
@@ -1755,7 +1657,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 font: { color: 'white' },
                 height: 400 + topMargin + bottomMargin,
-                width: 850,  // Fixed width matching the attached file
+                width: 700,
                 autosize: false
             };
             
@@ -1999,12 +1901,10 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     text: `<i>${wrapFootnoteText(footnote)}</i>`,
                     xref: 'paper',
                     yref: 'paper',
-                    x: 0, // flush left
-                    y: -0.15, // base position
+                    x: 0,
+                    y: -0.05,
                     xanchor: 'left',
                     yanchor: 'top',
-                    width: 0.3, // 30% width
-                    align: 'left',
                     font: {
                         size: 12,
                         color: 'rgba(255,255,255,0.8)',
@@ -2026,12 +1926,10 @@ Current working file - Dynamic container sizing for footnotes and source notes
                     text: wrapSourceText(source),
                     xref: 'paper',
                     yref: 'paper',
-                    x: 1, // flush right
-                    y: -0.15, // same position as footnote
+                    x: 1,
+                    y: -0.05,
                     xanchor: 'right',
                     yanchor: 'top',
-                    width: 0.3, // 30% width
-                    align: 'right',
                     font: {
                         size: 12,
                         color: 'rgba(255,255,255,0.8)',

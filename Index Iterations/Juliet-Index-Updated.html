@@ -1,7 +1,7 @@
 <!--
 filename: Juliet-Index-Updated.html
-date: 2025-08-07 16:42:11
-Dynamic container sizing for footnotes and source notes - Added missing generateChart function and supporting functions - Fixed chart rendering issues - Added chart type selection event listeners - Reverted to 40% annotation width and removed console logs - Fixed text wrapping to use fixed chart width instead of variable container width
+date: 2025-08-07 21:05:44
+Dynamic container sizing for footnotes and source notes - Added missing generateChart function and supporting functions - Fixed chart rendering issues - Added chart type selection event listeners - Reverted to 40% annotation width and removed console logs - Fixed text wrapping to use fixed chart width instead of variable container width - Added dynamic margin calculation for fixed chart area - Fixed duplicate chartContainer declaration
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -959,6 +959,15 @@ Dynamic container sizing for footnotes and source notes - Added missing generate
                 
                 processedData = prepareChartData();
                 
+                // Calculate required dimensions FIRST
+                const { topMargin, bottomMargin } = calculateDynamicMargins(title, subtitle, footnote, source);
+                const containerHeight = calculateContainerHeight(topMargin, bottomMargin);
+                
+                // Update container height
+                const chartContainer = document.getElementById('chartContainer');
+                chartContainer.style.height = `${containerHeight}px`;
+                chartContainer.style.minHeight = 'unset';
+                
                 let plotlyConfig = createPlotlyConfig(chartType, processedData, {
                     xColumn,
                     yColumn,
@@ -969,7 +978,9 @@ Dynamic container sizing for footnotes and source notes - Added missing generate
                     footnote,
                     source,
                     horizontalGrid,
-                    verticalGrid
+                    verticalGrid,
+                    topMargin,      // ← Pass dynamic margins
+                    bottomMargin    // ← Pass dynamic margins
                 });
                 
                 // Apply auto-spacing if enabled
@@ -1012,20 +1023,6 @@ Dynamic container sizing for footnotes and source notes - Added missing generate
                 if (plotlyChart) {
                     plotlyChart.innerHTML = ''; // Clear the placeholder text
                     
-                    // BEFORE chart render - calculate padding based on estimated width
-                    const containerWidth = document.getElementById('chartContainer').offsetWidth;
-                    const estimatedChartWidth = containerWidth - 160; // Approximate chart width
-                    
-                    console.log('Container width:', containerWidth, 'px');
-                    console.log('Chart width:', estimatedChartWidth, 'px');
-                    
-                    // Calculate lines before render
-                    const footnoteLines = footnote ? wrapFootnoteText(footnote).split('<br>').length : 0;
-                    const sourceLines = source ? wrapSourceText(source).split('<br>').length : 0;
-                    
-                    // Set padding before render
-                    adjustContainerPadding(footnoteLines, sourceLines);
-                    
                     Plotly.newPlot('plotlyChart', plotlyConfig.data, plotlyConfig.layout, plotlyConfig.config)
                         .then(function() {
                             // Measure chart dimensions after rendering
@@ -1037,7 +1034,6 @@ Dynamic container sizing for footnotes and source notes - Added missing generate
                         });
                 }
                 
-                const chartContainer = document.getElementById('chartContainer');
                 if (chartContainer) {
                     chartContainer.classList.add('has-chart');
                 }
@@ -1063,7 +1059,7 @@ Dynamic container sizing for footnotes and source notes - Added missing generate
         }
 
         function createPlotlyConfig(chartType, data, options) {
-            const { xColumn, yColumn, zColumn, colorColumn, title, subtitle, footnote, source, horizontalGrid, verticalGrid } = options;
+            const { xColumn, yColumn, zColumn, colorColumn, title, subtitle, footnote, source, horizontalGrid, verticalGrid, topMargin, bottomMargin } = options;
             
             const xData = data.map(row => row[xColumn]);
             const yData = yColumn ? data.map(row => row[yColumn]) : [];
@@ -1074,12 +1070,10 @@ Dynamic container sizing for footnotes and source notes - Added missing generate
             
             // Handle title and subtitle with proper wrapping
             let titleText = title || '';
-            let marginTop = 55; // Fixed margin for title
             
             if (subtitle) {
                 const wrappedSubtitle = wrapSubtitleText(subtitle);
-                titleText = `${title}<br><span style="font-size: 14px; color: rgba(255,255,255,0.8);">${wrappedSubtitle}</span>`;
-                marginTop = 70 + (wrappedSubtitle.split('<br>').length * 14);
+                titleText = `${title}<br><span style="font-size: 14px; color: rgba(255,255,255,0.8); line-height: 1.1;">${wrappedSubtitle}</span>`;
             }
             
             let layout = {
@@ -1092,13 +1086,18 @@ Dynamic container sizing for footnotes and source notes - Added missing generate
                     yanchor: 'top'
                 },
                 showlegend: true,
-                margin: { t: marginTop, b: 120, l: 80, r: 50 }, // Fixed bottom margin for annotations
+                margin: { 
+                    t: topMargin,        // ← Use dynamic top margin
+                    b: bottomMargin,     // ← Use dynamic bottom margin
+                    l: 80,
+                    r: 50
+                },
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 font: { color: 'white' },
-                height: 500, // Fixed chart height
-                width: 700, // Fixed chart width
-                autosize: false // Disable autosize to maintain fixed dimensions
+                height: 400 + topMargin + bottomMargin,  // ← Dynamic height
+                width: 850,
+                autosize: false
             };
             
             const config = {
@@ -1308,7 +1307,7 @@ Dynamic container sizing for footnotes and source notes - Added missing generate
                     xref: 'paper',
                     yref: 'paper',
                     x: 0, // flush left
-                    y: -0.20, // base position
+                    y: -0.15, // base position
                     xanchor: 'left',
                     yanchor: 'top',
                     width: 0.4, // 40% width
@@ -1335,7 +1334,7 @@ Dynamic container sizing for footnotes and source notes - Added missing generate
                     xref: 'paper',
                     yref: 'paper',
                     x: 1, // flush right
-                    y: -0.20, // same position as footnote
+                    y: -0.15, // same position as footnote
                     xanchor: 'right',
                     yanchor: 'top',
                     width: 0.4, // 40% width
@@ -1401,8 +1400,8 @@ Dynamic container sizing for footnotes and source notes - Added missing generate
         }
 
         function wrapFootnoteText(text) {
-            // Use fixed chart width (700px) instead of variable container width
-            const chartWidth = 700; // Fixed chart width from Plotly layout
+            // Use fixed chart width (850px) instead of variable container width
+            const chartWidth = 850; // Fixed chart width from Plotly layout
             const maxPixelWidth = calculateAnnotationWidth(chartWidth, 0.3);
             
             console.log('Footnote max width before wrapping:', maxPixelWidth, 'px');
@@ -1411,8 +1410,8 @@ Dynamic container sizing for footnotes and source notes - Added missing generate
         }
 
         function wrapSourceText(text) {
-            // Use fixed chart width (700px) instead of variable container width
-            const chartWidth = 700; // Fixed chart width from Plotly layout
+            // Use fixed chart width (850px) instead of variable container width
+            const chartWidth = 850; // Fixed chart width from Plotly layout
             const maxPixelWidth = calculateAnnotationWidth(chartWidth, 0.3);
             
             console.log('Source max width before wrapping:', maxPixelWidth, 'px');
@@ -1457,6 +1456,131 @@ Dynamic container sizing for footnotes and source notes - Added missing generate
             return chartWidth * percentage;
         }
 
+        function measureTextDimensions(text, fontSize, fontFamily, maxWidth) {
+            // Create a canvas to measure text dimensions
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.font = `${fontSize}px ${fontFamily}`;
+            
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            for (let word of words) {
+                const testLine = currentLine + (currentLine ? ' ' : '') + word;
+                const testWidth = ctx.measureText(testLine).width;
+                
+                if (testWidth <= maxWidth) {
+                    currentLine = testLine;
+                } else {
+                    if (currentLine) {
+                        lines.push(currentLine);
+                    }
+                    currentLine = word;
+                }
+            }
+            
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+            
+            const lineHeight = fontSize * 1.2; // Approximate line height
+            const totalHeight = lines.length * lineHeight;
+            
+            return {
+                lines: lines.length,
+                height: totalHeight,
+                requiredSpace: totalHeight + 20 // Add padding
+            };
+        }
+
+        function calculateDynamicMargins(title, subtitle, footnote, source) {
+            // Base margins
+            let topMargin = 60;
+            let bottomMargin = 60;
+            
+            // Font configurations
+            const titleFontSize = 18;
+            const subtitleFontSize = 14;
+            const annotationFontSize = 12;
+            const fontFamily = 'Arial, sans-serif';
+            const maxTextWidth = 600; // 80% of typical chart width (700px)
+            
+            // Measure title if present
+            if (title) {
+                const titleMeasurements = measureTextDimensions(
+                    title,
+                    titleFontSize,
+                    fontFamily,
+                    maxTextWidth
+                );
+                topMargin = Math.max(60, titleMeasurements.requiredSpace + 40);
+            }
+            
+            // Measure subtitle and add to top margin
+            if (subtitle) {
+                const subtitleMeasurements = measureTextDimensions(
+                    subtitle,
+                    subtitleFontSize,
+                    fontFamily,
+                    maxTextWidth
+                );
+                // Add subtitle height to existing top margin
+                topMargin += subtitleMeasurements.requiredSpace;
+                
+                // Add safety buffer based on text length
+                const safetyBuffer = Math.min(20, Math.floor(subtitle.length / 50) * 4);
+                topMargin += safetyBuffer;
+            }
+            
+            // Measure footnote and source for bottom margin
+            if (footnote || source) {
+                let footnoteHeight = 0;
+                let sourceHeight = 0;
+                
+                if (footnote) {
+                    const footnoteMeasurements = measureTextDimensions(
+                        footnote,
+                        annotationFontSize,
+                        fontFamily,
+                        maxTextWidth * 0.6 // Footnotes use less width
+                    );
+                    footnoteHeight = footnoteMeasurements.requiredSpace;
+                }
+                
+                if (source) {
+                    const sourceMeasurements = measureTextDimensions(
+                        source.startsWith('Source: ') ? source : 'Source: ' + source,
+                        annotationFontSize,
+                        fontFamily,
+                        maxTextWidth * 0.4 // Sources use even less width
+                    );
+                    sourceHeight = sourceMeasurements.requiredSpace;
+                }
+                
+                // Use the larger of the two since they're side by side
+                bottomMargin = 60 + Math.max(footnoteHeight, sourceHeight);
+            }
+            
+            // Add final safety margin (10% extra)
+            topMargin = Math.ceil(topMargin * 1.1);
+            bottomMargin = Math.ceil(bottomMargin * 1.1);
+            
+            console.log('Dynamic margins calculated:', { topMargin, bottomMargin });
+            
+            return { topMargin, bottomMargin };
+        }
+
+        function calculateContainerHeight(topMargin, bottomMargin) {
+            const fixedChartHeight = 400; // Keep current chart height
+            const containerPadding = 60;
+            
+            // Include extra buffer for very long text
+            const extraBuffer = Math.max(0, (topMargin + bottomMargin - 200) * 0.1);
+            
+            return fixedChartHeight + topMargin + bottomMargin + containerPadding + extraBuffer;
+        }
+
         function adjustContainerPadding(footnoteLines, sourceLines) {
             const chartContainer = document.getElementById('chartContainer');
             if (chartContainer) {
@@ -1466,7 +1590,7 @@ Dynamic container sizing for footnotes and source notes - Added missing generate
                 const dynamicPadding = basePadding + (maxLines * lineHeight);
                 
                 // Calculate total container height
-                const chartHeight = 500; // Fixed Plotly chart height
+                const chartHeight = 400; // Fixed Plotly chart height
                 const topPadding = 40; // CSS top padding
                 const bottomPadding = dynamicPadding; // Calculated padding
                 const annotationHeight = maxLines * lineHeight; // Height needed for annotations

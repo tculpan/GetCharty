@@ -1,7 +1,7 @@
 <!--
 filename: Juliet-Index-Updated.html
-date: 2025-08-07 14:34:05
-Dynamic container sizing for footnotes and source notes - Added missing generateChart function and supporting functions - Fixed chart rendering issues - Added chart type selection event listeners - Reverted to 40% annotation width and removed console logs
+date: 2025-08-07 16:42:11
+Dynamic container sizing for footnotes and source notes - Added missing generateChart function and supporting functions - Fixed chart rendering issues - Added chart type selection event listeners - Reverted to 40% annotation width and removed console logs - Fixed text wrapping to use fixed chart width instead of variable container width
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -1308,7 +1308,7 @@ Dynamic container sizing for footnotes and source notes - Added missing generate
                     xref: 'paper',
                     yref: 'paper',
                     x: 0, // flush left
-                    y: -0.15, // base position
+                    y: -0.20, // base position
                     xanchor: 'left',
                     yanchor: 'top',
                     width: 0.4, // 40% width
@@ -1335,7 +1335,7 @@ Dynamic container sizing for footnotes and source notes - Added missing generate
                     xref: 'paper',
                     yref: 'paper',
                     x: 1, // flush right
-                    y: -0.15, // same position as footnote
+                    y: -0.20, // same position as footnote
                     xanchor: 'right',
                     yanchor: 'top',
                     width: 0.4, // 40% width
@@ -1401,10 +1401,9 @@ Dynamic container sizing for footnotes and source notes - Added missing generate
         }
 
         function wrapFootnoteText(text) {
-            // Get chart width for pixel calculation
-            const chartContainer = document.getElementById('chartContainer');
-            const chartWidth = chartContainer ? chartContainer.offsetWidth : 700; // fallback to 700px
-            const maxPixelWidth = calculateAnnotationWidth(chartWidth, 0.4);
+            // Use fixed chart width (700px) instead of variable container width
+            const chartWidth = 700; // Fixed chart width from Plotly layout
+            const maxPixelWidth = calculateAnnotationWidth(chartWidth, 0.3);
             
             console.log('Footnote max width before wrapping:', maxPixelWidth, 'px');
             
@@ -1412,10 +1411,9 @@ Dynamic container sizing for footnotes and source notes - Added missing generate
         }
 
         function wrapSourceText(text) {
-            // Get chart width for pixel calculation
-            const chartContainer = document.getElementById('chartContainer');
-            const chartWidth = chartContainer ? chartContainer.offsetWidth : 700; // fallback to 700px
-            const maxPixelWidth = calculateAnnotationWidth(chartWidth, 0.4);
+            // Use fixed chart width (700px) instead of variable container width
+            const chartWidth = 700; // Fixed chart width from Plotly layout
+            const maxPixelWidth = calculateAnnotationWidth(chartWidth, 0.3);
             
             console.log('Source max width before wrapping:', maxPixelWidth, 'px');
             

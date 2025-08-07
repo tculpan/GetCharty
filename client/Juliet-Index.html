@@ -1,7 +1,7 @@
 <!--
 filename: Juliet-Index.html
-date: 2025-08-07 23:38:47
-Current working file - Dynamic container sizing for footnotes and source notes
+date: 2025-08-07 23:55:58
+Current working file - Filters 2 and 3 removed from cleanData function
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -1403,13 +1403,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
             let dataRows = isFirstRowHeader ? cleaned.slice(1) : cleaned;
             
             const firstColumnKey = Object.keys(dataRows[0] || {})[0];
-            if (firstColumnKey) {
-                dataRows = dataRows.filter(row => {
-                    const firstValue = String(row[firstColumnKey] || '').toLowerCase().trim();
-                    const headerLikeValues = ['date', 'time', 'period', 'header', 'title', 'name', 'id', 'row', 'index'];
-                    return !headerLikeValues.some(headerValue => firstValue.includes(headerValue));
-                });
-            }
+            // Filter 2 removed - no longer filtering based on first column values
             
             const cleanedRows = dataRows.map(row => {
                 const cleanRow = {};
@@ -1428,11 +1422,7 @@ Current working file - Dynamic container sizing for footnotes and source notes
                 return cleanRow;
             });
             
-            return cleanedRows.filter(row => {
-                const firstValue = String(Object.values(row)[0] || '').toLowerCase().trim();
-                const headerKeywords = ['date', 'time', 'period', 'header', 'title', 'name', 'id', 'row', 'index', 'total', 'sum', 'average'];
-                return !headerKeywords.some(keyword => firstValue.includes(keyword));
-            });
+            return cleanedRows;
         }
 
         // DATA DISPLAY FUNCTIONS

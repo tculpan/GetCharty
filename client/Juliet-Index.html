@@ -1,7 +1,7 @@
 <!--
 filename: Juliet-Index.html
-date: 2025-08-07 23:55:58
-Current working file - Filters 2 and 3 removed from cleanData function
+date: 2025-08-13 12:33:23
+Current working file - Session ID approach for autocomplete management
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -745,6 +745,38 @@ Current working file - Filters 2 and 3 removed from cleanData function
             return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         }
 
+        // Session ID management for autocomplete isolation
+        function updateFieldIdsWithSession(sessionId) {
+            const fieldMappings = {
+                'chartTitle': `chartTitle_${sessionId}`,
+                'chartSubtitle': `chartSubtitle_${sessionId}`,
+                'chartFootnote': `chartFootnote_${sessionId}`,
+                'chartSource': `chartSource_${sessionId}`,
+                'xAxisTitle': `xAxisTitle_${sessionId}`
+            };
+            
+            // Update HTML field IDs
+            Object.entries(fieldMappings).forEach(([oldId, newId]) => {
+                const field = document.getElementById(oldId);
+                if (field) {
+                    field.id = newId;
+                }
+            });
+            
+            return fieldMappings;
+        }
+
+        function getFieldById(baseId) {
+            // Try to get field by current session ID first
+            if (currentSessionId && currentFieldMappings[baseId]) {
+                const field = document.getElementById(currentFieldMappings[baseId]);
+                if (field) return field;
+            }
+            
+            // Fallback to original ID
+            return document.getElementById(baseId);
+        }
+
         // Dynamic container sizing functions
         function calculateDynamicMargins(title, subtitle, footnote, source) {
             // Base margins
@@ -1131,6 +1163,10 @@ Current working file - Filters 2 and 3 removed from cleanData function
         }
         
         function clearExistingData() {
+            // Generate new session ID for this file
+            currentSessionId = generateSessionId();
+            currentFieldMappings = updateFieldIdsWithSession(currentSessionId);
+            
             // Clear global data variables
             currentData = [];
             currentFileId = null;
@@ -1161,11 +1197,13 @@ Current working file - Filters 2 and 3 removed from cleanData function
             document.getElementById('generateBtn').disabled = true;
             document.getElementById('generateBtnMain').disabled = true;
             
-            // Clear form fields
+            // Clear form fields (new session ID prevents autocomplete from previous files)
             const formFields = ['chartTitle', 'chartSubtitle', 'chartFootnote', 'chartSource', 'xAxisTitle'];
             formFields.forEach(fieldId => {
-                const field = document.getElementById(fieldId);
-                if (field) field.value = '';
+                const field = getFieldById(fieldId);
+                if (field) {
+                    field.value = '';
+                }
             });
             
             // Reset chart type to default
@@ -1654,11 +1692,11 @@ Current working file - Filters 2 and 3 removed from cleanData function
             const autoSpacing = document.getElementById('autoSpacing').checked;
             const horizontalGrid = document.getElementById('horizontalGrid').checked;
             const verticalGrid = document.getElementById('verticalGrid').checked;
-            const title = document.getElementById('chartTitle') ? document.getElementById('chartTitle').value : `${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart`;
-            const subtitle = document.getElementById('chartSubtitle') ? document.getElementById('chartSubtitle').value : '';
-            const footnote = document.getElementById('chartFootnote') ? document.getElementById('chartFootnote').value : '';
-            const source = document.getElementById('chartSource') ? document.getElementById('chartSource').value : '';
-            const xAxisTitle = document.getElementById('xAxisTitle') ? document.getElementById('xAxisTitle').value : '';
+            const title = getFieldById('chartTitle') ? getFieldById('chartTitle').value : `${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart`;
+            const subtitle = getFieldById('chartSubtitle') ? getFieldById('chartSubtitle').value : '';
+            const footnote = getFieldById('chartFootnote') ? getFieldById('chartFootnote').value : '';
+            const source = getFieldById('chartSource') ? getFieldById('chartSource').value : '';
+            const xAxisTitle = getFieldById('xAxisTitle') ? getFieldById('xAxisTitle').value : '';
             
             if (!xColumn || (!yColumn && !['pie', 'histogram'].includes(chartType))) {
                 showStatus('❌ Please select the required columns for your chart.', 'error');

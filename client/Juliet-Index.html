@@ -1,7 +1,8 @@
 <!--
-filename: Juliet-Index.html
-date: 2025-08-13 12:33:23
+client/Juliet-Index.html
+Updated: 2025-08-15 17:52:27
 Current working file - Session ID approach for autocomplete management
+UPDATED: Tightened top and bottom margins while preserving left/right margins
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -340,7 +341,7 @@ Current working file - Session ID approach for autocomplete management
             display: block;
             height: auto;
             overflow: visible;
-            padding: 40px 40px 20px 40px;
+            padding: 20px 20px 15px 20px;  /* Tightened from 40px 40px 20px 40px */
         }
         
         .chart-container.has-chart #plotlyChart {
@@ -594,7 +595,7 @@ Current working file - Session ID approach for autocomplete management
             <div class="section">
                 <h3>Axis Labels</h3>
                 <input class="input-field" id="xAxisTitle" placeholder="X-Axis Title">
-                <input class="input-field" placeholder="Y-Axis Title">
+                <input class="input-field" id="yAxisTitle" placeholder="Y-Axis Title">
                 <div class="input-group">
                     <input class="input-field" placeholder="Y-Prefix">
                     <input class="input-field" placeholder="Y-Suffix">
@@ -779,9 +780,9 @@ Current working file - Session ID approach for autocomplete management
 
         // Dynamic container sizing functions
         function calculateDynamicMargins(title, subtitle, footnote, source) {
-            // Base margins
-            let topMargin = 80;
-            let bottomMargin = 80;
+            // Tighter base margins - reduced from 80
+            let topMargin = 50;
+            let bottomMargin = 50;
             
             // Font configurations matching Plotly's actual rendering
             const titleFontSize = 18;
@@ -791,7 +792,7 @@ Current working file - Session ID approach for autocomplete management
             const chartWidth = 850; // Fixed chart width matching layout
             const maxTextWidth = chartWidth * 0.85; // 85% of chart width for title/subtitle
             
-            // Measure title if present
+            // Measure title if present with tighter padding
             if (title) {
                 const titleMeasurements = measureTextDimensions(
                     title,
@@ -799,10 +800,10 @@ Current working file - Session ID approach for autocomplete management
                     fontFamily,
                     maxTextWidth
                 );
-                topMargin = Math.max(80, titleMeasurements.requiredSpace + 50); // More base padding
+                topMargin = Math.max(50, titleMeasurements.requiredSpace + 25); // Reduced from 50
             }
             
-            // Measure subtitle and add to top margin
+            // Measure subtitle and add to top margin with less buffer
             if (subtitle) {
                 // For subtitle, we need to account for Plotly's HTML rendering
                 const formattedSubtitle = wrapSubtitleText(subtitle, 100); // Wrap at 100 chars
@@ -813,49 +814,49 @@ Current working file - Session ID approach for autocomplete management
                     maxTextWidth
                 );
                 
-                // Add subtitle height to existing top margin with extra buffer
+                // Add subtitle height to existing top margin
                 topMargin += subtitleMeasurements.requiredSpace;
                 
-                // Progressive safety buffer - more aggressive for longer text
-                const safetyBuffer = Math.min(50, Math.floor(subtitle.length / 30) * 8);
+                // Less aggressive safety buffer
+                const safetyBuffer = Math.min(20, Math.floor(subtitle.length / 40) * 4);
                 topMargin += safetyBuffer;
             }
             
-            // Measure footnote and source for bottom margin
+            // Measure footnote and source for bottom margin with tighter spacing
             if (footnote || source) {
                 let footnoteHeight = 0;
                 let sourceHeight = 0;
                 
                 if (footnote) {
-                    // Footnote uses 40% of chart width (340px for 850px chart)
+                    // Footnote uses 30% of chart width
                     const footnoteMeasurements = measureTextDimensions(
                         footnote,
                         annotationFontSize,
                         fontFamily,
-                        chartWidth * 0.3 // 30% of chart width
+                        chartWidth * 0.3
                     );
                     footnoteHeight = footnoteMeasurements.requiredSpace;
                 }
                 
                 if (source) {
-                    // Source also uses 30% of chart width (340px for 850px chart)
+                    // Source also uses 30% of chart width
                     const sourceText = source.startsWith('Source: ') ? source : 'Source: ' + source;
                     const sourceMeasurements = measureTextDimensions(
                         sourceText,
                         annotationFontSize,
                         fontFamily,
-                        chartWidth * 0.3 // 40% of chart width
+                        chartWidth * 0.3
                     );
                     sourceHeight = sourceMeasurements.requiredSpace;
                 }
                 
-                // Use the larger of the two since they're side by side
-                bottomMargin = 80 + Math.max(footnoteHeight, sourceHeight) + 20; // Extra padding
+                // Use the larger of the two since they're side by side with tighter spacing
+                bottomMargin = 50 + Math.max(footnoteHeight, sourceHeight) + 10; // Reduced from 80 + 20
             }
             
-            // Add more aggressive safety margin (20% extra)
-            topMargin = Math.ceil(topMargin * 1.2);
-            bottomMargin = Math.ceil(bottomMargin * 1.15);
+            // Minimal safety margins (5% instead of 20%/15%)
+            topMargin = Math.ceil(topMargin * 1.05);
+            bottomMargin = Math.ceil(bottomMargin * 1.05);
             
             console.log('Dynamic margins calculated:', { topMargin, bottomMargin });
             
@@ -864,10 +865,10 @@ Current working file - Session ID approach for autocomplete management
 
         function calculateContainerHeight(topMargin, bottomMargin) {
             const fixedChartHeight = 400;
-            const containerPadding = 60;
+            const containerPadding = 30;  // Reduced from 60
             
-            // Include extra buffer for very long text
-            const extraBuffer = Math.max(0, (topMargin + bottomMargin - 200) * 0.1);
+            // Reduced extra buffer
+            const extraBuffer = Math.max(0, (topMargin + bottomMargin - 200) * 0.05);
             
             return fixedChartHeight + topMargin + bottomMargin + containerPadding + extraBuffer;
         }
@@ -902,13 +903,13 @@ Current working file - Session ID approach for autocomplete management
                         if (overlap > 0) {
                             console.warn(`Title/subtitle overflow detected: ${overlap}px`);
                             
-                            // Adjust the layout margins more aggressively
+                            // Adjust the layout margins with minimal safety padding
                             const currentLayout = plotlyChart._fullLayout;
-                            const newTopMargin = currentLayout.margin.t + overlap + 30; // 30px extra safety
+                            const newTopMargin = currentLayout.margin.t + overlap + 10; // Reduced from 30
                             
                             // Update container height
                             const currentHeight = parseInt(chartContainer.style.height);
-                            const newHeight = currentHeight + overlap + 30;
+                            const newHeight = currentHeight + overlap + 10;  // Reduced from 30
                             chartContainer.style.height = `${newHeight}px`;
                             
                             // Re-render with adjusted margins
@@ -942,7 +943,7 @@ Current working file - Session ID approach for autocomplete management
             
             if (plotlyChart && chartContainer) {
                 const plotlyHeight = plotlyChart.layout ? plotlyChart.layout.height : 500;
-                const containerPadding = 60;
+                const containerPadding = 30;  // Reduced from 60
                 const totalHeight = plotlyHeight + containerPadding;
                 
                 chartContainer.style.height = `${totalHeight}px`;
@@ -1032,7 +1033,7 @@ Current working file - Session ID approach for autocomplete management
         function wrapFootnoteText(text) {
             // Use fixed chart width (850px) and wrap to 30% width
             const chartWidth = 850;
-            const maxPixelWidth = chartWidth * 0.3; // 30% of chart width = 340px
+            const maxPixelWidth = chartWidth * 0.3; // 30% of chart width = 255px
             
             return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
         }
@@ -1045,7 +1046,7 @@ Current working file - Session ID approach for autocomplete management
             
             // Use fixed chart width (850px) and wrap to 30% width
             const chartWidth = 850;
-            const maxPixelWidth = chartWidth * 0.3; // 30% of chart width = 340px
+            const maxPixelWidth = chartWidth * 0.3; // 30% of chart width = 255px
             
             return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
         }
@@ -1094,7 +1095,7 @@ Current working file - Session ID approach for autocomplete management
                 totalHeight: totalHeight,
                 numberOfLines: numberOfLines,
                 lineHeight: singleLineHeight,
-                requiredSpace: totalHeight + (fontSize * 0.8) // More padding
+                requiredSpace: totalHeight + (fontSize * 0.5) // Reduced padding
             };
         }
 
@@ -1274,7 +1275,7 @@ Current working file - Session ID approach for autocomplete management
             }
             
             showLoading(true);
-            showStatus('🔄 Processing your file...', 'warning');
+            showStatus('📄 Processing your file...', 'warning');
             
             try {
                 let data;
@@ -1548,6 +1549,116 @@ Current working file - Session ID approach for autocomplete management
                     zColumn.value = columns[2];
                 }
             }
+            
+            // Auto-populate axis titles from column headers
+            populateAxisTitlesFromData(data);
+        }
+        
+        function populateAxisTitlesFromData(data) {
+            if (!data || data.length === 0) return;
+            
+            const columns = Object.keys(data[0]);
+            
+            // Get inferred axis titles from column headers
+            let inferredXTitle = '';
+            let inferredYTitle = '';
+            
+            if (columns.length >= 1) {
+                inferredXTitle = formatColumnNameForDisplay(columns[0]);
+            }
+            if (columns.length >= 2) {
+                inferredYTitle = formatColumnNameForDisplay(columns[1]);
+            }
+            
+            // Set placeholders in input fields
+            const xAxisTitleField = document.getElementById('xAxisTitle');
+            const yAxisTitleField = document.getElementById('yAxisTitle');
+            
+            if (xAxisTitleField) {
+                xAxisTitleField.placeholder = inferredXTitle;
+                // If field is empty, set the value too
+                if (!xAxisTitleField.value.trim()) {
+                    xAxisTitleField.value = inferredXTitle;
+                }
+            }
+            
+            if (yAxisTitleField) {
+                yAxisTitleField.placeholder = inferredYTitle;
+                // If field is empty, set the value too
+                if (!yAxisTitleField.value.trim()) {
+                    yAxisTitleField.value = inferredYTitle;
+                }
+            }
+        }
+        
+        function formatColumnNameForDisplay(columnName) {
+            if (!columnName) return '';
+            
+            // Replace underscores and hyphens with spaces and title case
+            let formatted = columnName.replace(/[_-]/g, ' ');
+            
+            // Handle common abbreviations
+            const replacements = {
+                'qty': 'Quantity',
+                'amt': 'Amount',
+                'rev': 'Revenue',
+                'cust': 'Customer',
+                'prod': 'Product',
+                'cat': 'Category',
+                'pct': 'Percentage',
+                'yr': 'Year',
+                'mo': 'Month',
+                'dt': 'Date',
+                'num': 'Number',
+                'val': 'Value',
+                'id': 'ID'
+            };
+            
+            const words = formatted.split(' ');
+            for (let i = 0; i < words.length; i++) {
+                const wordLower = words[i].toLowerCase();
+                if (replacements[wordLower]) {
+                    words[i] = replacements[wordLower];
+                } else {
+                    words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1).toLowerCase();
+                }
+            }
+            
+            return words.join(' ');
+        }
+        
+        function setupAxisTitleListeners() {
+            // Remove existing listeners to prevent duplicates
+            const xAxisTitleField = document.getElementById('xAxisTitle');
+            const yAxisTitleField = document.getElementById('yAxisTitle');
+            
+            if (xAxisTitleField) {
+                // Remove existing listeners
+                xAxisTitleField.removeEventListener('input', updateXAxisTitle);
+                // Add new listener
+                xAxisTitleField.addEventListener('input', updateXAxisTitle);
+            }
+            
+            if (yAxisTitleField) {
+                // Remove existing listeners
+                yAxisTitleField.removeEventListener('input', updateYAxisTitle);
+                // Add new listener
+                yAxisTitleField.addEventListener('input', updateYAxisTitle);
+            }
+        }
+        
+        function updateXAxisTitle(e) {
+            const title = e.target.value || e.target.placeholder;
+            Plotly.relayout('plotlyChart', {
+                'xaxis.title.text': title
+            });
+        }
+        
+        function updateYAxisTitle(e) {
+            const title = e.target.value || e.target.placeholder;
+            Plotly.relayout('plotlyChart', {
+                'yaxis.title.text': title
+            });
         }
         
         function showDataPreview(data) {
@@ -1697,6 +1808,7 @@ Current working file - Session ID approach for autocomplete management
             const footnote = getFieldById('chartFootnote') ? getFieldById('chartFootnote').value : '';
             const source = getFieldById('chartSource') ? getFieldById('chartSource').value : '';
             const xAxisTitle = getFieldById('xAxisTitle') ? getFieldById('xAxisTitle').value : '';
+            const yAxisTitle = getFieldById('yAxisTitle') ? getFieldById('yAxisTitle').value : '';
             
             if (!xColumn || (!yColumn && !['pie', 'histogram'].includes(chartType))) {
                 showStatus('❌ Please select the required columns for your chart.', 'error');
@@ -1734,7 +1846,8 @@ Current working file - Session ID approach for autocomplete management
                     verticalGrid,
                     topMargin,
                     bottomMargin,
-                    xAxisTitle
+                    xAxisTitle,
+                    yAxisTitle
                 });
                 
                 if (autoSpacing) {
@@ -1779,6 +1892,9 @@ Current working file - Session ID approach for autocomplete management
                             syncContainerWithPlotly();
                             measureChartDimensions();
                             validateAndAdjustChartSpacing(); // Validate and adjust for text overflow
+                            
+                            // Add real-time axis title update listeners
+                            setupAxisTitleListeners();
                         });
                 }
                 
@@ -1805,10 +1921,12 @@ Current working file - Session ID approach for autocomplete management
             }
             return axisConfig;
         }
+        
+
 
         // PLOTLY CONFIGURATION FUNCTION
         function createPlotlyConfig(chartType, data, options) {
-            const { xColumn, yColumn, zColumn, colorColumn, title, subtitle, footnote, source, horizontalGrid, verticalGrid, topMargin, bottomMargin, xAxisTitle } = options;
+            const { xColumn, yColumn, zColumn, colorColumn, title, subtitle, footnote, source, horizontalGrid, verticalGrid, topMargin, bottomMargin, xAxisTitle, yAxisTitle } = options;
             
             const xData = data.map(row => row[xColumn]);
             const yData = yColumn ? data.map(row => row[yColumn]) : [];
@@ -1834,8 +1952,8 @@ Current working file - Session ID approach for autocomplete management
                 margin: { 
                     t: topMargin,
                     b: bottomMargin, 
-                    l: 80,
-                    r: 50
+                    l: 80,  // Left margin unchanged
+                    r: 50   // Right margin unchanged
                 },
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
@@ -1874,7 +1992,7 @@ Current working file - Session ID approach for autocomplete management
                         range: [-0.5, xData.length - 0.5]
                     }, verticalGrid, horizontalGrid);
                     layout.yaxis = applyGridSettings({
-                        title: yColumn || 'Value',
+                        title: yAxisTitle || yColumn || 'Value',
                         gridcolor: 'rgba(255,255,255,0.1)',
                         color: 'white',
                         zeroline: true,
@@ -1899,13 +2017,13 @@ Current working file - Session ID approach for autocomplete management
                     }];
                     
                     layout.xaxis = applyGridSettings({
-                        title: yColumn || 'Value',
+                        title: yAxisTitle || yColumn || 'Value',
                         gridcolor: 'rgba(255,255,255,0.1)',
                         color: 'white',
                         range: [0, Math.max(...yData) * 1.1]
                     }, horizontalGrid, verticalGrid);
                     layout.yaxis = applyGridSettings({
-                        title: xColumn,
+                        title: xAxisTitle || xColumn,
                         gridcolor: 'rgba(255,255,255,0.1)',
                         color: 'white',
                         zeroline: true,
@@ -1932,7 +2050,7 @@ Current working file - Session ID approach for autocomplete management
                         range: [-0.5, xData.length - 0.5]
                     }, verticalGrid, horizontalGrid);
                     layout.yaxis = applyGridSettings({ 
-                        title: yColumn || 'Value', 
+                        title: yAxisTitle || yColumn || 'Value', 
                         gridcolor: 'rgba(255,255,255,0.1)', 
                         color: 'white', 
                         zeroline: true, 
@@ -1967,7 +2085,7 @@ Current working file - Session ID approach for autocomplete management
                         range: [-0.5, xData.length - 0.5]
                     }, verticalGrid, horizontalGrid);
                     layout.yaxis = applyGridSettings({ 
-                        title: yColumn, 
+                        title: yAxisTitle || yColumn, 
                         gridcolor: 'rgba(255,255,255,0.1)', 
                         color: 'white', 
                         zeroline: true, 
@@ -2027,7 +2145,7 @@ Current working file - Session ID approach for autocomplete management
                     }];
                     
                     layout.yaxis = applyGridSettings({ 
-                        title: yColumn || 'Value', 
+                        title: yAxisTitle || yColumn || 'Value', 
                         gridcolor: 'rgba(255,255,255,0.1)', 
                         color: 'white', 
                         zeroline: true, 
@@ -2066,7 +2184,7 @@ Current working file - Session ID approach for autocomplete management
                         range: [-0.5, uniqueX.length - 0.5]
                     }, verticalGrid, horizontalGrid);
                     layout.yaxis = applyGridSettings({ 
-                        title: yColumn, 
+                        title: yAxisTitle || yColumn, 
                         color: 'white', 
                         zeroline: true, 
                         zerolinecolor: 'gray', 

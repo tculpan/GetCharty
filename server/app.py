@@ -1,6 +1,6 @@
 # app.py
 # filename: app.py
-# date: 2025-07-31 17:39:50
+# date: 2025-08-17 13:39:45
 # Updated to use hybrid storage system with user management
 
 from flask import Flask, request, jsonify
@@ -957,6 +957,269 @@ def create_simple_title_endpoint():
             'success': False,
             'error': str(e)
         }), 500
+
+@app.route('/api/process-top-only', methods=['POST'])
+def process_top_only():
+    """
+    Server-side processing for "Top Only" Y-axis labels mode
+    Handles complex tick calculations and formatting that can't be done client-side
+    """
+    try:
+        body = request.get_json()
+        chart_type = body.get('chartType')
+        data = body.get('data', [])
+        options = body.get('options', {})
+        
+        if not data or not chart_type:
+            return jsonify({
+                'success': False,
+                'error': 'Chart type and data are required'
+            }), 400
+        
+        # Extract options
+        x_column = options.get('xColumn')
+        y_column = options.get('yColumn')
+        y_prefix = options.get('yPrefix', '')
+        y_suffix = options.get('ySuffix', '')
+        
+        # Get Y-axis data
+        y_data = [row.get(y_column, 0) for row in data if y_column in row]
+        if not y_data:
+            return jsonify({
+                'success': False,
+                'error': 'No Y-axis data found'
+            }), 400
+        
+        # Filter out non-numeric values
+        y_values = [float(val) for val in y_data if isinstance(val, (int, float)) or str(val).replace('.', '').replace('-', '').isdigit()]
+        if not y_values:
+            return jsonify({
+                'success': False,
+                'error': 'No valid numeric data found'
+            }), 400
+        
+        # Calculate optimal tick values
+        min_y = min(y_values)
+        max_y = max(y_values)
+        range_y = max_y - min_y
+        
+        # Generate nice tick values
+        tick_count = 5
+        tick_vals = []
+        tick_texts = []
+        
+        for i in range(tick_count + 1):
+            # Calculate nice round values
+            val = min_y + (range_y * i / tick_count)
+            
+            # Round to appropriate precision
+            if range_y > 1000:
+                val = round(val, -2)  # Round to hundreds
+            elif range_y > 100:
+                val = round(val, -1)  # Round to tens
+            elif range_y > 10:
+                val = round(val, 0)   # Round to ones
+            else:
+                val = round(val, 2)   # Round to 2 decimal places
+            
+            tick_vals.append(val)
+            
+            # Format the number nicely
+            if val >= 1000000:
+                formatted_val = f"{val/1000000:.1f}M"
+            elif val >= 1000:
+                formatted_val = f"{val/1000:.1f}K"
+            else:
+                formatted_val = f"{val:,.2f}".rstrip('0').rstrip('.')
+            
+            # Apply prefix/suffix only to the highest tick
+            if i == tick_count:
+                tick_texts.append(f"{y_prefix}{formatted_val}{y_suffix}")
+            else:
+                tick_texts.append(formatted_val)
+        
+        # Create Plotly configuration based on chart type
+        plotly_config = create_top_only_plotly_config(
+            chart_type, data, options, tick_vals, tick_texts
+        )
+        
+        return jsonify({
+            'success': True,
+            'plotlyConfig': plotly_config
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+def create_top_only_plotly_config(chart_type, data, options, tick_vals, tick_texts):
+    """
+    Create Plotly configuration with custom tick arrays for "Top Only" mode
+    """
+    # Extract data
+    x_column = options.get('xColumn')
+    y_column = options.get('yColumn')
+    x_data = [row.get(x_column, '') for row in data]
+    y_data = [row.get(y_column, 0) for row in data]
+    
+    # Create basic layout
+    layout = {
+        'title': options.get('title', ''),
+        'subtitle': options.get('subtitle', ''),
+        'font': {'color': 'white'},
+        'paper_bgcolor': 'rgba(0,0,0,0)',
+        'plot_bgcolor': 'rgba(0,0,0,0)',
+        'margin': {
+            'l': 80, 'r': 80, 't': options.get('topMargin', 100), 
+            'b': options.get('bottomMargin', 80)
+        }
+    }
+    
+    # Create plot data based on chart type
+    if chart_type == 'vertical_bar':
+        plot_data = [{
+            'type': 'bar',
+            'x': x_data,
+            'y': y_data,
+            'marker': {'color': '#e94560'},
+            'name': y_column or 'Values'
+        }]
+        
+        layout['xaxis'] = {
+            'title': options.get('xAxisTitle', x_column),
+            'gridcolor': 'rgba(255,255,255,0.1)',
+            'color': 'white',
+            'range': [-0.5, len(x_data) - 0.5]
+        }
+        
+        layout['yaxis'] = {
+            'title': options.get('yAxisTitle', y_column or 'Value'),
+            'gridcolor': 'rgba(255,255,255,0.1)',
+            'color': 'white',
+            'zeroline': True,
+            'zerolinecolor': 'gray',
+            'zerolinewidth': 2,
+            'tickmode': 'array',
+            'tickvals': tick_vals,
+            'ticktext': tick_texts,
+            'showticklabels': True
+        }
+        
+    elif chart_type == 'horizontal_bar':
+        plot_data = [{
+            'type': 'bar',
+            'x': y_data,
+            'y': x_data,
+            'orientation': 'h',
+            'marker': {'color': '#e94560'},
+            'name': y_column or 'Values'
+        }]
+        
+        layout['xaxis'] = {
+            'title': options.get('yAxisTitle', y_column or 'Value'),
+            'gridcolor': 'rgba(255,255,255,0.1)',
+            'color': 'white',
+            'tickmode': 'array',
+            'tickvals': tick_vals,
+            'ticktext': tick_texts,
+            'showticklabels': True
+        }
+        
+        layout['yaxis'] = {
+            'title': options.get('xAxisTitle', x_column),
+            'gridcolor': 'rgba(255,255,255,0.1)',
+            'color': 'white',
+            'zeroline': True,
+            'zerolinecolor': 'gray',
+            'zerolinewidth': 2
+        }
+        
+    elif chart_type == 'line':
+        plot_data = [{
+            'type': 'scatter',
+            'mode': 'lines+markers',
+            'x': x_data,
+            'y': y_data,
+            'line': {'color': '#e94560', 'width': 3},
+            'marker': {'size': 6, 'color': '#e94560'},
+            'name': y_column or 'Values'
+        }]
+        
+        layout['xaxis'] = {
+            'title': options.get('xAxisTitle', x_column),
+            'gridcolor': 'rgba(255,255,255,0.1)',
+            'color': 'white',
+            'range': [-0.5, len(x_data) - 0.5]
+        }
+        
+        layout['yaxis'] = {
+            'title': options.get('yAxisTitle', y_column or 'Value'),
+            'gridcolor': 'rgba(255,255,255,0.1)',
+            'color': 'white',
+            'zeroline': True,
+            'zerolinecolor': 'gray',
+            'zerolinewidth': 2,
+            'tickmode': 'array',
+            'tickvals': tick_vals,
+            'ticktext': tick_texts,
+            'showticklabels': True
+        }
+        
+    elif chart_type == 'scatter':
+        plot_data = [{
+            'type': 'scatter',
+            'mode': 'markers',
+            'x': x_data,
+            'y': y_data,
+            'marker': {'size': 8, 'color': '#e94560'},
+            'name': 'Data Points'
+        }]
+        
+        layout['xaxis'] = {
+            'title': options.get('xAxisTitle', x_column),
+            'gridcolor': 'rgba(255,255,255,0.1)',
+            'color': 'white',
+            'range': [-0.5, len(x_data) - 0.5]
+        }
+        
+        layout['yaxis'] = {
+            'title': options.get('yAxisTitle', y_column),
+            'gridcolor': 'rgba(255,255,255,0.1)',
+            'color': 'white',
+            'zeroline': True,
+            'zerolinecolor': 'gray',
+            'zerolinewidth': 2,
+            'tickmode': 'array',
+            'tickvals': tick_vals,
+            'ticktext': tick_texts,
+            'showticklabels': True
+        }
+        
+    else:
+        # Fallback for unsupported chart types
+        plot_data = [{
+            'type': 'bar',
+            'x': x_data,
+            'y': y_data,
+            'marker': {'color': '#e94560'},
+            'name': y_column or 'Values'
+        }]
+        
+        layout['yaxis'] = {
+            'title': options.get('yAxisTitle', y_column or 'Value'),
+            'tickmode': 'array',
+            'tickvals': tick_vals,
+            'ticktext': tick_texts,
+            'showticklabels': True
+        }
+    
+    return {
+        'data': plot_data,
+        'layout': layout,
+        'config': {'responsive': True, 'displayModeBar': True}
+    }
 
 # Register API routes
 register_quarterly_stats_routes(app)

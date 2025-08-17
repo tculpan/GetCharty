@@ -1,8 +1,8 @@
 <!--
 client/Juliet-Index.html
-Updated: 2025-08-15 17:52:27
+Updated: 2025-08-17 13:39:45
 Current working file - Session ID approach for autocomplete management
-UPDATED: Tightened top and bottom margins while preserving left/right margins
+UPDATED: Implemented hybrid client/server approach for Y-Axis Labels Mode
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -597,8 +597,8 @@ UPDATED: Tightened top and bottom margins while preserving left/right margins
                 <input class="input-field" id="xAxisTitle" placeholder="X-Axis Title">
                 <input class="input-field" id="yAxisTitle" placeholder="Y-Axis Title">
                 <div class="input-group">
-                    <input class="input-field" placeholder="Y-Prefix">
-                    <input class="input-field" placeholder="Y-Suffix">
+                    <input class="input-field" id="yPrefix" placeholder="Y-Prefix">
+                    <input class="input-field" id="ySuffix" placeholder="Y-Suffix">
                 </div>
                 <div style="margin-top: 12px;">
                     <label style="display: block; color: #a8a8a8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 600;">Y-Axis Denominator</label>
@@ -643,10 +643,10 @@ UPDATED: Tightened top and bottom margins while preserving left/right margins
                 
                 <div class="display-option">
                     <span>Y-Axis Labels</span>
-                    <select class="dropdown">
-                        <option>On</option>
-                        <option>Off</option>
-                        <option>Top Only</option>
+                    <select class="dropdown" id="yAxisLabelsMode">
+                        <option value="on">On</option>
+                        <option value="off">Off</option>
+                        <option value="top">Top Only</option>
                     </select>
                 </div>
             </div>
@@ -1810,6 +1810,14 @@ UPDATED: Tightened top and bottom margins while preserving left/right margins
             const xAxisTitle = getFieldById('xAxisTitle') ? getFieldById('xAxisTitle').value : '';
             const yAxisTitle = getFieldById('yAxisTitle') ? getFieldById('yAxisTitle').value : '';
             
+            // Add these new variables
+            const yPrefix = document.getElementById('yPrefix').value || '';
+            const ySuffix = document.getElementById('ySuffix').value || '';
+            const yAxisLabelsMode = document.getElementById('yAxisLabelsMode').value;
+            
+            // Check if we need server-side processing for "Top Only" mode
+            const needsServerProcessing = yAxisLabelsMode === 'top' && (yPrefix || ySuffix);
+            
             if (!xColumn || (!yColumn && !['pie', 'histogram'].includes(chartType))) {
                 showStatus('❌ Please select the required columns for your chart.', 'error');
                 return;
@@ -1833,22 +1841,99 @@ UPDATED: Tightened top and bottom margins while preserving left/right margins
                 // Refresh data preview to show processed data before chart generation
                 showDataPreview(processedData);
                 
-                let plotlyConfig = createPlotlyConfig(chartType, processedData, {
-                    xColumn,
-                    yColumn,
-                    zColumn,
-                    colorColumn,
-                    title,
-                    subtitle,
-                    footnote,
-                    source,
-                    horizontalGrid,
-                    verticalGrid,
-                    topMargin,
-                    bottomMargin,
-                    xAxisTitle,
-                    yAxisTitle
-                });
+                let plotlyConfig;
+                
+                // Handle "Top Only" mode with server-side processing
+                if (needsServerProcessing) {
+                    try {
+                        showStatus('🔄 Processing "Top Only" labels with server...', 'warning');
+                        
+                        const topOnlyResponse = await fetch(`${API_ENDPOINT}/api/process-top-only`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                chartType,
+                                data: processedData,
+                                options: {
+                                    xColumn,
+                                    yColumn,
+                                    zColumn,
+                                    colorColumn,
+                                    title,
+                                    subtitle,
+                                    footnote,
+                                    source,
+                                    horizontalGrid,
+                                    verticalGrid,
+                                    topMargin,
+                                    bottomMargin,
+                                    xAxisTitle,
+                                    yAxisTitle,
+                                    yPrefix,
+                                    ySuffix
+                                }
+                            })
+                        });
+                        
+                        if (topOnlyResponse.ok) {
+                            const topOnlyData = await topOnlyResponse.json();
+                            if (topOnlyData.success) {
+                                plotlyConfig = topOnlyData.plotlyConfig;
+                                showStatus('✅ "Top Only" labels processed successfully!', 'success');
+                            } else {
+                                throw new Error(topOnlyData.error || 'Server processing failed');
+                            }
+                        } else {
+                            throw new Error('Server processing failed');
+                        }
+                    } catch (error) {
+                        console.warn('Top Only processing failed, falling back to client-side:', error);
+                        showStatus('⚠️ Top Only processing failed, using fallback mode', 'warning');
+                        // Fall back to client-side processing
+                        plotlyConfig = createPlotlyConfig(chartType, processedData, {
+                            xColumn,
+                            yColumn,
+                            zColumn,
+                            colorColumn,
+                            title,
+                            subtitle,
+                            footnote,
+                            source,
+                            horizontalGrid,
+                            verticalGrid,
+                            topMargin,
+                            bottomMargin,
+                            xAxisTitle,
+                            yAxisTitle,
+                            yPrefix,
+                            ySuffix,
+                            yAxisLabelsMode: 'off' // Fall back to "Off" mode
+                        });
+                    }
+                } else {
+                    // Use client-side processing for "On" and "Off" modes
+                    plotlyConfig = createPlotlyConfig(chartType, processedData, {
+                        xColumn,
+                        yColumn,
+                        zColumn,
+                        colorColumn,
+                        title,
+                        subtitle,
+                        footnote,
+                        source,
+                        horizontalGrid,
+                        verticalGrid,
+                        topMargin,
+                        bottomMargin,
+                        xAxisTitle,
+                        yAxisTitle,
+                        yPrefix,
+                        ySuffix,
+                        yAxisLabelsMode
+                    });
+                }
                 
                 if (autoSpacing) {
                     try {
@@ -1926,7 +2011,14 @@ UPDATED: Tightened top and bottom margins while preserving left/right margins
 
         // PLOTLY CONFIGURATION FUNCTION
         function createPlotlyConfig(chartType, data, options) {
-            const { xColumn, yColumn, zColumn, colorColumn, title, subtitle, footnote, source, horizontalGrid, verticalGrid, topMargin, bottomMargin, xAxisTitle, yAxisTitle } = options;
+            const { 
+                xColumn, yColumn, zColumn, colorColumn, 
+                title, subtitle, footnote, source, 
+                horizontalGrid, verticalGrid, 
+                topMargin, bottomMargin, 
+                xAxisTitle, yAxisTitle,
+                yPrefix, ySuffix, yAxisLabelsMode  // Add these
+            } = options;
             
             const xData = data.map(row => row[xColumn]);
             const yData = yColumn ? data.map(row => row[yColumn]) : [];
@@ -1998,7 +2090,11 @@ UPDATED: Tightened top and bottom margins while preserving left/right margins
                         zeroline: true,
                         zerolinecolor: 'gray',
                         zerolinewidth: 2,
-                        range: [0, Math.max(...yData) * 1.1]
+                        range: [0, Math.max(...yData) * 1.1],
+                        // Simple tick formatting for "On" and "Off" modes only
+                        tickprefix: yAxisLabelsMode === 'on' ? yPrefix : '',
+                        ticksuffix: yAxisLabelsMode === 'on' ? ySuffix : '',
+                        showticklabels: yAxisLabelsMode !== 'off'
                     }, horizontalGrid, verticalGrid);
                     break;
                     
@@ -2020,7 +2116,11 @@ UPDATED: Tightened top and bottom margins while preserving left/right margins
                         title: yAxisTitle || yColumn || 'Value',
                         gridcolor: 'rgba(255,255,255,0.1)',
                         color: 'white',
-                        range: [0, Math.max(...yData) * 1.1]
+                        range: [0, Math.max(...yData) * 1.1],
+                        // Simple tick formatting for "On" and "Off" modes only
+                        tickprefix: yAxisLabelsMode === 'on' ? yPrefix : '',
+                        ticksuffix: yAxisLabelsMode === 'on' ? ySuffix : '',
+                        showticklabels: yAxisLabelsMode !== 'off'
                     }, horizontalGrid, verticalGrid);
                     layout.yaxis = applyGridSettings({
                         title: xAxisTitle || xColumn,
@@ -2056,7 +2156,11 @@ UPDATED: Tightened top and bottom margins while preserving left/right margins
                         zeroline: true, 
                         zerolinecolor: 'gray', 
                         zerolinewidth: 2, 
-                        range: [0, Math.max(...yData) * 1.1] 
+                        range: [0, Math.max(...yData) * 1.1],
+                        // Simple tick formatting for "On" and "Off" modes only
+                        tickprefix: yAxisLabelsMode === 'on' ? yPrefix : '',
+                        ticksuffix: yAxisLabelsMode === 'on' ? ySuffix : '',
+                        showticklabels: yAxisLabelsMode !== 'off'
                     }, horizontalGrid, verticalGrid);
                     break;
                     
@@ -2091,7 +2195,11 @@ UPDATED: Tightened top and bottom margins while preserving left/right margins
                         zeroline: true, 
                         zerolinecolor: 'gray', 
                         zerolinewidth: 2, 
-                        range: [0, Math.max(...yData) * 1.1] 
+                        range: [0, Math.max(...yData) * 1.1],
+                        // Simple tick formatting for "On" and "Off" modes only
+                        tickprefix: yAxisLabelsMode === 'on' ? yPrefix : '',
+                        ticksuffix: yAxisLabelsMode === 'on' ? ySuffix : '',
+                        showticklabels: yAxisLabelsMode !== 'off'
                     }, horizontalGrid, verticalGrid);
                     break;
                     
@@ -2303,6 +2411,33 @@ UPDATED: Tightened top and bottom margins while preserving left/right margins
                 });
             }
         });
+
+        // Y-axis labels real-time update listeners
+        ['yPrefix', 'ySuffix', 'yAxisLabelsMode'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('change', () => {
+                    if (currentChart && currentData.length > 0) {
+                        // Regenerate just the axis labels
+                        updateYAxisLabels();
+                    }
+                });
+            }
+        });
+
+        function updateYAxisLabels() {
+            const yPrefix = document.getElementById('yPrefix').value || '';
+            const ySuffix = document.getElementById('ySuffix').value || '';
+            const yAxisLabelsMode = document.getElementById('yAxisLabelsMode').value;
+            
+            const update = {
+                'yaxis.tickprefix': yAxisLabelsMode !== 'off' ? yPrefix : '',
+                'yaxis.ticksuffix': yAxisLabelsMode !== 'off' ? ySuffix : '',
+                'yaxis.showticklabels': yAxisLabelsMode !== 'off'
+            };
+            
+            Plotly.relayout('plotlyChart', update);
+        }
 
         // Initialize tooltips for chart type buttons
         document.querySelectorAll('.chart-type-btn').forEach(btn => {

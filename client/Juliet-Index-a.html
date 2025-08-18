@@ -1,6 +1,6 @@
 <!--
 client/Juliet-Index-a.html
-Updated: 2025-08-18 23:30:31
+Updated: 2025-08-19 01:15:32
 Current working file - Session ID approach for autocomplete management
 UPDATED: Implemented hybrid client/server approach for Y-Axis Labels Mode
 FIXED: Removed server dependency for file upload - now uses native file parser only
@@ -8,7 +8,10 @@ ENHANCED: Dynamic footnote positioning based on auto-spacing state (y=-0.15 for 
 ENHANCED: Removed extra padding for auto-spacing OFF - now handled by dynamic positioning
 ENHANCED: Added registration message for auto-spacing ON state
 ENHANCED: Added dynamic text-wrapping for Subtitle, Footnote & Source notes with configurable chart width
-ENHANCED: Updated bottomMargin base value to 60px for better spacing
+ENHANCED: Updated bottomMargin base value to 85px for better spacing
+ENHANCED: Added user-controlled header detection with dynamic options based on data orientation
+FIXED: Horizontal data processing now properly uses extracted headers for column renaming
+FIXED: Header processing now happens AFTER transpose for horizontal data to prevent header row from appearing as data point
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -411,6 +414,23 @@ ENHANCED: Updated bottomMargin base value to 60px for better spacing
             font-style: italic;
         }
 
+        .slider-container {
+            margin: 12px 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 8px 0;
+            padding: 8px 0;
+        }
+
+        .slider-label span {
+            font-size: 14px;
+            color: white;
+        }
+
         .loading {
             display: none;
             text-align: center;
@@ -537,6 +557,18 @@ ENHANCED: Updated bottomMargin base value to 60px for better spacing
                     <label class="radio-label">
                         <input type="radio" name="dataOrientation" value="horizontal">
                         Horizontal
+                    </label>
+                </div>
+                
+                <!-- Dynamic header option based on orientation -->
+                <div class="orientation-label">Header Structure</div>
+                <div class="slider-container" id="headerStructureGroup">
+                    <label class="slider-label">
+                        <span id="headerStructureText">First row is headers</span>
+                        <label class="switch">
+                            <input type="checkbox" id="headerStructureToggle" checked>
+                            <span class="slider"></span>
+                        </label>
                     </label>
                 </div>
             </div>
@@ -1119,11 +1151,9 @@ ENHANCED: Updated bottomMargin base value to 60px for better spacing
         function handleDataOrientationChange() {
             if (rawData.length > 0) {
                 const orientation = document.querySelector('input[name="dataOrientation"]:checked').value;
-                currentData = orientation === 'horizontal' ? transposeData(rawData) : rawData;
                 
-                displayDataStats(currentData);
-                populateColumnSelectors(currentData);
-                showDataPreview(currentData);
+                // Re-process data with new orientation and header settings
+                processDataWithHeaders();
                 
                 showStatus(`✅ Data reoriented to ${orientation} format!`, 'success');
             }
@@ -1327,16 +1357,11 @@ ENHANCED: Updated bottomMargin base value to 60px for better spacing
                 }
                 
                 // Use client-side processing only - no server dependency
-                currentData = cleanedData;
                 currentFileId = `local_${Date.now()}`; // Generate local file ID
                 
                 rawData = cleanedData;
-                const orientation = document.querySelector('input[name="dataOrientation"]:checked').value;
-                currentData = orientation === 'horizontal' ? transposeData(currentData) : currentData;
-                
-                displayDataStats(currentData);
-                populateColumnSelectors(currentData);
-                showDataPreview(currentData);
+                // Process data with user-controlled headers and orientation
+                processDataWithHeaders();
                 
                 const chartContainer = document.getElementById('chartContainer');
                 const plotlyChart = document.getElementById('plotlyChart');
@@ -2358,11 +2383,81 @@ ENHANCED: Updated bottomMargin base value to 60px for better spacing
             });
         });
 
+        // Update header options based on orientation
+        function updateHeaderOptions() {
+            const orientation = document.querySelector('input[name="dataOrientation"]:checked').value;
+            const headerText = document.getElementById('headerStructureText');
+            const headerToggle = document.getElementById('headerStructureToggle');
+            
+            if (orientation === 'vertical') {
+                headerText.textContent = 'First row is headers';
+                headerToggle.checked = true;
+            } else {
+                headerText.textContent = 'First column is headers';
+                headerToggle.checked = true;
+            }
+            
+            // Re-process data if we have data loaded
+            if (rawData.length > 0) {
+                processDataWithHeaders();
+            }
+        }
+
+        // Simple data processing function with user-controlled headers
+        function processDataWithHeaders() {
+            const orientation = document.querySelector('input[name="dataOrientation"]:checked').value;
+            const headerToggle = document.getElementById('headerStructureToggle');
+            const hasHeaders = headerToggle.checked;
+            
+            let processedData = [...rawData];
+            
+            if (orientation === 'vertical') {
+                // For vertical data, handle headers before any transformation
+                if (hasHeaders) {
+                    const headers = Object.values(rawData[0]);
+                    processedData = rawData.slice(1);
+                }
+                // else: no_headers - use data as-is
+            } else {
+                // For horizontal data, first transpose, then handle headers
+                processedData = transposeData(rawData);
+                
+                if (hasHeaders) {
+                    // After transpose, the first column contains the original headers
+                    const headers = processedData.map(row => row['Field']);
+                    processedData = processedData.slice(1); // Remove the header row
+                }
+                // else: no_headers - use transposed data as-is
+            }
+            
+            currentData = processedData;
+            
+            // Update UI
+            displayDataStats(currentData);
+            populateColumnSelectors(currentData);
+            showDataPreview(currentData);
+            
+            // Auto-generate chart if one exists
+            if (document.getElementById('plotlyChart').children.length > 0) {
+                generateChart();
+            }
+        }
+
         // Data orientation change listener
         document.querySelectorAll('input[name="dataOrientation"]').forEach(radio => {
-            radio.addEventListener('change', handleDataOrientationChange);
+            radio.addEventListener('change', function() {
+                updateHeaderOptions();
+                handleDataOrientationChange();
+            });
         });
         
+        // Header structure change listener
+        document.getElementById('headerStructureToggle').addEventListener('change', function() {
+            if (rawData.length > 0) {
+                processDataWithHeaders();
+            }
+        });
+
         // Auto-spacing change listener for dynamic margin updates and registration message
         document.getElementById('autoSpacing').addEventListener('change', function() {
             const autoSpacingMessage = document.getElementById('autoSpacingMessage');
@@ -2455,6 +2550,9 @@ ENHANCED: Updated bottomMargin base value to 60px for better spacing
                 }
             }
         }
+
+        // Initialize header options
+        updateHeaderOptions();
 
         // Initialize the application
         console.log('GetCharty initialized successfully!');

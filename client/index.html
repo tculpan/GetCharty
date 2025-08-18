@@ -1,10 +1,11 @@
-<!--
-    File: client/index.html
-    28 July 2025: 1546
-    ChartDomain - Professional Data Visualization Platform
-    Complete HTML file with quarterly spacing integration
--->
+<!-- Styling I 
+PART 1 OF 4 -->
 
+<!--
+client/Juliet-Index-a.html - PART 1 OF 4
+HTML Head section and all CSS styles
+ADDED: Tier progression bar with Noob/Registered/VIPer labels and velvet curtain button
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,248 +21,472 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            height: 100vh;
             overflow: hidden;
         }
-        
-        .header {
-            background: linear-gradient(135deg, #8c3eab 0%, #46344d 100%);
+
+        .sidebar-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            height: 100vh;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
             color: white;
-            padding: 30px;
-            text-align: center;
         }
-        
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-        
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-        
-        .content {
-            display: flex;
-            min-height: calc(100vh - 200px);
-        }
-        
+
         .sidebar {
-            width: 25%;
-            background: #f8fafc;
-            padding: 30px;
-            border-right: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
-        .main-content {
-            width: 75%;
-            padding: 30px;
+
+        .sidebar h2 {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            color: #e94560;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+        }
+
+        .main-area {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            color: white;
             display: flex;
             flex-direction: column;
-        }
-        
-        .upload-section {
-            background: white;
-            border: 2px dashed #cbd5e0;
-            border-radius: 12px;
+            align-items: center;
+            justify-content: flex-start;
             padding: 30px;
-            text-align: center;
-            margin-bottom: 20px;
+            overflow-y: auto;
+        }
+
+        .section {
+            margin-bottom: 3px;
+            padding-bottom: 1px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section h3 {
+            color: #e94560;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.3);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            margin: 6px 0;
+            font-size: 14px;
             transition: all 0.3s ease;
         }
-        
-        .upload-section:hover {
-            border-color: #4facfe;
-            background: #f0f9ff;
-        }
-        
-        .upload-section.dragover {
-            border-color: #4facfe;
-            background: #dbeafe;
-            transform: scale(1.02);
-        }
-        
-        .file-input {
-            display: none;
-        }
-        
-        .upload-btn {
-            background: linear-gradient(135deg, #4facfe 0%, #46344d 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-            margin: 10px;
-            width: 100%;
-        }
-        
-        .upload-btn:hover {
-            transform: translateY(-2px);
-        }
-        
-        .controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .control-group {
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 12px;
-        }
-        
-        .control-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #374151;
-        }
-        
-        .control-group select, .control-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.2s ease;
-        }
-        
-        .control-group select:focus, .control-group input:focus {
+
+        .input-field:focus {
             outline: none;
-            border-color: #4facfe;
+            border-color: #e94560;
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+            background: rgba(255, 255, 255, 0.1);
         }
-        
-        .generate-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        .input-field::placeholder {
+            color: #a8a8a8;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-group .input-field {
+            flex: 1;
+        }
+
+        .chart-type-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .chart-type-btn {
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            color: #a8a8a8;
+            padding: 12px 8px;
+            text-align: center;
+        }
+
+        .chart-type-btn .icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .chart-type-btn .title {
+            font-size: 10px;
+            color: #a8a8a8;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+
+        .chart-type-btn:hover {
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+        }
+
+        .chart-type-btn.active {
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.3);
+            color: white;
+            box-shadow: 0 0 15px rgba(233, 69, 96, 0.3);
+        }
+
+        .chart-type-btn:hover .title,
+        .chart-type-btn.active .title {
+            color: white;
+        }
+
+        /* TIER PROGRESSION STYLES */
+        .tier-progression {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+        }
+
+        .tier-labels {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .tier-labels span {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .tier-noob { color: #6b7280; }
+        .tier-registered { color: #3b82f6; }
+        .tier-viper { color: #fbbf24; }
+
+        .usage-bar {
+            background: rgba(255, 255, 255, 0.1);
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .usage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #fbbf24, #ef4444);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 25%;
+        }
+
+        .velvet-curtain-btn {
+            background: linear-gradient(135deg, #8B1538, #A0153E, #5D0E17);
+            color: #F8E8DC;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(248, 232, 220, 0.2);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 8px rgba(139, 21, 56, 0.3);
+            margin-top: 10px;
+        }
+
+        .velvet-curtain-btn:hover {
+            background: linear-gradient(135deg, #A0153E, #B91C51, #8B1538);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(139, 21, 56, 0.4);
+            border-color: rgba(248, 232, 220, 0.3);
+        }
+
+        .more-charts-dropdown {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            margin: 12px 0 0 0;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .more-charts-dropdown:focus {
+            outline: none;
+            border-color: #e94560;
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #e94560;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .display-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 12px 0;
+            padding: 8px 0;
+        }
+
+        .display-option span {
+            font-size: 14px;
+            color: white;
+        }
+
+        .dropdown {
+            padding: 8px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            min-width: 80px;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown:focus {
+            outline: none;
+            border-color: #e94560;
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin: 12px 0;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: white;
+            transition: color 0.3s ease;
+        }
+
+        .radio-label input[type="radio"] {
+            accent-color: #e94560;
+        }
+
+        .file-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #a8a8a8;
+            text-align: center;
+            margin: 10px 0;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input:hover {
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.1);
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e94560, #533483);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 1rem;
+            padding: 12px 20px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: transform 0.2s ease;
-            margin: 20px 0;
+            font-weight: 600;
             width: 100%;
+            margin: 5px 0;
+            transition: all 0.3s ease;
+            font-size: 14px;
         }
-        
-        .generate-btn:hover {
+
+        .btn-primary:hover {
             transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
         }
-        
-        .generate-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
+
         .chart-container {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            min-height: 400px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            min-height: 500px;
             display: flex;
             align-items: center;
             justify-content: center;
-            text-align: center;
-            color: #6b7280;
-            font-size: 1.1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 800px;
+            width: 100%;
         }
-        
+
         .chart-container.has-chart {
             min-height: 500px;
             display: block;
+            height: auto;
+            overflow: visible;
+            padding: 20px 20px 15px 20px;
         }
         
         .chart-container.has-chart #plotlyChart {
             width: 100%;
-            height: 100%;
         }
-        
-        .controls-section {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .data-preview-section {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-            margin: 15px 0;
-        }
-        
-        .stat-card {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 12px;
+
+        .chart-placeholder {
             text-align: center;
+            color: #a8a8a8;
         }
-        
-        .stat-value {
+
+        .chart-placeholder h2 {
+            color: white;
+            margin-bottom: 10px;
             font-size: 1.5rem;
-            font-weight: bold;
-            color: #374151;
+        }
+
+        .chart-placeholder p {
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        .orientation-label {
+            font-size: 12px;
+            color: #a8a8a8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
         }
         
-        .stat-label {
-            font-size: 0.8rem;
-            color: #6b7280;
+        .status.success {
+            background: rgba(233, 69, 96, 0.2);
+            border: 1px solid #e94560;
+            color: white;
+        }
+        
+        .status.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: white;
+        }
+        
+        .status.warning {
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid #f59e0b;
+            color: white;
+        }
+        
+        .registration-message {
+            font-size: 12px;
+            color: #a8a8a8;
             margin-top: 4px;
+            margin-left: 0;
+            font-style: italic;
         }
-        
-        /* Responsive design */
-        @media (max-width: 768px) {
-            .content {
-                flex-direction: column;
-            }
-            
-            .sidebar {
-                width: 100%;
-                border-right: none;
-                border-bottom: 1px solid #e5e7eb;
-            }
-            
-            .main-content {
-                width: 100%;
-            }
-            
-            .controls {
-                grid-template-columns: 1fr;
-            }
+
+        .slider-container {
+            margin: 12px 0;
         }
-        
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 8px 0;
+            padding: 3px 0;
+        }
+
+        .slider-label span {
+            font-size: 14px;
+            color: white;
+        }
+
         .loading {
             display: none;
             text-align: center;
@@ -272,8 +497,8 @@
             display: inline-block;
             width: 40px;
             height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4facfe;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top: 4px solid #e94560;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -282,10 +507,21 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
+
+        .data-preview-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 800px;
+        }
+
         .data-preview {
             margin: 20px 0;
-            background: #f8fafc;
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
             padding: 20px;
             overflow-x: auto;
@@ -302,276 +538,319 @@
         .data-preview td {
             padding: 8px 12px;
             text-align: left;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
         }
         
         .data-preview th {
-            background: #374151;
+            background: rgba(233, 69, 96, 0.3);
             color: white;
             font-weight: 600;
             position: sticky;
             top: 0;
         }
-        
 
-        
-        .export-section {
-            margin: 30px 0;
-            display: none;
-        }
-        
-        .export-btn {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            margin: 0 10px 10px 0;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-        
-        .export-btn:hover {
-            transform: translateY(-2px);
-        }
-        
-        .status {
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            display: none;
-        }
-        
-        .status.success {
-            background: #d1fae5;
-            border: 1px solid #10b981;
-            color: #065f46;
-        }
-        
-        .status.error {
-            background: #fee2e2;
-            border: 1px solid #ef4444;
-            color: #991b1b;
-        }
-        
-        .status.warning {
-            background: #fef3c7;
-            border: 1px solid #f59e0b;
-            color: #92400e;
-        }
-        
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
         }
         
         .stat-card {
-            background: #f3f4f6;
-            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
+            padding: 12px;
             text-align: center;
         }
         
         .stat-value {
             font-size: 1.5rem;
             font-weight: bold;
-            color: #9238b0;
+            color: #e94560;
         }
         
         .stat-label {
-            font-size: 0.9rem;
-            color: #6b7280;
-            margin-top: 5px;
+            font-size: 0.8rem;
+            color: #a8a8a8;
+            margin-top: 4px;
         }
-        
-        /* New styles for quarterly data */
-        .date-controls {
-            background: #e0f2fe;
-            padding: 20px;
-            border-radius: 12px;
-            margin: 20px 0;
-            display: none;
-        }
-        
-        .date-controls h4 {
-            color: #0369a1;
-            margin-bottom: 15px;
-        }
-        
-        .quarter-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-        }
-        
 
-        
-
-        
-
+        @media (max-width: 768px) {
+            .sidebar-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                height: auto;
+                max-height: 50vh;
+            }
+            
+            .main-area {
+                padding: 20px;
+            }
+        }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>No Mess, No Fuss -- Get Charty</h1>
-            <p>Process CSV/Excel files and create interactive charts</p>
-            <p>Don't worry, we're in Alpha -- it WILL crash. It's not you, it's us!</p>
-        </div>
-        
-        <div class="content">
-            <!-- Left Sidebar -->
-            <div class="sidebar">
-            <div class="upload-section" id="uploadSection">
-                <h3>📁 Upload Your Data File</h3>
-                <p>Drag and drop or click to select CSV or Excel files</p>
-                <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls">
-                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Choose File</button>
-                <p><small>Supported formats: CSV, Excel (.xlsx, .xls) • Max size: 10MB</small></p>
-                
-                    <div class="control-group" style="margin-top: 20px;">
-                    <label for="dataOrientation">📋 Data Orientation</label>
-                    <select id="dataOrientation" onchange="handleDataOrientationChange()">
-                        <option value="vertical">📊 Vertical (Columns as Series)</option>
-                        <option value="horizontal">📈 Horizontal (Rows as Series)</option>
-                    </select>
-                    <small style="display: block; margin-top: 5px; color: #6b7280;">
-                        Vertical: Each column is a data series<br>
-                        Horizontal: Each row is a data series
-                    </small>
-                </div>
-            </div>
-                
-                <button class="generate-btn" id="generateBtn" onclick="generateChart()" disabled>
-                    🎨 Generate Interactive Chart
-                </button>
-            
-            <div class="status" id="status"></div>
-            
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>Processing your file...</p>
-            </div>
-                
-                <!-- Data Stats Section -->
-                <div id="dataStats" style="display: none;"></div>
-            
-            <!-- User Files Section -->
-            <div class="user-files-section" id="userFilesSection">
-                <h3>📁 Your Files</h3>
-                <div id="userFiles">
-                    <p>Loading your files...</p>
-                </div>
-            </div>
-                </div>
-                
-            <!-- Main Content Area -->
-            <div class="main-content">
-                <!-- Chart Container -->
-                <div class="chart-container" id="chartContainer">
-                    <div id="plotlyChart">Your Chart Goes Here</div>
-                </div>
-                
-                <!-- Controls Section -->
-                <div class="controls-section" id="controls" style="display: none;">
-                    <h3>📊 Chart Configuration</h3>
-                    <div class="controls" id="controlsGrid">
-                <div class="control-group">
-                    <label for="chartType">📈 Chart Type</label>
-                    <select id="chartType" onchange="updateColumnOptions()">
-                                <option value="vertical_bar">Vertical Bar Chart</option>
-                                <option value="horizontal_bar">Horizontal Bar Chart</option>
-                        <option value="line">Line Chart</option>
-                        <option value="scatter">Scatter Plot</option>
-                        <option value="pie">Pie Chart</option>
-                        <option value="histogram">Histogram</option>
-                        <option value="box">Box Plot</option>
-                        <option value="heatmap">Heatmap</option>
-                        <option value="3d_scatter">3D Scatter</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                    <label for="xColumn">🔢 X-Axis Column</label>
-                    <select id="xColumn"></select>
-                </div>
-                
-                <div class="control-group">
-                    <label for="yColumn">📊 Y-Axis Column</label>
-                    <select id="yColumn"></select>
-                </div>
-                
-                <div class="control-group">
-                    <label for="zColumn">📈 Z-Axis Column (3D only)</label>
-                    <select id="zColumn">
-                        <option value="">None</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                    <label for="colorColumn">🎨 Color Column</label>
-                    <select id="colorColumn">
-                        <option value="">None</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                    <label for="chartTitle">🏷️ Chart Title</label>
-                    <input type="text" id="chartTitle" placeholder="Auto-generated title">
-                </div>
-                
-                <div class="control-group">
-                    <label for="aggregation">🔄 Aggregation</label>
-                    <select id="aggregation">
-                        <option value="none">No Aggregation</option>
-                        <option value="count">Count</option>
-                        <option value="sum">Sum</option>
-                        <option value="average">Average</option>
-                        <option value="max">Maximum</option>
-                        <option value="min">Minimum</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                    <label for="maxItems">📏 Max Items to Show</label>
-                    <select id="maxItems">
-                        <option value="10">Top 10</option>
-                        <option value="20">Top 20</option>
-                        <option value="50">Top 50</option>
-                        <option value="all">Show All</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                            <label for="autoSpacing">📏 X-axis Auto Spacing</label>
-                            <select id="autoSpacing">
-                                <option value="no">No</option>
-                                <option value="yes">Yes</option>
-                    </select>
-            </div>
-            
 
+<!-- 
+PART 2 OF 4: HTML Body and complete sidebar structure
+Copy this AFTER Part 1 (the </head> tag)
+-->
+<body>
+    <div class="sidebar-layout">
+        <div class="sidebar">
+            <h2>📊 GetCharty</h2>
+            
+            <div class="section">
+                <h3>Data Import</h3>
+                <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls">
+                
+                <div class="orientation-label">Data Orientation</div>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="dataOrientation" value="vertical" checked>
+                        Vertical
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="dataOrientation" value="horizontal">
+                        Horizontal
+                    </label>
+                </div>
+                
+                <div class="orientation-label">Header Structure</div>
+                <div class="slider-container" id="headerStructureGroup" style="margin-bottom: 3px;">
+                    <label class="slider-label">
+                        <span id="headerStructureText">First row is headers</span>
+                        <label class="switch">
+                            <input type="checkbox" id="headerStructureToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </label>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="generateBtn" onclick="generateChart()" disabled>
+                🚀 Generate Chart
+            </button>
+            
+            <div class="section">
+                <h3>Chart Type</h3>
+                <div class="chart-type-grid">
+                    <div class="chart-type-btn active" data-chart-type="vertical_bar" title="Vertical Bar Chart">
+                        <div class="icon">📊</div>
+                        <div class="title">Vertical Bar</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="horizontal_bar" title="Horizontal Bar Chart">
+                        <div class="icon">📊</div>
+                        <div class="title">Horizontal Bar</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="line" title="Line Chart">
+                        <div class="icon">📈</div>
+                        <div class="title">Line</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="scatter" title="Scatter Plot">
+                        <div class="icon">🎯</div>
+                        <div class="title">Scatter</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="pie" title="Pie Chart">
+                        <div class="icon">🥧</div>
+                        <div class="title">Pie</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="histogram" title="Histogram">
+                        <div class="icon">📊</div>
+                        <div class="title">Histogram</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="box" title="Box Plot">
+                        <div class="icon">📦</div>
+                        <div class="title">Box Plot</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="heatmap" title="Heatmap">
+                        <div class="icon">🗺️</div>
+                        <div class="title">Heatmap</div>
                     </div>
                 </div>
                 
-                <!-- Data Preview Section -->
-                <div class="data-preview-section" id="dataPreview" style="display: none;">
-                    <h3>📋 Data Preview</h3>
-                    <div class="data-preview" id="dataPreviewContent"></div>
+                <!-- TIER PROGRESSION SECTION -->
+                <div class="tier-progression">
+                    <div class="tier-labels">
+                        <span class="tier-noob">Noob</span>
+                        <span class="tier-registered">Registered</span>
+                        <span class="tier-viper">VIPer</span>
+                    </div>
+                    <div class="usage-bar">
+                        <div class="usage-fill"></div>
+                    </div>
+                    <div class="velvet-curtain-btn" onclick="window.open('Take_A_Peek.html', '_blank')">
+                        Peek Behind the Velvet Curtain
+                    </div>
+                </div>
+                
+                <select class="more-charts-dropdown">
+                    <option>📋 More Chart Types</option>
+                    <option>📋 Area Chart</option>
+                    <option>📊 Histogram</option>
+                    <option>📈 Step Chart</option>
+                    <option>🌡️ Gauge Chart</option>
+                    <option>🗺️ Heatmap</option>
+                    <option>🌊 Waterfall Chart</option>
+                    <option>📈 Candlestick Chart</option>
+                    <option>🎯 Bubble Chart</option>
+                    <option>📊 Funnel Chart</option>
+                    <option>🌳 Treemap</option>
+                    <option>📡 Radar Chart</option>
+                    <option>📊 Box Plot</option>
+                </select>
             </div>
             
-                <!-- Export Section -->
-                <div class="export-section" id="exportSection" style="display: none;">
-                <h3>💾 Export Options</h3>
-                <button class="export-btn" onclick="exportAsImage('png')">📸 Export as PNG</button>
-                <button class="export-btn" onclick="exportAsImage('svg')">🎨 Export as SVG</button>
-                <button class="export-btn" onclick="exportAsHTML()">🌐 Export as HTML</button>
-                <button class="export-btn" onclick="exportData()">📄 Export Data as CSV</button>
-                <button class="export-btn" onclick="exportChartConfig()">⚙️ Export Chart Config</button>
+            <div class="section">
+                <h3>Chart Information</h3>
+                <input class="input-field" id="chartTitle" placeholder="Chart Title">
+                <input class="input-field" id="chartSubtitle" placeholder="Subtitle">
+                <input class="input-field" id="chartFootnote" placeholder="Footnote (appears below chart, left-aligned)">
+                <input class="input-field" id="chartSource" placeholder="Data Source (appears below chart, right-aligned)">
             </div>
+            
+            <div class="section">
+                <h3>Axis Labels</h3>
+                <input class="input-field" id="xAxisTitle" placeholder="X-Axis Title">
+                <input class="input-field" id="yAxisTitle" placeholder="Y-Axis Title">
+                <div class="input-group">
+                    <input class="input-field" id="yPrefix" placeholder="Y-Prefix">
+                    <input class="input-field" id="ySuffix" placeholder="Y-Suffix">
+                </div>
+                <div style="margin-top: 12px;">
+                    <label style="display: block; color: #a8a8a8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 600;">Y-Axis Denominator</label>
+                    <input class="input-field" placeholder="eg. 100; 1,000,000">
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>Display Options</h3>
+                
+                <div class="display-option">
+                    <span>Horizontal Grid Lines</span>
+                    <label class="switch">
+                        <input type="checkbox" id="horizontalGrid" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="display-option">
+                    <span>Vertical Grid Lines</span>
+                    <label class="switch">
+                        <input type="checkbox" id="verticalGrid">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="display-option">
+                    <span>X-Axis Labels</span>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="display-option">
+                    <span>Auto X-Spacing</span>
+                    <label class="switch">
+                        <input type="checkbox" id="autoSpacing">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div id="autoSpacingMessage" class="registration-message" style="display: none;">
+                    Only available to registered users.
+                </div>
+                
+                <div class="display-option">
+                    <span>Y-Axis Labels</span>
+                    <select class="dropdown" id="yAxisLabelsMode">
+                        <option value="on">On</option>
+                        <option value="off">Off</option>
+                        <option value="top">Top Only</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Column Selection</h3>
+                <select id="xColumn" class="input-field">
+                    <option>Select X-Axis Column</option>
+                </select>
+                <select id="yColumn" class="input-field">
+                    <option>Select Y-Axis Column</option>
+                </select>
+                <select id="zColumn" class="input-field">
+                    <option value="">Z-Axis Column (3D only)</option>
+                </select>
+                <select id="colorColumn" class="input-field">
+                    <option value="">Color Column (optional)</option>
+                </select>
+            </div>
+
+            <div class="section">
+                <h3>Chart Options</h3>
+                <select id="aggregation" class="input-field">
+                    <option value="none">No Aggregation</option>
+                    <option value="count">Count</option>
+                    <option value="sum">Sum</option>
+                    <option value="average">Average</option>
+                    <option value="max">Maximum</option>
+                    <option value="min">Minimum</option>
+                </select>
+                <select id="maxItems" class="input-field">
+                    <option value="10">Top 10</option>
+                    <option value="20">Top 20</option>
+                    <option value="50">Top 50</option>
+                    <option value="all">Show All</option>
+                </select>
+            </div>
+
+            <div class="section">
+                <h3>Advanced Styling</h3>
+                <select class="input-field">
+                    <option>🎨 Color Schemes</option>
+                    <option>🌈 Vibrant</option>
+                    <option>💼 Professional</option>
+                    <option>🌙 Dark Mode</option>
+                    <option>🌸 Pastel</option>
+                </select>
+                <select class="input-field">
+                    <option>🔤 Font Families</option>
+                    <option>Arial</option>
+                    <option>Helvetica</option>
+                    <option>Georgia</option>
+                    <option>Times New Roman</option>
+                </select>
+                <select class="input-field">
+                    <option>🎯 Element Colors</option>
+                    <option>Title Color</option>
+                    <option>Axis Color</option>
+                    <option>Grid Color</option>
+                    <option>Background Color</option>
+                </select>
+            </div>
+
+<!-- 
+PART 3 OF 4: Main area HTML and core JavaScript functions
+Copy this AFTER Part 2 (after the sidebar closing div)
+-->
+        </div>
+        
+        <div class="main-area">
+            <div class="chart-container" id="chartContainer">
+                <div id="plotlyChart" class="chart-placeholder">
+                    <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;">📊</div>
+                    <h2>Chart Preview Area</h2>
+                    <p>Upload data and configure settings to see your chart</p>
+                </div>
+            </div>
+            
+            <button class="btn-primary" id="generateBtnMain" onclick="generateChart()" disabled style="margin-top: 20px; width: auto; padding: 15px 30px;">
+                🚀 Generate Chart
+            </button>
         </div>
     </div>
 
@@ -586,34 +865,297 @@
         let currentData = [];
         let currentChart = null;
         let processedData = [];
-        let rawData = []; // Store original unprocessed data
-        let currentFileId = null; // Store current file ID from server
-        
+        let rawData = [];
+        let currentFileId = null;
+        let chartWidth = 850; // Default chart width
 
-        
         function generateSessionId() {
             return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         }
-        
 
-        
+        // Session ID management for autocomplete isolation
+        function updateFieldIdsWithSession(sessionId) {
+            const fieldMappings = {
+                'chartTitle': `chartTitle_${sessionId}`,
+                'chartSubtitle': `chartSubtitle_${sessionId}`,
+                'chartFootnote': `chartFootnote_${sessionId}`,
+                'chartSource': `chartSource_${sessionId}`,
+                'xAxisTitle': `xAxisTitle_${sessionId}`
+            };
+            
+            Object.entries(fieldMappings).forEach(([oldId, newId]) => {
+                const field = document.getElementById(oldId);
+                if (field) {
+                    field.id = newId;
+                }
+            });
+            
+            return fieldMappings;
+        }
 
-        
+        function getFieldById(baseId) {
+            if (currentSessionId && currentFieldMappings[baseId]) {
+                const field = document.getElementById(currentFieldMappings[baseId]);
+                if (field) return field;
+            }
+            return document.getElementById(baseId);
+        }
 
-        
+        // Dynamic container sizing functions
+        function calculateDynamicMargins(title, subtitle, footnote, source, autoSpacing = true) {
+            let topMargin = 50;
+            let bottomMargin = 85;
+            
+            const titleFontSize = 18;
+            const subtitleFontSize = 14;
+            const annotationFontSize = 12;
+            const fontFamily = '-apple-system, BlinkMacSystemFont, sans-serif';
+            const chartWidth = 850;
+            const maxTextWidth = chartWidth * 0.85;
+            
+            if (title) {
+                const titleMeasurements = measureTextDimensions(
+                    title,
+                    titleFontSize,
+                    fontFamily,
+                    maxTextWidth
+                );
+                topMargin = Math.max(50, titleMeasurements.requiredSpace + 25);
+            }
+            
+            if (subtitle) {
+                const formattedSubtitle = wrapSubtitleText(subtitle, 100);
+                const subtitleMeasurements = measureTextDimensions(
+                    formattedSubtitle,
+                    subtitleFontSize,
+                    fontFamily,
+                    maxTextWidth
+                );
+                
+                topMargin += subtitleMeasurements.requiredSpace;
+                const safetyBuffer = Math.min(20, Math.floor(subtitle.length / 40) * 4);
+                topMargin += safetyBuffer;
+            }
+            
+            if (footnote || source) {
+                let footnoteHeight = 0;
+                let sourceHeight = 0;
+                
+                if (footnote) {
+                    const wrappedFootnote = wrapFootnoteText(footnote);
+                    const footnoteMeasurements = measureTextDimensions(
+                        wrappedFootnote,
+                        annotationFontSize,
+                        fontFamily,
+                        chartWidth * 0.3
+                    );
+                    footnoteHeight = footnoteMeasurements.requiredSpace;
+                }
+                
+                if (source) {
+                    const wrappedSource = wrapSourceText(source);
+                    const sourceMeasurements = measureTextDimensions(
+                        wrappedSource,
+                        annotationFontSize,
+                        fontFamily,
+                        chartWidth * 0.3
+                    );
+                    sourceHeight = sourceMeasurements.requiredSpace;
+                }
+                
+                bottomMargin = 85 + Math.max(footnoteHeight, sourceHeight) + 10;
+            }
+            
+            topMargin = Math.ceil(topMargin * 1.05);
+            bottomMargin = Math.ceil(bottomMargin * 1.05);
+            
+            return { topMargin, bottomMargin };
+        }
 
-        
+        function calculateContainerHeight(topMargin, bottomMargin) {
+            const fixedChartHeight = 400;
+            const containerPadding = 30;
+            const extraBuffer = Math.max(0, (topMargin + bottomMargin - 200) * 0.05);
+            
+            return fixedChartHeight + topMargin + bottomMargin + containerPadding + extraBuffer;
+        }
+
+        function validateAndAdjustChartSpacing() {
+            setTimeout(() => {
+                const plotlyChart = document.getElementById('plotlyChart');
+                const chartContainer = document.getElementById('chartContainer');
+                
+                if (plotlyChart && plotlyChart._fullLayout) {
+                    const titleElements = plotlyChart.querySelectorAll('.gtitle');
+                    const annotations = plotlyChart.querySelectorAll('.annotation');
+                    const plotArea = plotlyChart.querySelector('.plot');
+                    
+                    if (titleElements.length > 0 && plotArea) {
+                        let maxTitleBottom = 0;
+                        
+                        titleElements.forEach(element => {
+                            const bounds = element.getBoundingClientRect();
+                            maxTitleBottom = Math.max(maxTitleBottom, bounds.bottom);
+                        });
+                        
+                        const plotBounds = plotArea.getBoundingClientRect();
+                        const overlap = maxTitleBottom - plotBounds.top;
+                        
+                        if (overlap > 0) {
+                            const currentLayout = plotlyChart._fullLayout;
+                            const newTopMargin = currentLayout.margin.t + overlap + 10;
+                            
+                            const currentHeight = parseInt(chartContainer.style.height);
+                            const newHeight = currentHeight + overlap + 10;
+                            chartContainer.style.height = `${newHeight}px`;
+                            
+                            Plotly.relayout('plotlyChart', {
+                                'margin.t': newTopMargin
+                            });
+                        }
+                    }
+                    
+                    if (annotations.length > 0) {
+                        annotations.forEach(annotation => {
+                            const bounds = annotation.getBoundingClientRect();
+                            const containerBounds = chartContainer.getBoundingClientRect();
+                            
+                            if (bounds.bottom > containerBounds.bottom) {
+                                const currentHeight = parseInt(chartContainer.style.height);
+                                const overflow = bounds.bottom - containerBounds.bottom;
+                                chartContainer.style.height = `${currentHeight + overflow + 20}px`;
+                            }
+                        });
+                    }
+                }
+            }, 150);
+        }
+
+        function syncContainerWithPlotly() {
+            const plotlyChart = document.getElementById('plotlyChart');
+            const chartContainer = document.getElementById('chartContainer');
+            
+            if (plotlyChart && chartContainer) {
+                const plotlyHeight = plotlyChart.layout ? plotlyChart.layout.height : 500;
+                const containerPadding = 30;
+                const totalHeight = plotlyHeight + containerPadding;
+                
+                chartContainer.style.height = `${totalHeight}px`;
+            }
+        }
+
+        function measureTextDimensions(text, fontSize, fontFamily, maxWidth) {
+            const measuringDiv = document.createElement('div');
+            measuringDiv.style.cssText = `
+                position: absolute;
+                visibility: hidden;
+                left: -9999px;
+                width: ${maxWidth}px;
+                font-size: ${fontSize}px;
+                font-family: ${fontFamily};
+                line-height: 1.5;
+                white-space: normal;
+                word-wrap: break-word;
+                word-break: break-word;
+                color: white;
+            `;
+            
+            measuringDiv.innerHTML = text.replace(/\n/g, '<br>');
+            document.body.appendChild(measuringDiv);
+            
+            const totalHeight = measuringDiv.offsetHeight;
+            
+            const singleLineDiv = document.createElement('div');
+            singleLineDiv.style.cssText = measuringDiv.style.cssText;
+            singleLineDiv.innerHTML = 'Ag';
+            document.body.appendChild(singleLineDiv);
+            
+            const singleLineHeight = singleLineDiv.offsetHeight;
+            const numberOfLines = Math.ceil(totalHeight / singleLineHeight);
+            
+            document.body.removeChild(measuringDiv);
+            document.body.removeChild(singleLineDiv);
+            
+            return {
+                totalHeight: totalHeight,
+                numberOfLines: numberOfLines,
+                lineHeight: singleLineHeight,
+                requiredSpace: totalHeight + (fontSize * 0.5)
+            };
+        }
+
+        // Text wrapping helper functions
+        function wrapSubtitleText(text, maxLength = 80) {
+            if (!text) return '';
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            words.forEach(word => {
+                if ((currentLine + ' ' + word).length > maxLength) {
+                    lines.push(currentLine.trim());
+                    currentLine = word;
+                } else {
+                    currentLine = currentLine ? currentLine + ' ' + word : word;
+                }
+            });
+            
+            if (currentLine) {
+                lines.push(currentLine.trim());
+            }
+            
+            return lines.join('<br>');
+        }
+
+        function wrapFootnoteText(text) {
+            if (!text) return '';
+            const maxPixelWidth = chartWidth * 0.3;
+            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
+        }
+
+        function wrapSourceText(text) {
+            if (!text) return '';
+            if (!text.startsWith('Source: ')) {
+                text = 'Source: ' + text;
+            }
+            const maxPixelWidth = chartWidth * 0.3;
+            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
+        }
+
+        function wrapTextByPixelWidth(text, maxPixelWidth, fontSize = 12, fontFamily = 'Arial, sans-serif') {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.font = `${fontSize}px ${fontFamily}`;
+            
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            for (let word of words) {
+                const testLine = currentLine + (currentLine ? ' ' : '') + word;
+                const testWidth = ctx.measureText(testLine).width;
+                
+                if (testWidth <= maxPixelWidth) {
+                    currentLine = testLine;
+                } else {
+                    if (currentLine) {
+                        lines.push(currentLine);
+                    }
+                    currentLine = word;
+                }
+            }
+            
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+            
+            return lines.join('<br>');
+        }
+
         function handleDataOrientationChange() {
             if (rawData.length > 0) {
-                // Reprocess the data with new orientation
-                const orientation = document.getElementById('dataOrientation').value;
-                currentData = orientation === 'horizontal' ? transposeData(rawData) : rawData;
-                
-                // Update UI
-                displayDataStats(currentData);
-                populateColumnSelectors(currentData);
-                showDataPreview(currentData);
-                
+                const orientation = document.querySelector('input[name="dataOrientation"]:checked').value;
+                processDataWithHeaders();
                 showStatus(`✅ Data reoriented to ${orientation} format!`, 'success');
             }
         }
@@ -621,17 +1163,12 @@
         function transposeData(data) {
             if (!data || data.length === 0) return [];
             
-            // Get all unique keys from all rows
             const allKeys = [...new Set(data.flatMap(row => Object.keys(row)))];
-            
-            // Create transposed structure
             const transposed = [];
             
-            // First, create a row for each original column
             allKeys.forEach((key, index) => {
                 const newRow = { 'Field': key };
                 
-                // Add values from each original row as new columns
                 data.forEach((originalRow, rowIndex) => {
                     newRow[`Row_${rowIndex + 1}`] = originalRow[key] || null;
                 });
@@ -643,7 +1180,14 @@
         }
         
         function showStatus(message, type = 'success') {
-            const status = document.getElementById('status');
+            let status = document.getElementById('status');
+            if (!status) {
+                status = document.createElement('div');
+                status.id = 'status';
+                status.className = 'status';
+                document.querySelector('.sidebar').appendChild(status);
+            }
+            
             status.textContent = message;
             status.className = `status ${type}`;
             status.style.display = 'block';
@@ -654,53 +1198,90 @@
                 }, 4000);
             }
         }
-        
-        function showLoading(show) {
-            document.getElementById('loading').style.display = show ? 'block' : 'none';
-        }
-        
-        // Enhanced file upload handling
-        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
-        
-        const uploadSection = document.getElementById('uploadSection');
-        uploadSection.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadSection.classList.add('dragover');
-        });
-        
-        uploadSection.addEventListener('dragleave', () => {
-            uploadSection.classList.remove('dragover');
-        });
-        
-        uploadSection.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadSection.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                document.getElementById('fileInput').files = files;
-                handleFileUpload({ target: { files: files } });
+
+        function clearExistingData() {
+            currentSessionId = generateSessionId();
+            currentFieldMappings = updateFieldIdsWithSession(currentSessionId);
+            
+            currentData = [];
+            currentFileId = null;
+            rawData = [];
+            
+            const chartContainer = document.getElementById('chartContainer');
+            const plotlyChart = document.getElementById('plotlyChart');
+            if (chartContainer) chartContainer.classList.remove('has-chart');
+            if (plotlyChart) {
+                plotlyChart.innerHTML = `
+                    <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;">📊</div>
+                    <h2>Chart Preview Area</h2>
+                    <p>Upload data and configure settings to see your chart</p>
+                `;
             }
+            
+            const columnSelectors = ['xColumn', 'yColumn', 'zColumn', 'colorColumn'];
+            columnSelectors.forEach(selectorId => {
+                const selector = document.getElementById(selectorId);
+                if (selector) {
+                    selector.innerHTML = `<option>Select ${selectorId.replace('Column', '')}-Axis Column</option>`;
+                }
+            });
+            
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('generateBtnMain').disabled = true;
+            
+            const formFields = ['chartTitle', 'chartSubtitle', 'chartFootnote', 'chartSource', 'xAxisTitle'];
+            formFields.forEach(fieldId => {
+                const field = getFieldById(fieldId);
+                if (field) {
+                    field.value = '';
+                }
+            });
+            
+            document.querySelectorAll('.chart-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector('[data-chart-type="vertical_bar"]').classList.add('active');
+        }
+
+        function showLoading(show) {
+            let loading = document.getElementById('loading');
+            if (!loading) {
+                loading = document.createElement('div');
+                loading.id = 'loading';
+                loading.className = 'loading';
+                loading.innerHTML = '<div class="spinner"></div><p>Processing your file...</p>';
+                document.querySelector('.sidebar').appendChild(loading);
+            }
+            loading.style.display = show ? 'block' : 'none';
+        }
+
+
+
+        // File upload event listeners
+        document.getElementById('fileInput').addEventListener('click', function() {
+            clearExistingData();
         });
+        
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
         
         async function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
             
-            // File validation
-            const maxSize = 10 * 1024 * 1024; // 10MB
+            const maxSize = 10 * 1024 * 1024;
             if (file.size > maxSize) {
-                showStatus('❌ File size exceeds 10MB limit. Please upload a smaller file.', 'error');
+                showStatus('⚠ File size exceeds 10MB limit. Please upload a smaller file.', 'error');
                 return;
             }
             
             const fileExtension = file.name.split('.').pop().toLowerCase();
             if (!['csv', 'xlsx', 'xls'].includes(fileExtension)) {
-                showStatus('❌ Please upload a CSV or Excel file (.csv, .xlsx, .xls)', 'error');
+                showStatus('⚠ Please upload a CSV or Excel file (.csv, .xlsx, .xls)', 'error');
                 return;
             }
             
             showLoading(true);
-            showStatus('🔄 Processing your file...', 'warning');
+            showStatus('📄 Processing your file...', 'warning');
             
             try {
                 let data;
@@ -711,7 +1292,16 @@
                         header: true,
                         skipEmptyLines: true,
                         dynamicTyping: true,
-                        transformHeader: (header) => header.trim()
+                        transformHeader: (header) => header.trim(),
+                        transform: (value, header) => {
+                            if (typeof value === 'string') {
+                                value = value.trim();
+                                if (header.toLowerCase().includes('date') && value.toLowerCase() === 'date') {
+                                    return null;
+                                }
+                            }
+                            return value;
+                        }
                     });
                     
                     if (result.errors.length > 0) {
@@ -720,7 +1310,6 @@
                     
                     data = result.data;
                 } else {
-                    // Excel file processing
                     const arrayBuffer = await file.arrayBuffer();
                     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
                     const sheetName = workbook.SheetNames[0];
@@ -732,90 +1321,81 @@
                     throw new Error('No data found in the file');
                 }
                 
-                // Clean and validate data
                 const cleanedData = cleanData(data);
                 
                 if (cleanedData.length === 0) {
                     throw new Error('No valid data rows found after cleaning');
                 }
                 
-                // Convert data to CSV for server processing
-                const csvContent = Papa.unparse(cleanedData);
-                
-                // Send to server for processing
-                const response = await fetch(`${API_ENDPOINT}/process-file`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        filename: file.name,
-                        content: csvContent,
-                        session_id: sessionId,
-                        chart_config: {
-                            chart_type: 'bar'
-                        }
-                    })
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Server processing failed');
-                }
-                
-                const serverResponse = await response.json();
-                
-                // Store server response data
-                currentData = serverResponse.data;
-                currentFileId = serverResponse.file_id;
-                
-                // Store raw data and apply orientation
+                currentFileId = `local_${Date.now()}`;
                 rawData = cleanedData;
-                const orientation = document.getElementById('dataOrientation').value;
-                currentData = orientation === 'horizontal' ? transposeData(currentData) : currentData;
+                processDataWithHeaders();
                 
-
-                
-                displayDataStats(currentData);
-                populateColumnSelectors(currentData);
-                showDataPreview(currentData);
-                
-                // Reset chart container for new file
                 const chartContainer = document.getElementById('chartContainer');
                 const plotlyChart = document.getElementById('plotlyChart');
-                chartContainer.classList.remove('has-chart');
-                plotlyChart.innerHTML = 'Your Chart Goes Here';
-                document.getElementById('exportSection').style.display = 'none';
+                if (chartContainer) chartContainer.classList.remove('has-chart');
+                if (plotlyChart) {
+                    plotlyChart.innerHTML = `
+                        <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;">📊</div>
+                        <h2>Chart Preview Area</h2>
+                        <p>Upload data and configure settings to see your chart</p>
+                    `;
+                }
                 
-                document.getElementById('controls').style.display = 'block';
                 document.getElementById('generateBtn').disabled = false;
+                document.getElementById('generateBtnMain').disabled = false;
                 
-                showStatus(`✅ Successfully processed ${file.name}! Found ${currentData.length} rows with ${Object.keys(currentData[0]).length} columns. File ID: ${currentFileId}`, 'success');
+                showStatus(`✅ Successfully processed ${file.name} locally! Found ${currentData.length} rows with ${Object.keys(currentData[0]).length} columns.`, 'success');
                 
             } catch (error) {
-                showStatus(`❌ Error processing file: ${error.message}`, 'error');
+                showStatus(`⚠ Error processing file: ${error.message}`, 'error');
                 console.error('File processing error:', error);
             } finally {
                 showLoading(false);
             }
         }
-        
+
         function cleanData(data) {
             if (!Array.isArray(data) || data.length === 0) return [];
             
-            // Remove completely empty rows
             const cleaned = data.filter(row => {
                 return Object.values(row).some(value => 
                     value !== null && value !== undefined && value !== ''
                 );
             });
             
-            // Convert string numbers to actual numbers where appropriate
-            return cleaned.map(row => {
+            const headerKeywords = ['date', 'time', 'period', 'year', 'month', 'day', 'quarter', 'week', 'id', 'name', 'description', 'category', 'type', 'value', 'amount', 'count', 'total', 'sum', 'average', 'max', 'min'];
+            const firstRow = cleaned[0];
+            let isFirstRowHeader = false;
+            
+            if (firstRow) {
+                const firstRowValues = Object.values(firstRow).map(val => String(val).toLowerCase().trim());
+                const headerMatchCount = firstRowValues.filter(val => 
+                    headerKeywords.some(keyword => val.includes(keyword))
+                ).length;
+                
+                isFirstRowHeader = headerMatchCount > firstRowValues.length * 0.5;
+                
+                if (!isFirstRowHeader && cleaned.length > 1) {
+                    const secondRow = cleaned[1];
+                    const firstRowTypes = Object.values(firstRow).map(val => typeof val);
+                    const secondRowTypes = Object.values(secondRow).map(val => typeof val);
+                    
+                    const firstRowStringCount = firstRowTypes.filter(type => type === 'string').length;
+                    const secondRowNumberCount = secondRowTypes.filter(type => type === 'number').length;
+                    
+                    if (firstRowStringCount > firstRowTypes.length * 0.7 && secondRowNumberCount > 0) {
+                        isFirstRowHeader = true;
+                    }
+                }
+            }
+            
+            let dataRows = isFirstRowHeader ? cleaned.slice(1) : cleaned;
+            
+            const cleanedRows = dataRows.map(row => {
                 const cleanRow = {};
                 Object.entries(row).forEach(([key, value]) => {
                     if (typeof value === 'string') {
-                        // Try to convert string numbers
                         const numValue = parseFloat(value);
                         if (!isNaN(numValue) && isFinite(numValue) && value.trim() !== '') {
                             cleanRow[key] = numValue;
@@ -828,15 +1408,50 @@
                 });
                 return cleanRow;
             });
+            
+            return cleanedRows;
         }
-        
+
+        function processDataWithHeaders() {
+            const orientation = document.querySelector('input[name="dataOrientation"]:checked').value;
+            const headerToggle = document.getElementById('headerStructureToggle');
+            const hasHeaders = headerToggle.checked;
+            
+            let processedData = [...rawData];
+            
+            if (orientation === 'vertical') {
+                if (hasHeaders) {
+                    const headers = Object.values(rawData[0]);
+                    processedData = rawData.slice(1);
+                }
+            } else {
+                processedData = transposeData(rawData);
+                
+                if (hasHeaders) {
+                    const headers = processedData.map(row => row['Field']);
+                    processedData = processedData.slice(1);
+                }
+            }
+            
+            currentData = processedData;
+            
+            displayDataStats(currentData);
+            populateColumnSelectors(currentData);
+            showDataPreview(currentData);
+            
+            if (document.getElementById('plotlyChart').children.length > 0) {
+                generateChart();
+            }
+        }
+
         function displayDataStats(data) {
             if (!data.length) return;
             
-            const dataStatsElement = document.getElementById('dataStats');
+            let dataStatsElement = document.getElementById('dataStats');
             if (!dataStatsElement) {
-                console.warn('dataStats element not found');
-                return;
+                dataStatsElement = document.createElement('div');
+                dataStatsElement.id = 'dataStats';
+                document.querySelector('.sidebar').appendChild(dataStatsElement);
             }
             
             const columns = Object.keys(data[0]);
@@ -848,22 +1463,25 @@
             );
             
             const statsHtml = `
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value">${data.length.toLocaleString()}</div>
-                        <div class="stat-label">Total Rows</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${columns.length}</div>
-                        <div class="stat-label">Total Columns</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${numericColumns.length}</div>
-                        <div class="stat-label">Numeric Columns</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${textColumns.length}</div>
-                        <div class="stat-label">Text Columns</div>
+                <div class="section">
+                    <h3>Data Statistics</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">${data.length.toLocaleString()}</div>
+                            <div class="stat-label">Total Rows</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${columns.length}</div>
+                            <div class="stat-label">Total Columns</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${numericColumns.length}</div>
+                            <div class="stat-label">Numeric Columns</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${textColumns.length}</div>
+                            <div class="stat-label">Text Columns</div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -871,7 +1489,7 @@
             dataStatsElement.innerHTML = statsHtml;
             dataStatsElement.style.display = 'block';
         }
-        
+
         function populateColumnSelectors(data) {
             if (!data.length) return;
             
@@ -880,15 +1498,11 @@
             
             selectors.forEach(selectorId => {
                 const selector = document.getElementById(selectorId);
-                if (!selector) {
-                    console.warn(`Selector ${selectorId} not found`);
-                    return;
-                }
+                if (!selector) return;
                 
                 const currentValue = selector.value;
                 selector.innerHTML = '';
                 
-                // Add "None" option for optional columns
                 if (['zColumn', 'colorColumn'].includes(selectorId)) {
                     selector.add(new Option('None', ''));
                 }
@@ -898,13 +1512,11 @@
                     selector.add(option);
                 });
                 
-                // Restore previous selection if still valid
                 if (columns.includes(currentValue)) {
                     selector.value = currentValue;
                 }
             });
             
-            // Set intelligent defaults
             if (columns.length >= 2) {
                 const xColumn = document.getElementById('xColumn');
                 const yColumn = document.getElementById('yColumn');
@@ -917,60 +1529,107 @@
                 }
             }
             
-            updateColumnOptions();
+            populateAxisTitlesFromData(data);
         }
-        
-        function updateColumnOptions() {
-            const chartType = document.getElementById('chartType').value;
-            const yColumnGroup = document.getElementById('yColumn').parentElement;
-            const zColumnGroup = document.getElementById('zColumn').parentElement;
-            const colorColumnGroup = document.getElementById('colorColumn').parentElement;
+
+        function populateAxisTitlesFromData(data) {
+            if (!data || data.length === 0) return;
             
-            // Show/hide column selectors based on chart type
-            if (['pie', 'histogram'].includes(chartType)) {
-                yColumnGroup.style.display = 'none';
-            } else {
-                yColumnGroup.style.display = 'block';
+            const columns = Object.keys(data[0]);
+            
+            let inferredXTitle = '';
+            let inferredYTitle = '';
+            
+            if (columns.length >= 1) {
+                inferredXTitle = formatColumnNameForDisplay(columns[0]);
+            }
+            if (columns.length >= 2) {
+                inferredYTitle = formatColumnNameForDisplay(columns[1]);
             }
             
-            if (chartType === '3d_scatter') {
-                zColumnGroup.style.display = 'block';
-            } else {
-                zColumnGroup.style.display = 'none';
+            const xAxisTitleField = document.getElementById('xAxisTitle');
+            const yAxisTitleField = document.getElementById('yAxisTitle');
+            
+            if (xAxisTitleField) {
+                xAxisTitleField.placeholder = inferredXTitle;
+                if (!xAxisTitleField.value.trim()) {
+                    xAxisTitleField.value = inferredXTitle;
+                }
             }
             
-            // Color column is useful for scatter plots and some others
-            if (['scatter', '3d_scatter', 'bar'].includes(chartType)) {
-                colorColumnGroup.style.display = 'block';
-            } else {
-                colorColumnGroup.style.display = 'none';
+            if (yAxisTitleField) {
+                yAxisTitleField.placeholder = inferredYTitle;
+                if (!yAxisTitleField.value.trim()) {
+                    yAxisTitleField.value = inferredYTitle;
+                }
             }
         }
-        
+
+        function formatColumnNameForDisplay(columnName) {
+            if (!columnName) return '';
+            
+            let formatted = columnName.replace(/[_-]/g, ' ');
+            
+            const replacements = {
+                'qty': 'Quantity',
+                'amt': 'Amount',
+                'rev': 'Revenue',
+                'cust': 'Customer',
+                'prod': 'Product',
+                'cat': 'Category',
+                'pct': 'Percentage',
+                'yr': 'Year',
+                'mo': 'Month',
+                'dt': 'Date',
+                'num': 'Number',
+                'val': 'Value',
+                'id': 'ID'
+            };
+            
+            const words = formatted.split(' ');
+            for (let i = 0; i < words.length; i++) {
+                const wordLower = words[i].toLowerCase();
+                if (replacements[wordLower]) {
+                    words[i] = replacements[wordLower];
+                } else {
+                    words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1).toLowerCase();
+                }
+            }
+            
+            return words.join(' ');
+        }
+
         function showDataPreview(data) {
             if (!data.length) return;
             
-            const preview = document.getElementById('dataPreview');
-            const previewContent = document.getElementById('dataPreviewContent');
-            
-            if (!preview || !previewContent) {
-                console.warn('Data preview elements not found');
-                return;
+            let preview = document.getElementById('dataPreview');
+            if (!preview) {
+                preview = document.createElement('div');
+                preview.id = 'dataPreview';
+                preview.className = 'data-preview-section';
+                preview.innerHTML = '<h3>📋 Data Preview</h3><div class="data-preview" id="dataPreviewContent"></div>';
+                const generateBtn = document.getElementById('generateBtnMain');
+                if (generateBtn) {
+                    generateBtn.parentNode.insertBefore(preview, generateBtn.nextSibling);
+                } else {
+                    document.querySelector('.main-area').appendChild(preview);
+                }
             }
             
+            const previewContent = document.getElementById('dataPreviewContent');
+            if (!previewContent) return;
+            
             const columns = Object.keys(data[0]);
-            const previewRows = data.slice(0, 10); // Show first 10 rows
+            const previewRows = data.slice(0, 10);
             
             let html = `<p><strong>Data Preview (First ${previewRows.length} rows of ${data.length})</strong></p>`;
             html += '<div style="overflow-x: auto;"><table><thead><tr>';
             
-            // Headers
             columns.forEach(col => {
                 html += `<th>${col}</th>`;
             });
             html += '</tr></thead><tbody>';
             
-            // Rows
             previewRows.forEach(row => {
                 html += '<tr>';
                 columns.forEach(col => {
@@ -989,9 +1648,9 @@
             previewContent.innerHTML = html;
             preview.style.display = 'block';
         }
-        
+
         function prepareChartData() {
-            const chartType = document.getElementById('chartType').value;
+            const chartType = getSelectedChartType();
             const xColumn = document.getElementById('xColumn').value;
             const yColumn = document.getElementById('yColumn').value;
             const aggregation = document.getElementById('aggregation').value;
@@ -1001,11 +1660,9 @@
                 throw new Error('Missing required data or column selection');
             }
             
-            // Use current data
             let dataToProcess = currentData;
             let processedData = [...dataToProcess];
             
-            // Handle aggregation
             if (aggregation !== 'none' && ['pie', 'vertical_bar', 'horizontal_bar'].includes(chartType)) {
                 const grouped = {};
                 
@@ -1051,7 +1708,6 @@
                 });
             }
             
-            // Sort and limit items
             if (['pie', 'vertical_bar', 'horizontal_bar'].includes(chartType) && aggregation !== 'none') {
                 const valueKey = yColumn || 'value';
                 processedData.sort((a, b) => b[valueKey] - a[valueKey]);
@@ -1063,25 +1719,38 @@
             
             return processedData;
         }
-        
+
+        function getSelectedChartType() {
+            const activeBtn = document.querySelector('.chart-type-btn.active');
+            return activeBtn ? activeBtn.getAttribute('data-chart-type') : 'vertical_bar';
+        }
+
         async function generateChart() {
             if (!currentData.length) {
-                showStatus('❌ No data available. Please upload a file first.', 'error');
+                showStatus('⚠ No data available. Please upload a file first.', 'error');
                 return;
             }
             
-            const chartType = document.getElementById('chartType').value;
+            const chartType = getSelectedChartType();
             const xColumn = document.getElementById('xColumn').value;
             const yColumn = document.getElementById('yColumn').value;
             const zColumn = document.getElementById('zColumn').value;
             const colorColumn = document.getElementById('colorColumn').value;
-            const autoSpacing = document.getElementById('autoSpacing').value === 'yes';
-            let title = document.getElementById('chartTitle').value || `${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart`;
-            
-
+            const autoSpacing = document.getElementById('autoSpacing').checked;
+            const horizontalGrid = document.getElementById('horizontalGrid').checked;
+            const verticalGrid = document.getElementById('verticalGrid').checked;
+            const title = getFieldById('chartTitle') ? getFieldById('chartTitle').value : `${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart`;
+            const subtitle = getFieldById('chartSubtitle') ? getFieldById('chartSubtitle').value : '';
+            const footnote = getFieldById('chartFootnote') ? getFieldById('chartFootnote').value : '';
+            const source = getFieldById('chartSource') ? getFieldById('chartSource').value : '';
+            const xAxisTitle = getFieldById('xAxisTitle') ? getFieldById('xAxisTitle').value : '';
+            const yAxisTitle = getFieldById('yAxisTitle') ? getFieldById('yAxisTitle').value : '';
+            const yPrefix = document.getElementById('yPrefix').value || '';
+            const ySuffix = document.getElementById('ySuffix').value || '';
+            const yAxisLabelsMode = document.getElementById('yAxisLabelsMode').value;
             
             if (!xColumn || (!yColumn && !['pie', 'histogram'].includes(chartType))) {
-                showStatus('❌ Please select the required columns for your chart.', 'error');
+                showStatus('⚠ Please select the required columns for your chart.', 'error');
                 return;
             }
             
@@ -1089,69 +1758,84 @@
                 showLoading(true);
                 showStatus('🎨 Generating your interactive chart...', 'warning');
                 
-                processedData = prepareChartData();
+                const { topMargin, bottomMargin } = calculateDynamicMargins(title, subtitle, footnote, source, autoSpacing);
+                const containerHeight = calculateContainerHeight(topMargin, bottomMargin);
                 
-                let plotlyConfig = createPlotlyConfig(chartType, processedData, {
+                const chartContainer = document.getElementById('chartContainer');
+                chartContainer.style.height = `${containerHeight}px`;
+                chartContainer.style.minHeight = 'unset';
+                
+                processedData = prepareChartData();
+                showDataPreview(processedData);
+                
+                const plotlyConfig = createPlotlyConfig(chartType, processedData, {
                     xColumn,
                     yColumn,
                     zColumn,
                     colorColumn,
-                    title
+                    title,
+                    subtitle,
+                    footnote,
+                    source,
+                    horizontalGrid,
+                    verticalGrid,
+                    topMargin,
+                    bottomMargin,
+                    xAxisTitle,
+                    yAxisTitle,
+                    yPrefix,
+                    ySuffix,
+                    yAxisLabelsMode,
+                    autoSpacing
                 });
                 
-                // Apply auto-spacing if enabled
                 if (autoSpacing) {
-                    try {
-                        const xData = processedData.map(row => row[xColumn]);
-                        const spacingResponse = await fetch(`${API_ENDPOINT}/api/auto-spacing`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                x_labels: xData,
-                                chart_type: chartType
-                            })
-                        });
-                        
-                        if (spacingResponse.ok) {
-                            const spacingData = await spacingResponse.json();
-                            if (spacingData.success) {
-                                // Apply the auto-spacing configuration
-                                plotlyConfig.layout.xaxis = {
-                                    ...plotlyConfig.layout.xaxis,
-                                    ...spacingData.xaxis_config
-                                };
-                                showStatus('✅ Auto-spacing applied successfully!', 'success');
-                            }
-                        }
-                    } catch (error) {
-                        console.warn('Auto-spacing failed, using default spacing:', error);
-                        showStatus('⚠️ Auto-spacing failed, using default spacing', 'warning');
-                    }
+                    showStatus('⚠️ You need to be registered to use this feature', 'warning');
+                } else {
+                    plotlyConfig.layout.xaxis = {
+                        ...plotlyConfig.layout.xaxis,
+                        showgrid: verticalGrid,
+                        showline: true,
+                        linecolor: 'rgba(255,255,255,0.3)',
+                        linewidth: 1
+                    };
+                    showStatus('✅ Extra padding applied for non-auto-spacing mode', 'success');
                 }
                 
                 const plotlyChart = document.getElementById('plotlyChart');
-                plotlyChart.innerHTML = ''; // Clear the placeholder text
-                Plotly.newPlot('plotlyChart', plotlyConfig.data, plotlyConfig.layout, plotlyConfig.config);
+                if (plotlyChart) {
+                    plotlyChart.innerHTML = '';
+                    Plotly.newPlot('plotlyChart', plotlyConfig.data, plotlyConfig.layout, plotlyConfig.config)
+                        .then(function() {
+                            syncContainerWithPlotly();
+                            validateAndAdjustChartSpacing();
+                            setupAxisTitleListeners();
+                        });
+                }
                 
-                const chartContainer = document.getElementById('chartContainer');
-                chartContainer.style.display = 'block';
-                chartContainer.classList.add('has-chart');
-                document.getElementById('exportSection').style.display = 'block';
+                if (chartContainer) {
+                    chartContainer.classList.add('has-chart');
+                }
                 
                 showStatus(`✅ Interactive chart generated successfully! Showing ${processedData.length} data points.`, 'success');
                 
             } catch (error) {
-                showStatus(`❌ Error generating chart: ${error.message}`, 'error');
+                showStatus(`⚠ Error generating chart: ${error.message}`, 'error');
                 console.error('Chart generation error:', error);
             } finally {
                 showLoading(false);
             }
         }
-        
+
         function createPlotlyConfig(chartType, data, options) {
-            const { xColumn, yColumn, zColumn, colorColumn, title } = options;
+            const { 
+                xColumn, yColumn, zColumn, colorColumn, 
+                title, subtitle, footnote, source, 
+                horizontalGrid, verticalGrid, 
+                topMargin, bottomMargin, 
+                xAxisTitle, yAxisTitle,
+                yPrefix, ySuffix, yAxisLabelsMode, autoSpacing
+            } = options;
             
             const xData = data.map(row => row[xColumn]);
             const yData = yColumn ? data.map(row => row[yColumn]) : [];
@@ -1159,15 +1843,33 @@
             const colorData = colorColumn ? data.map(row => row[colorColumn]) : [];
             
             let plotData = [];
+            
+            let titleText = title || '';
+            if (subtitle) {
+                const wrappedSubtitle = wrapSubtitleText(subtitle, 100);
+                titleText = `${title}<br><span style="font-size: 14px; color: rgba(255,255,255,0.8);">${wrappedSubtitle}</span>`;
+            }
+            
             let layout = {
                 title: {
-                    text: title,
-                    font: { size: 18 }
+                    text: titleText,
+                    font: { size: 18, color: 'white' },
+                    x: 0.5,
+                    xanchor: 'center'
                 },
                 showlegend: true,
-                margin: { t: 60, b: 50, l: 50, r: 50 },
-                paper_bgcolor: 'white',
-                plot_bgcolor: 'white'
+                margin: { 
+                    t: topMargin,
+                    b: bottomMargin, 
+                    l: 80,
+                    r: 50
+                },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'white' },
+                height: 400 + topMargin + bottomMargin,
+                width: chartWidth,
+                autosize: false
             };
             
             const config = {
@@ -1177,6 +1879,7 @@
                 displaylogo: false
             };
             
+            // Create chart data based on type
             switch (chartType) {
                 case 'vertical_bar':
                     plotData = [{
@@ -1185,7 +1888,7 @@
                         y: yData,
                         orientation: 'v',
                         marker: {
-                            color: colorData.length ? colorData : '#4facfe',
+                            color: colorData.length ? colorData : '#e94560',
                             colorscale: colorData.length ? 'Viridis' : undefined,
                             showscale: colorData.length > 0
                         },
@@ -1193,36 +1896,30 @@
                     }];
                     
                     layout.xaxis = {
-                        title: xColumn,
-                        gridcolor: '#e5e7eb'
+                        title: xAxisTitle || xColumn,
+                        gridcolor: 'rgba(255,255,255,0.1)',
+                        color: 'white',
+                        showgrid: verticalGrid,
+                        showline: true,
+                        linecolor: 'rgba(255,255,255,0.3)',
+                        linewidth: 1,
+                        range: [-0.5, xData.length - 0.5]
                     };
                     layout.yaxis = {
-                        title: yColumn || 'Value',
-                        gridcolor: '#e5e7eb'
-                    };
-                    break;
-                    
-                case 'horizontal_bar':
-                    plotData = [{
-                        type: 'bar',
-                        x: yData,
-                        y: xData,
-                        orientation: 'h',
-                        marker: {
-                            color: colorData.length ? colorData : '#4facfe',
-                            colorscale: colorData.length ? 'Viridis' : undefined,
-                            showscale: colorData.length > 0
-                        },
-                        name: yColumn || 'Values'
-                    }];
-                    
-                    layout.xaxis = {
-                        title: yColumn || 'Value',
-                        gridcolor: '#e5e7eb'
-                    };
-                    layout.yaxis = {
-                        title: xColumn,
-                        gridcolor: '#e5e7eb'
+                        title: yAxisTitle || yColumn || 'Value',
+                        gridcolor: 'rgba(255,255,255,0.1)',
+                        color: 'white',
+                        zeroline: true,
+                        zerolinecolor: 'gray',
+                        zerolinewidth: 2,
+                        showgrid: horizontalGrid,
+                        showline: true,
+                        linecolor: 'rgba(255,255,255,0.3)',
+                        linewidth: 1,
+                        range: [0, Math.max(...yData) * 1.1],
+                        tickprefix: yAxisLabelsMode === 'on' ? yPrefix : '',
+                        ticksuffix: yAxisLabelsMode === 'on' ? ySuffix : '',
+                        showticklabels: yAxisLabelsMode !== 'off'
                     };
                     break;
                     
@@ -1232,60 +1929,36 @@
                         mode: 'lines+markers',
                         x: xData,
                         y: yData,
-                        line: { color: '#4facfe', width: 3 },
-                        marker: { size: 6, color: '#4facfe' },
+                        line: { color: '#e94560', width: 3 },
+                        marker: { size: 6, color: '#e94560' },
                         name: yColumn || 'Values'
                     }];
                     
-                    layout.xaxis = { title: xColumn, gridcolor: '#e5e7eb' };
-                    layout.yaxis = { title: yColumn || 'Value', gridcolor: '#e5e7eb' };
-                    break;
-                    
-                case 'scatter':
-                    plotData = [{
-                        type: 'scatter',
-                        mode: 'markers',
-                        x: xData,
-                        y: yData,
-                        marker: {
-                            size: 8,
-                            color: colorData.length ? colorData : '#4facfe',
-                            colorscale: colorData.length ? 'Viridis' : undefined,
-                            showscale: colorData.length > 0,
-                            colorbar: colorData.length ? { title: colorColumn } : undefined
-                        },
-                        text: colorData.length ? colorData.map((val, i) => `${xColumn}: ${xData[i]}<br>${yColumn}: ${yData[i]}<br>${colorColumn}: ${val}`) : undefined,
-                        hovertemplate: colorData.length ? '%{text}<extra></extra>' : undefined,
-                        name: 'Data Points'
-                    }];
-                    
-                    layout.xaxis = { title: xColumn, gridcolor: '#e5e7eb' };
-                    layout.yaxis = { title: yColumn, gridcolor: '#e5e7eb' };
-                    break;
-                    
-                case '3d_scatter':
-                    plotData = [{
-                        type: 'scatter3d',
-                        mode: 'markers',
-                        x: xData,
-                        y: yData,
-                        z: zData,
-                        marker: {
-                            size: 5,
-                            color: colorData.length ? colorData : '#4facfe',
-                            colorscale: colorData.length ? 'Viridis' : undefined,
-                            showscale: colorData.length > 0,
-                            colorbar: colorData.length ? { title: colorColumn } : undefined
-                        },
-                        text: colorData.length ? colorData.map((val, i) => `${xColumn}: ${xData[i]}<br>${yColumn}: ${yData[i]}<br>${zColumn}: ${zData[i]}<br>${colorColumn}: ${val}`) : undefined,
-                        hovertemplate: colorData.length ? '%{text}<extra></extra>' : undefined,
-                        name: '3D Data Points'
-                    }];
-                    
-                    layout.scene = {
-                        xaxis: { title: xColumn },
-                        yaxis: { title: yColumn },
-                        zaxis: { title: zColumn }
+                    layout.xaxis = {
+                        title: xAxisTitle || xColumn,
+                        gridcolor: 'rgba(255,255,255,0.1)',
+                        color: 'white',
+                        showgrid: verticalGrid,
+                        showline: true,
+                        linecolor: 'rgba(255,255,255,0.3)',
+                        linewidth: 1,
+                        range: [-0.5, xData.length - 0.5]
+                    };
+                    layout.yaxis = {
+                        title: yAxisTitle || yColumn || 'Value',
+                        gridcolor: 'rgba(255,255,255,0.1)',
+                        color: 'white',
+                        zeroline: true,
+                        zerolinecolor: 'gray',
+                        zerolinewidth: 2,
+                        showgrid: horizontalGrid,
+                        showline: true,
+                        linecolor: 'rgba(255,255,255,0.3)',
+                        linewidth: 1,
+                        range: [0, Math.max(...yData) * 1.1],
+                        tickprefix: yAxisLabelsMode === 'on' ? yPrefix : '',
+                        ticksuffix: yAxisLabelsMode === 'on' ? ySuffix : '',
+                        showticklabels: yAxisLabelsMode !== 'off'
                     };
                     break;
                     
@@ -1298,442 +1971,166 @@
                         textinfo: 'label+percent',
                         textposition: 'auto',
                         marker: {
-                            colors: generatePlotlyColors(xData.length)
+                            colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9']
                         },
                         name: 'Distribution'
                     }];
                     break;
-                    
-                case 'histogram':
-                    plotData = [{
-                        type: 'histogram',
-                        x: xData,
-                        nbinsx: 30,
-                        marker: { color: '#4facfe', opacity: 0.7 },
-                        name: 'Frequency'
-                    }];
-                    
-                    layout.xaxis = { title: xColumn, gridcolor: '#e5e7eb' };
-                    layout.yaxis = { title: 'Frequency', gridcolor: '#e5e7eb' };
-                    break;
-                    
-                case 'box':
-                    plotData = [{
-                        type: 'box',
-                        y: yData,
-                        name: yColumn || 'Values',
-                        marker: { color: '#4facfe' },
-                        boxpoints: 'outliers'
-                    }];
-                    
-                    layout.yaxis = { title: yColumn || 'Value', gridcolor: '#e5e7eb' };
-                    break;
-                    
-                case 'heatmap':
-                    // Create a simple heatmap from the data
-                    const uniqueX = [...new Set(xData)];
-                    const uniqueY = [...new Set(yData)];
-                    
-                    const zMatrix = Array(uniqueY.length).fill().map(() => Array(uniqueX.length).fill(0));
-                    
-                    data.forEach(row => {
-                        const xIdx = uniqueX.indexOf(row[xColumn]);
-                        const yIdx = uniqueY.indexOf(row[yColumn]);
-                        if (xIdx !== -1 && yIdx !== -1) {
-                            zMatrix[yIdx][xIdx] += 1; // Count occurrences
-                        }
-                    });
-                    
-                    plotData = [{
-                        type: 'heatmap',
-                        z: zMatrix,
-                        x: uniqueX,
-                        y: uniqueY,
-                        colorscale: 'Viridis',
-                        showscale: true,
-                        name: 'Heatmap'
-                    }];
-                    
-                    layout.xaxis = { title: xColumn };
-                    layout.yaxis = { title: yColumn };
-                    break;
+            }
+            
+            // Add footnote and source annotations
+            if (footnote && footnote.trim()) {
+                if (!layout.annotations) {
+                    layout.annotations = [];
+                }
+                
+                const footnoteY = autoSpacing ? -0.15 : -0.20;
+                layout.annotations.push({
+                    text: `<i>${wrapFootnoteText(footnote)}</i>`,
+                    xref: 'paper',
+                    yref: 'paper',
+                    x: 0,
+                    y: footnoteY,
+                    xanchor: 'left',
+                    yanchor: 'top',
+                    width: 0.3,
+                    align: 'left',
+                    font: {
+                        size: 12,
+                        color: 'rgba(255,255,255,0.8)',
+                        family: 'Arial, sans-serif'
+                    },
+                    bgcolor: 'rgba(0,0,0,0)',
+                    bordercolor: 'rgba(0,0,0,0)',
+                    borderwidth: 0,
+                    showarrow: false
+                });
+            }
+            
+            if (source && source.trim()) {
+                if (!layout.annotations) {
+                    layout.annotations = [];
+                }
+                
+                const sourceY = autoSpacing ? -0.15 : -0.20;
+                layout.annotations.push({
+                    text: wrapSourceText(source),
+                    xref: 'paper',
+                    yref: 'paper',
+                    x: 1,
+                    y: sourceY,
+                    xanchor: 'right',
+                    yanchor: 'top',
+                    width: 0.3,
+                    align: 'right',
+                    font: {
+                        size: 12,
+                        color: 'rgba(255,255,255,0.8)',
+                        family: 'Arial, sans-serif'
+                    },
+                    bgcolor: 'rgba(0,0,0,0)',
+                    bordercolor: 'rgba(0,0,0,0)',
+                    borderwidth: 0,
+                    showarrow: false
+                });
             }
             
             return { data: plotData, layout, config };
         }
-        
-        function generatePlotlyColors(count) {
-            const colors = [
-                '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-                '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
-            ];
+
+        function setupAxisTitleListeners() {
+            const xAxisTitleField = document.getElementById('xAxisTitle');
+            const yAxisTitleField = document.getElementById('yAxisTitle');
             
-            if (count <= colors.length) {
-                return colors.slice(0, count);
+            if (xAxisTitleField) {
+                xAxisTitleField.removeEventListener('input', updateXAxisTitle);
+                xAxisTitleField.addEventListener('input', updateXAxisTitle);
             }
             
-            // Generate additional colors
-            const additionalColors = [];
-            for (let i = colors.length; i < count; i++) {
-                const hue = (i * 137.508) % 360;
-                additionalColors.push(`hsl(${hue}, 70%, 60%)`);
+            if (yAxisTitleField) {
+                yAxisTitleField.removeEventListener('input', updateYAxisTitle);
+                yAxisTitleField.addEventListener('input', updateYAxisTitle);
             }
-            
-            return [...colors, ...additionalColors];
         }
         
-        function exportAsImage(format) {
-            const plotlyDiv = document.getElementById('plotlyChart');
-            if (!plotlyDiv || !plotlyDiv.data) {
-                showStatus('❌ No chart to export. Generate a chart first.', 'error');
-                return;
-            }
-            
-            const config = {
-                format: format,
-                width: 1200,
-                height: 700,
-                scale: 2
-            };
-            
-            Plotly.downloadImage(plotlyDiv, config).then(() => {
-                showStatus(`✅ Chart exported as ${format.toUpperCase()} image!`, 'success');
-            }).catch(error => {
-                showStatus(`❌ Error exporting image: ${error.message}`, 'error');
+        function updateXAxisTitle(e) {
+            const title = e.target.value || e.target.placeholder;
+            Plotly.relayout('plotlyChart', {
+                'xaxis.title.text': title
             });
         }
         
-        function exportAsHTML() {
-            const plotlyDiv = document.getElementById('plotlyChart');
-            if (!plotlyDiv || !plotlyDiv.data) {
-                showStatus('❌ No chart to export. Generate a chart first.', 'error');
-                return;
-            }
-            
-            const title = document.getElementById('chartTitle').value || 'Data Visualization';
-            
-            const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title}</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"><\/script>
-    <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            margin: 0;
-            padding: 20px; 
-            background: #f8fafc;
+        function updateYAxisTitle(e) {
+            const title = e.target.value || e.target.placeholder;
+            Plotly.relayout('plotlyChart', {
+                'yaxis.title.text': title
+            });
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        h1 { 
-            color: #374151; 
-            margin-bottom: 20px; 
-            text-align: center;
-        }
-        .chart-container { 
-            width: 100%; 
-            height: 600px; 
-        }
-        .timestamp { 
-            color: #6b7280; 
-            font-size: 0.9rem; 
-            margin-top: 20px; 
-            text-align: center;
-        }
-        
-        /* User Files Section Styles */
-        .user-files-section {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        
-        .user-files-section h3 {
-            color: #374151;
-            margin-bottom: 15px;
-        }
-        
-        .file-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            margin: 10px 0;
-            background: white;
-            border-radius: 8px;
-            border-left: 4px solid #e5e7eb;
-            transition: all 0.3s ease;
-        }
-        
-        .file-item.in-memory {
-            border-left-color: #10b981;
-        }
-        
-        .file-item.in-database {
-            border-left-color: #3b82f6;
-        }
-        
-        .file-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        
-        .file-info h4 {
-            margin: 0 0 5px 0;
-            color: #374151;
-        }
-        
-        .file-info p {
-            margin: 0;
-            color: #6b7280;
-            font-size: 0.9rem;
-        }
-        
-        .storage-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            margin-top: 5px;
-        }
-        
-        .file-item.in-memory .storage-badge {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        
-        .file-item.in-database .storage-badge {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-        
-        .file-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
-        }
-        
-        .btn-primary {
-            background: #3b82f6;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #2563eb;
-        }
-        
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-    <\/style>
-</head>
-<body>
-    <div class="container">
-        <h1>${title}</h1>
-        <div class="chart-container" id="chart"></div>
-        <div class="timestamp">Generated on ${new Date().toLocaleString()}</div>
-    </div>
-    <script>
-        var plotData = ${JSON.stringify(plotlyDiv.data)};
-        var plotLayout = ${JSON.stringify(plotlyDiv.layout)};
-        var plotConfig = ${JSON.stringify(plotlyDiv.config)};
-        Plotly.newPlot('chart', plotData, plotLayout, plotConfig);
-    <\/script>
-</body>
-</html>`;
-            
-            downloadFile(html, 'interactive_chart.html', 'text/html');
-            showStatus('✅ Interactive chart exported as HTML file!', 'success');
-        }
-        
-        function exportData() {
-            if (!processedData.length) {
-                showStatus('❌ No processed data to export. Generate a chart first.', 'error');
-                return;
-            }
-            
-            const csv = Papa.unparse(processedData);
-            downloadFile(csv, 'chart_data.csv', 'text/csv');
-            showStatus('✅ Data exported as CSV file!', 'success');
-        }
-        
-        function exportChartConfig() {
-            if (!processedData.length) {
-                showStatus('❌ No chart configuration to export. Generate a chart first.', 'error');
-                return;
-            }
-            
-            const config = {
-                chartType: document.getElementById('chartType').value,
-                dataOrientation: document.getElementById('dataOrientation').value,
-                xColumn: document.getElementById('xColumn').value,
-                yColumn: document.getElementById('yColumn').value,
-                zColumn: document.getElementById('zColumn').value,
-                colorColumn: document.getElementById('colorColumn').value,
-                title: document.getElementById('chartTitle').value,
-                aggregation: document.getElementById('aggregation').value,
-                maxItems: document.getElementById('maxItems').value,
 
-                timestamp: new Date().toISOString(),
-                dataPreview: processedData.slice(0, 5) // Include sample data
-            };
+        // Event listeners
+        document.querySelectorAll('.chart-type-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                showStatus(`Chart type changed to ${this.querySelector('.title').textContent}`, 'success');
+            });
+        });
+
+        function updateHeaderOptions() {
+            const orientation = document.querySelector('input[name="dataOrientation"]:checked').value;
+            const headerText = document.getElementById('headerStructureText');
+            const headerToggle = document.getElementById('headerStructureToggle');
             
-            const json = JSON.stringify(config, null, 2);
-            downloadFile(json, 'chart_config.json', 'application/json');
-            showStatus('✅ Chart configuration exported as JSON!', 'success');
-        }
-        
-        function downloadFile(content, filename, contentType) {
-            const blob = new Blob([content], { type: contentType });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        }
-        
-        // File management functions
-        async function loadUserFiles() {
-            try {
-                const response = await fetch(`${API_ENDPOINT}/api/files?session_id=${sessionId}`);
-                if (!response.ok) {
-                    throw new Error('Failed to load user files');
-                }
-                
-                const data = await response.json();
-                displayUserFiles(data.files);
-            } catch (error) {
-                console.error('Error loading user files:', error);
-            }
-        }
-        
-        function displayUserFiles(files) {
-            const fileListContainer = document.getElementById('userFiles');
-            if (!fileListContainer) return;
-            
-            if (files.length === 0) {
-                fileListContainer.innerHTML = '<p>No files uploaded yet.</p>';
-                return;
+            if (orientation === 'vertical') {
+                headerText.textContent = 'First row is headers';
+                headerToggle.checked = true;
+            } else {
+                headerText.textContent = 'First column is headers';
+                headerToggle.checked = true;
             }
             
-            const filesHtml = files.map(file => `
-                <div class="file-item ${file.in_memory ? 'in-memory' : 'in-database'}">
-                    <div class="file-info">
-                        <h4>${file.filename}</h4>
-                        <p>${file.total_records} records, ${file.columns.length} columns</p>
-                        <span class="storage-badge">${file.in_memory ? 'In Memory' : 'In Database'}</span>
-                    </div>
-                    <div class="file-actions">
-                        <button onclick="loadFile('${file.file_id}')" class="btn btn-primary">Load</button>
-                        <button onclick="deleteFile('${file.file_id}')" class="btn btn-danger">Delete</button>
-                    </div>
-                </div>
-            `).join('');
-            
-            fileListContainer.innerHTML = filesHtml;
-        }
-        
-        async function loadFile(fileId) {
-            try {
-                showLoading(true);
-                const response = await fetch(`${API_ENDPOINT}/api/files/${fileId}?session_id=${sessionId}`);
-                
-                if (!response.ok) {
-                    throw new Error('Failed to load file');
-                }
-                
-                const data = await response.json();
-                
-                // Update current data
-                currentData = data.data;
-                currentFileId = fileId;
-                
-                // Update UI
-                displayDataStats(currentData);
-                populateColumnSelectors(currentData);
-                showDataPreview(currentData);
-                
-                // Reset chart container for loaded file
-                const chartContainer = document.getElementById('chartContainer');
-                const plotlyChart = document.getElementById('plotlyChart');
-                chartContainer.classList.remove('has-chart');
-                plotlyChart.innerHTML = 'Your Chart Goes Here';
-                document.getElementById('exportSection').style.display = 'none';
-                
-                document.getElementById('controls').style.display = 'block';
-                document.getElementById('generateBtn').disabled = false;
-                
-                showStatus(`✅ Loaded file with ${currentData.length} records`, 'success');
-                
-            } catch (error) {
-                showStatus(`❌ Error loading file: ${error.message}`, 'error');
-            } finally {
-                showLoading(false);
+            if (rawData.length > 0) {
+                processDataWithHeaders();
             }
         }
-        
-        async function deleteFile(fileId) {
-            if (!confirm('Are you sure you want to delete this file?')) {
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${API_ENDPOINT}/api/files/${fileId}?session_id=${sessionId}`, {
-                    method: 'DELETE'
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to delete file');
-                }
-                
-                showStatus('✅ File deleted successfully', 'success');
-                loadUserFiles(); // Refresh file list
-                
-            } catch (error) {
-                showStatus(`❌ Error deleting file: ${error.message}`, 'error');
-            }
-        }
-        
-        // Initialize the application
-        window.addEventListener('load', () => {
-            showStatus('🚀 Interactive charting application ready! Upload a CSV or Excel file to get started.', 'success');
-            loadUserFiles(); // Load user's existing files
+
+        document.querySelectorAll('input[name="dataOrientation"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                updateHeaderOptions();
+                handleDataOrientationChange();
+            });
         });
         
-        // Handle window resize for chart responsiveness
+        document.getElementById('headerStructureToggle').addEventListener('change', function() {
+            if (rawData.length > 0) {
+                processDataWithHeaders();
+            }
+        });
+
+        document.getElementById('autoSpacing').addEventListener('change', function() {
+            const autoSpacingMessage = document.getElementById('autoSpacingMessage');
+            
+            if (this.checked) {
+                autoSpacingMessage.style.display = 'block';
+            } else {
+                autoSpacingMessage.style.display = 'none';
+            }
+            
+            if (currentData.length > 0 && document.getElementById('plotlyChart').children.length > 0) {
+                generateChart();
+            }
+        });
+
         window.addEventListener('resize', () => {
-            const plotlyDiv = document.getElementById('plotlyChart');
-            if (plotlyDiv && plotlyDiv.data) {
-                Plotly.Plots.resize(plotlyDiv);
+            if (currentChart) {
+                Plotly.Plots.resize('plotlyChart');
             }
         });
+
+        updateHeaderOptions();
+        console.log('GetCharty initialized successfully!');
+        console.log('Session ID:', sessionId);
+        console.log('Chart width:', chartWidth);
         
     </script>
 </body>

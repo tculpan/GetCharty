@@ -1,9 +1,18 @@
 <!--
-client/Juliet-Index-a.html
-Updated: 2025-08-18 17:53:20
+client/Juliet-Index-c.html
+Updated: 2025-08-18 22:11:02
 Current working file - Session ID approach for autocomplete management
 UPDATED: Implemented hybrid client/server approach for Y-Axis Labels Mode
 FIXED: Removed server dependency for file upload - now uses native file parser only
+FIXED: Removed text wrapping for Subtitle, Footnote & Source - using text as-is
+ENHANCED: Auto dynamic background and chart sizing with improved text element handling
+ENHANCED: Dynamic padding based on auto-spacing state for vertical date labels
+ENHANCED: Extra padding for non-auto-spacing mode increased to 250px
+FIXED: Footnote positioning moved to y=-0.20 to prevent overlap with x-axis labels
+FIXED: Auto-spacing default changed to OFF
+ENHANCED: Dynamic footnote positioning based on auto-spacing state (y=-0.15 for ON, y=-0.20 for OFF)
+ENHANCED: Removed extra padding for auto-spacing OFF - now handled by dynamic positioning
+ENHANCED: Added registration message for auto-spacing ON state
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -392,11 +401,19 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
             color: white;
         }
         
-        .status.warning {
-            background: rgba(245, 158, 11, 0.2);
-            border: 1px solid #f59e0b;
-            color: white;
-        }
+                 .status.warning {
+             background: rgba(245, 158, 11, 0.2);
+             border: 1px solid #f59e0b;
+             color: white;
+         }
+         
+         .registration-message {
+             font-size: 12px;
+             color: #a8a8a8;
+             margin-top: 4px;
+             margin-left: 0;
+             font-style: italic;
+         }
 
         .loading {
             display: none;
@@ -634,13 +651,16 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                     </label>
                 </div>
                 
-                <div class="display-option">
-                    <span>Auto X-Spacing</span>
-                    <label class="switch">
-                        <input type="checkbox" id="autoSpacing" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
+                                 <div class="display-option">
+                     <span>Auto X-Spacing</span>
+                     <label class="switch">
+                         <input type="checkbox" id="autoSpacing">
+                         <span class="slider"></span>
+                     </label>
+                 </div>
+                 <div id="autoSpacingMessage" class="registration-message" style="display: none;">
+                     Only available to registered users.
+                 </div>
                 
                 <div class="display-option">
                     <span>Y-Axis Labels</span>
@@ -779,278 +799,200 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
             return document.getElementById(baseId);
         }
 
-        // Dynamic container sizing functions
-        function calculateDynamicMargins(title, subtitle, footnote, source) {
-            // Tighter base margins - reduced from 80
-            let topMargin = 50;
-            let bottomMargin = 50;
-            
-            // Font configurations matching Plotly's actual rendering
-            const titleFontSize = 18;
-            const subtitleFontSize = 14;
-            const annotationFontSize = 12;
-            const fontFamily = '-apple-system, BlinkMacSystemFont, sans-serif';
-            const chartWidth = 850; // Fixed chart width matching layout
-            const maxTextWidth = chartWidth * 0.85; // 85% of chart width for title/subtitle
-            
-            // Measure title if present with tighter padding
-            if (title) {
-                const titleMeasurements = measureTextDimensions(
-                    title,
-                    titleFontSize,
-                    fontFamily,
-                    maxTextWidth
-                );
-                topMargin = Math.max(50, titleMeasurements.requiredSpace + 25); // Reduced from 50
-            }
-            
-            // Measure subtitle and add to top margin with less buffer
-            if (subtitle) {
-                // For subtitle, we need to account for Plotly's HTML rendering
-                const formattedSubtitle = wrapSubtitleText(subtitle, 100); // Wrap at 100 chars
-                const subtitleMeasurements = measureTextDimensions(
-                    formattedSubtitle,
-                    subtitleFontSize,
-                    fontFamily,
-                    maxTextWidth
-                );
-                
-                // Add subtitle height to existing top margin
-                topMargin += subtitleMeasurements.requiredSpace;
-                
-                // Less aggressive safety buffer
-                const safetyBuffer = Math.min(20, Math.floor(subtitle.length / 40) * 4);
-                topMargin += safetyBuffer;
-            }
-            
-            // Measure footnote and source for bottom margin with tighter spacing
-            if (footnote || source) {
-                let footnoteHeight = 0;
-                let sourceHeight = 0;
-                
-                if (footnote) {
-                    // Footnote uses 30% of chart width
-                    const footnoteMeasurements = measureTextDimensions(
-                        footnote,
-                        annotationFontSize,
-                        fontFamily,
-                        chartWidth * 0.3
-                    );
-                    footnoteHeight = footnoteMeasurements.requiredSpace;
-                }
-                
-                if (source) {
-                    // Source also uses 30% of chart width
-                    const sourceText = source.startsWith('Source: ') ? source : 'Source: ' + source;
-                    const sourceMeasurements = measureTextDimensions(
-                        sourceText,
-                        annotationFontSize,
-                        fontFamily,
-                        chartWidth * 0.3
-                    );
-                    sourceHeight = sourceMeasurements.requiredSpace;
-                }
-                
-                // Use the larger of the two since they're side by side with tighter spacing
-                bottomMargin = 50 + Math.max(footnoteHeight, sourceHeight) + 10; // Reduced from 80 + 20
-            }
-            
-            // Minimal safety margins (5% instead of 20%/15%)
-            topMargin = Math.ceil(topMargin * 1.05);
-            bottomMargin = Math.ceil(bottomMargin * 1.05);
-            
-            console.log('Dynamic margins calculated:', { topMargin, bottomMargin });
-            
-            return { topMargin, bottomMargin };
-        }
+                 // Enhanced dynamic container sizing functions
+         function calculateDynamicMargins(title, subtitle, footnote, source, autoSpacing = true) {
+             // Base margins with better spacing
+             let topMargin = 60;
+             let bottomMargin = 60;
+             
+             // Font configurations matching Plotly's actual rendering
+             const titleFontSize = 18;
+             const subtitleFontSize = 14;
+             const annotationFontSize = 12;
+             const fontFamily = '-apple-system, BlinkMacSystemFont, sans-serif';
+             const chartWidth = 850; // Fixed chart width matching layout
+             const maxTextWidth = chartWidth * 0.85; // 85% of chart width for title/subtitle
+             
+             // Measure title if present with proper spacing
+             if (title && title.trim()) {
+                 const titleMeasurements = measureTextDimensions(
+                     title,
+                     titleFontSize,
+                     fontFamily,
+                     maxTextWidth
+                 );
+                 topMargin = Math.max(60, titleMeasurements.requiredSpace + 30);
+             }
+             
+             // Measure subtitle and add to top margin with proper spacing
+             if (subtitle && subtitle.trim()) {
+                 const subtitleMeasurements = measureTextDimensions(
+                     subtitle,
+                     subtitleFontSize,
+                     fontFamily,
+                     maxTextWidth
+                 );
+                 
+                 // Add subtitle height to existing top margin with proper spacing
+                 topMargin += subtitleMeasurements.requiredSpace + 15;
+             }
+             
+             // Measure footnote and source for bottom margin with proper spacing
+             if ((footnote && footnote.trim()) || (source && source.trim())) {
+                 let footnoteHeight = 0;
+                 let sourceHeight = 0;
+                 
+                 if (footnote && footnote.trim()) {
+                     // Footnote uses 30% of chart width
+                     const footnoteMeasurements = measureTextDimensions(
+                         footnote,
+                         annotationFontSize,
+                         fontFamily,
+                         chartWidth * 0.3
+                     );
+                     footnoteHeight = footnoteMeasurements.requiredSpace;
+                 }
+                 
+                 if (source && source.trim()) {
+                     // Source also uses 30% of chart width
+                     const sourceText = source.startsWith('Source: ') ? source : 'Source: ' + source;
+                     const sourceMeasurements = measureTextDimensions(
+                         sourceText,
+                         annotationFontSize,
+                         fontFamily,
+                         chartWidth * 0.3
+                     );
+                     sourceHeight = sourceMeasurements.requiredSpace;
+                 }
+                 
+                 // Use the larger of the two since they're side by side
+                 bottomMargin = 60 + Math.max(footnoteHeight, sourceHeight) + 20;
+             }
+             
+                           // Add safety margins for better spacing
+              topMargin = Math.ceil(topMargin * 1.1);
+              bottomMargin = Math.ceil(bottomMargin * 1.1);
+              
+              // No extra padding needed - footnote positioning will handle spacing
+              console.log('Dynamic margins calculated based on auto-spacing state:', { autoSpacing });
+              
+              console.log('Enhanced dynamic margins calculated:', { topMargin, bottomMargin, autoSpacing });
+              
+              return { topMargin, bottomMargin };
+         }
 
-        function calculateContainerHeight(topMargin, bottomMargin) {
-            const fixedChartHeight = 400;
-            const containerPadding = 30;  // Reduced from 60
-            
-            // Reduced extra buffer
-            const extraBuffer = Math.max(0, (topMargin + bottomMargin - 200) * 0.05);
-            
-            return fixedChartHeight + topMargin + bottomMargin + containerPadding + extraBuffer;
-        }
+                 function calculateContainerHeight(topMargin, bottomMargin) {
+             const fixedChartHeight = 400;
+             const containerPadding = 40;  // Increased for better spacing
+             
+             // Enhanced buffer calculation for better dynamic sizing
+             const totalMargins = topMargin + bottomMargin;
+             const extraBuffer = Math.max(20, totalMargins * 0.1); // At least 20px buffer
+             
+             const totalHeight = fixedChartHeight + topMargin + bottomMargin + containerPadding + extraBuffer;
+             
+             console.log('Enhanced container height calculated:', {
+                 fixedChartHeight,
+                 topMargin,
+                 bottomMargin,
+                 containerPadding,
+                 extraBuffer,
+                 totalHeight
+             });
+             
+             return totalHeight;
+         }
 
-        /**
-         * Post-render validation to check for overflow and adjust if needed
-         * Call this after Plotly renders the chart
-         */
-        function validateAndAdjustChartSpacing() {
-            setTimeout(() => {
-                const plotlyChart = document.getElementById('plotlyChart');
-                const chartContainer = document.getElementById('chartContainer');
-                
-                if (plotlyChart && plotlyChart._fullLayout) {
-                    // Get all text elements that might overflow
-                    const titleElements = plotlyChart.querySelectorAll('.gtitle');
-                    const annotations = plotlyChart.querySelectorAll('.annotation');
-                    const plotArea = plotlyChart.querySelector('.plot');
-                    
-                    if (titleElements.length > 0 && plotArea) {
-                        let maxTitleBottom = 0;
-                        
-                        // Find the lowest point of all title elements
-                        titleElements.forEach(element => {
-                            const bounds = element.getBoundingClientRect();
-                            maxTitleBottom = Math.max(maxTitleBottom, bounds.bottom);
-                        });
-                        
-                        const plotBounds = plotArea.getBoundingClientRect();
-                        const overlap = maxTitleBottom - plotBounds.top;
-                        
-                        if (overlap > 0) {
-                            console.warn(`Title/subtitle overflow detected: ${overlap}px`);
-                            
-                            // Adjust the layout margins with minimal safety padding
-                            const currentLayout = plotlyChart._fullLayout;
-                            const newTopMargin = currentLayout.margin.t + overlap + 10; // Reduced from 30
-                            
-                            // Update container height
-                            const currentHeight = parseInt(chartContainer.style.height);
-                            const newHeight = currentHeight + overlap + 10;  // Reduced from 30
-                            chartContainer.style.height = `${newHeight}px`;
-                            
-                            // Re-render with adjusted margins
-                            Plotly.relayout('plotlyChart', {
-                                'margin.t': newTopMargin
-                            });
-                        }
-                    }
-                    
-                    // Check footnote/source positioning
-                    if (annotations.length > 0) {
-                        annotations.forEach(annotation => {
-                            const bounds = annotation.getBoundingClientRect();
-                            const containerBounds = chartContainer.getBoundingClientRect();
-                            
-                            // If annotation is cut off at bottom
-                            if (bounds.bottom > containerBounds.bottom) {
-                                const currentHeight = parseInt(chartContainer.style.height);
-                                const overflow = bounds.bottom - containerBounds.bottom;
-                                chartContainer.style.height = `${currentHeight + overflow + 20}px`;
-                            }
-                        });
-                    }
-                }
-            }, 150); // Slightly longer delay to ensure render is complete
-        }
+                 /**
+          * Enhanced post-render validation to check for overflow and adjust if needed
+          * Call this after Plotly renders the chart
+          */
+         function validateAndAdjustChartSpacing() {
+             setTimeout(() => {
+                 const plotlyChart = document.getElementById('plotlyChart');
+                 const chartContainer = document.getElementById('chartContainer');
+                 
+                 if (plotlyChart && plotlyChart._fullLayout) {
+                     // Get all text elements that might overflow
+                     const titleElements = plotlyChart.querySelectorAll('.gtitle');
+                     const annotations = plotlyChart.querySelectorAll('.annotation');
+                     const plotArea = plotlyChart.querySelector('.plot');
+                     
+                     let totalOverflow = 0;
+                     
+                     // Check title/subtitle overflow
+                     if (titleElements.length > 0 && plotArea) {
+                         let maxTitleBottom = 0;
+                         
+                         // Find the lowest point of all title elements
+                         titleElements.forEach(element => {
+                             const bounds = element.getBoundingClientRect();
+                             maxTitleBottom = Math.max(maxTitleBottom, bounds.bottom);
+                         });
+                         
+                         const plotBounds = plotArea.getBoundingClientRect();
+                         const overlap = maxTitleBottom - plotBounds.top;
+                         
+                         if (overlap > 0) {
+                             console.warn(`Title/subtitle overflow detected: ${overlap}px`);
+                             totalOverflow += overlap;
+                             
+                             // Adjust the layout margins with proper safety padding
+                             const currentLayout = plotlyChart._fullLayout;
+                             const newTopMargin = currentLayout.margin.t + overlap + 20;
+                             
+                             // Re-render with adjusted margins
+                             Plotly.relayout('plotlyChart', {
+                                 'margin.t': newTopMargin
+                             });
+                         }
+                     }
+                     
+                     // Check footnote/source positioning
+                     if (annotations.length > 0) {
+                         annotations.forEach(annotation => {
+                             const bounds = annotation.getBoundingClientRect();
+                             const containerBounds = chartContainer.getBoundingClientRect();
+                             
+                             // If annotation is cut off at bottom
+                             if (bounds.bottom > containerBounds.bottom) {
+                                 const overflow = bounds.bottom - containerBounds.bottom;
+                                 totalOverflow += overflow;
+                                 console.warn(`Annotation overflow detected: ${overflow}px`);
+                             }
+                         });
+                     }
+                     
+                     // Apply total overflow adjustment to container
+                     if (totalOverflow > 0) {
+                         const currentHeight = parseInt(chartContainer.style.height);
+                         const newHeight = currentHeight + totalOverflow + 30; // Extra padding
+                         chartContainer.style.height = `${newHeight}px`;
+                         console.log(`Container height adjusted by ${totalOverflow + 30}px to ${newHeight}px`);
+                     }
+                 }
+             }, 200); // Longer delay to ensure render is complete
+         }
 
-        function syncContainerWithPlotly() {
-            const plotlyChart = document.getElementById('plotlyChart');
-            const chartContainer = document.getElementById('chartContainer');
-            
-            if (plotlyChart && chartContainer) {
-                const plotlyHeight = plotlyChart.layout ? plotlyChart.layout.height : 500;
-                const containerPadding = 30;  // Reduced from 60
-                const totalHeight = plotlyHeight + containerPadding;
-                
-                chartContainer.style.height = `${totalHeight}px`;
-            }
-        }
+                 function syncContainerWithPlotly() {
+             const plotlyChart = document.getElementById('plotlyChart');
+             const chartContainer = document.getElementById('chartContainer');
+             
+             if (plotlyChart && chartContainer) {
+                 const plotlyHeight = plotlyChart.layout ? plotlyChart.layout.height : 500;
+                 const containerPadding = 40;  // Increased for better spacing
+                 const totalHeight = plotlyHeight + containerPadding;
+                 
+                 // Only update if the new height is larger than current
+                 const currentHeight = parseInt(chartContainer.style.height);
+                 if (totalHeight > currentHeight) {
+                     chartContainer.style.height = `${totalHeight}px`;
+                     console.log(`Container synced with Plotly: ${totalHeight}px`);
+                 }
+             }
+         }
 
-        // Text wrapping helper functions
-        function wrapSubtitleText(text, maxLength = 80) {
-            if (!text) return '';
-            const words = text.split(' ');
-            const lines = [];
-            let currentLine = '';
-            
-            words.forEach(word => {
-                if ((currentLine + ' ' + word).length > maxLength) {
-                    lines.push(currentLine.trim());
-                    currentLine = word;
-                } else {
-                    currentLine = currentLine ? currentLine + ' ' + word : word;
-                }
-            });
-            
-            if (currentLine) {
-                lines.push(currentLine.trim());
-            }
-            
-            return lines.join('<br>');
-        }
-
-        function wrapFootnoteText(text, maxLength = 100) {
-            if (!text) return '';
-            return wrapSubtitleText(text, maxLength);
-        }
-
-        function wrapSourceText(text, maxLength = 60) {
-            if (!text) return '';
-            if (!text.startsWith('Source: ')) {
-                text = 'Source: ' + text;
-            }
-            return wrapSubtitleText(text, maxLength);
-        }
-
-        /**
-         * Wraps text to fit within a specific percentage of chart width
-         * Used for footnotes and sources to ensure proper 40% width constraint
-         */
-        function wrapTextToWidth(text, widthPercentage) {
-            // Use fixed chart width (850px) from Plotly layout
-            const chartWidth = 850;
-            const maxPixelWidth = chartWidth * (widthPercentage / 100);
-            
-            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
-        }
-
-        function wrapTextByPixelWidth(text, maxPixelWidth, fontSize = 12, fontFamily = 'Arial, sans-serif') {
-            // Create a canvas to measure text width
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.font = `${fontSize}px ${fontFamily}`;
-            
-            const words = text.split(' ');
-            const lines = [];
-            let currentLine = '';
-            
-            for (let word of words) {
-                // Test if adding this word exceeds the pixel width
-                const testLine = currentLine + (currentLine ? ' ' : '') + word;
-                const testWidth = ctx.measureText(testLine).width;
-                
-                if (testWidth <= maxPixelWidth) {
-                    currentLine = testLine;
-                } else {
-                    if (currentLine) {
-                        lines.push(currentLine);
-                    }
-                    currentLine = word;
-                }
-            }
-            
-            if (currentLine) {
-                lines.push(currentLine);
-            }
-            
-            return lines.join('<br>');
-        }
-
-        function wrapFootnoteText(text) {
-            // Use fixed chart width (850px) and wrap to 30% width
-            const chartWidth = 850;
-            const maxPixelWidth = chartWidth * 0.3; // 30% of chart width = 255px
-            
-            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
-        }
-
-        function wrapSourceText(text) {
-            // Ensure source starts with "Source: "
-            if (!text.startsWith('Source: ')) {
-                text = 'Source: ' + text;
-            }
-            
-            // Use fixed chart width (850px) and wrap to 30% width
-            const chartWidth = 850;
-            const maxPixelWidth = chartWidth * 0.3; // 30% of chart width = 255px
-            
-            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
-        }
+                 // Text wrapping functions removed - using text as-is
 
         /**
          * Measures actual rendered text dimensions using a hidden DOM element
@@ -1805,8 +1747,8 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                 showLoading(true);
                 showStatus('🎨 Generating your interactive chart...', 'warning');
                 
-                // Calculate required dimensions FIRST
-                const { topMargin, bottomMargin } = calculateDynamicMargins(title, subtitle, footnote, source);
+                                 // Calculate required dimensions FIRST
+                 const { topMargin, bottomMargin } = calculateDynamicMargins(title, subtitle, footnote, source, autoSpacing);
                 const containerHeight = calculateContainerHeight(topMargin, bottomMargin);
                 
                 // Update container height
@@ -1870,81 +1812,64 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                         console.warn('Top Only processing failed, falling back to client-side:', error);
                         showStatus('⚠️ Top Only processing failed, using fallback mode', 'warning');
                         // Fall back to client-side processing
-                        plotlyConfig = createPlotlyConfig(chartType, processedData, {
-                            xColumn,
-                            yColumn,
-                            zColumn,
-                            colorColumn,
-                            title,
-                            subtitle,
-                            footnote,
-                            source,
-                            horizontalGrid,
-                            verticalGrid,
-                            topMargin,
-                            bottomMargin,
-                            xAxisTitle,
-                            yAxisTitle,
-                            yPrefix,
-                            ySuffix,
-                            yAxisLabelsMode: 'off' // Fall back to "Off" mode
-                        });
+                                             plotlyConfig = createPlotlyConfig(chartType, processedData, {
+                         xColumn,
+                         yColumn,
+                         zColumn,
+                         colorColumn,
+                         title,
+                         subtitle,
+                         footnote,
+                         source,
+                         horizontalGrid,
+                         verticalGrid,
+                         topMargin,
+                         bottomMargin,
+                         xAxisTitle,
+                         yAxisTitle,
+                         yPrefix,
+                         ySuffix,
+                         yAxisLabelsMode: 'off', // Fall back to "Off" mode
+                         autoSpacing: false // Force to false for fallback
+                     });
                     }
                 } else {
                     // Use client-side processing for "On" and "Off" modes
-                    plotlyConfig = createPlotlyConfig(chartType, processedData, {
-                        xColumn,
-                        yColumn,
-                        zColumn,
-                        colorColumn,
-                        title,
-                        subtitle,
-                        footnote,
-                        source,
-                        horizontalGrid,
-                        verticalGrid,
-                        topMargin,
-                        bottomMargin,
-                        xAxisTitle,
-                        yAxisTitle,
-                        yPrefix,
-                        ySuffix,
-                        yAxisLabelsMode
-                    });
+                                         plotlyConfig = createPlotlyConfig(chartType, processedData, {
+                         xColumn,
+                         yColumn,
+                         zColumn,
+                         colorColumn,
+                         title,
+                         subtitle,
+                         footnote,
+                         source,
+                         horizontalGrid,
+                         verticalGrid,
+                         topMargin,
+                         bottomMargin,
+                         xAxisTitle,
+                         yAxisTitle,
+                         yPrefix,
+                         ySuffix,
+                         yAxisLabelsMode,
+                         autoSpacing
+                     });
                 }
                 
                 if (autoSpacing) {
-                    try {
-                        const xData = processedData.map(row => row[xColumn]);
-                        const spacingResponse = await fetch(`${API_ENDPOINT}/api/auto-spacing`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                x_labels: xData,
-                                chart_type: chartType
-                            })
-                        });
-                        
-                        if (spacingResponse.ok) {
-                            const spacingData = await spacingResponse.json();
-                            if (spacingData.success) {
-                                plotlyConfig.layout.xaxis = {
-                                    ...plotlyConfig.layout.xaxis,
-                                    ...spacingData.xaxis_config,
-                                    showgrid: verticalGrid,
-                                    showline: true,
-                                    linecolor: 'rgba(255,255,255,0.3)',
-                                    linewidth: 1
-                                };
-                                showStatus('✅ Auto-spacing applied successfully!', 'success');
-                            }
-                        }
-                    } catch (error) {
-                        console.warn('Auto-spacing failed, using default spacing:', error);
-                        showStatus('⚠️ Auto-spacing failed, using default spacing', 'warning');
-                    }
+                    // Auto-spacing is ON - show registration message and don't make server call
+                    showStatus('⚠️ You need to be registered to use this feature', 'warning');
+                } else {
+                    // Auto-spacing is OFF - add extra padding for vertical date labels
+                    plotlyConfig.layout.xaxis = {
+                        ...plotlyConfig.layout.xaxis,
+                        showgrid: verticalGrid,
+                        showline: true,
+                        linecolor: 'rgba(255,255,255,0.3)',
+                        linewidth: 1
+                    };
+                    showStatus('✅ Extra padding applied for non-auto-spacing mode', 'success');
                 }
                 
                 const plotlyChart = document.getElementById('plotlyChart');
@@ -1988,15 +1913,15 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
 
 
         // PLOTLY CONFIGURATION FUNCTION
-        function createPlotlyConfig(chartType, data, options) {
-            const { 
-                xColumn, yColumn, zColumn, colorColumn, 
-                title, subtitle, footnote, source, 
-                horizontalGrid, verticalGrid, 
-                topMargin, bottomMargin, 
-                xAxisTitle, yAxisTitle,
-                yPrefix, ySuffix, yAxisLabelsMode  // Add these
-            } = options;
+                 function createPlotlyConfig(chartType, data, options) {
+             const { 
+                 xColumn, yColumn, zColumn, colorColumn, 
+                 title, subtitle, footnote, source, 
+                 horizontalGrid, verticalGrid, 
+                 topMargin, bottomMargin, 
+                 xAxisTitle, yAxisTitle,
+                 yPrefix, ySuffix, yAxisLabelsMode, autoSpacing  // Add autoSpacing
+             } = options;
             
             const xData = data.map(row => row[xColumn]);
             const yData = yColumn ? data.map(row => row[yColumn]) : [];
@@ -2005,11 +1930,10 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
             
             let plotData = [];
             
-            let titleText = title || '';
-            if (subtitle) {
-                const wrappedSubtitle = wrapSubtitleText(subtitle);
-                titleText = `${title}<br><span style="font-size: 14px; color: rgba(255,255,255,0.8);">${wrappedSubtitle}</span>`;
-            }
+                         let titleText = title || '';
+             if (subtitle) {
+                 titleText = `${title}<br><span style="font-size: 14px; color: rgba(255,255,255,0.8);">${subtitle}</span>`;
+             }
             
             let layout = {
                 title: {
@@ -2285,26 +2209,28 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                     layout.annotations = [];
                 }
                 
-                layout.annotations.push({
-                    text: `<i>${wrapFootnoteText(footnote)}</i>`,
-                    xref: 'paper',
-                    yref: 'paper',
-                    x: 0, // flush left
-                    y: -0.15, // base position
-                    xanchor: 'left',
-                    yanchor: 'top',
-                    width: 0.3, // 30% width
-                    align: 'left',
-                    font: {
-                        size: 12,
-                        color: 'rgba(255,255,255,0.8)',
-                        family: 'Arial, sans-serif'
-                    },
-                    bgcolor: 'rgba(0,0,0,0)',
-                    bordercolor: 'rgba(0,0,0,0)',
-                    borderwidth: 0,
-                    showarrow: false
-                });
+                                 // Dynamic footnote positioning based on auto-spacing state
+                 const footnoteY = autoSpacing ? -0.15 : -0.20;
+                 layout.annotations.push({
+                     text: `<i>${footnote}</i>`,
+                     xref: 'paper',
+                     yref: 'paper',
+                     x: 0, // flush left
+                     y: footnoteY, // dynamic positioning based on auto-spacing
+                     xanchor: 'left',
+                     yanchor: 'top',
+                     width: 0.3, // 30% width
+                     align: 'left',
+                     font: {
+                         size: 12,
+                         color: 'rgba(255,255,255,0.8)',
+                         family: 'Arial, sans-serif'
+                     },
+                     bgcolor: 'rgba(0,0,0,0)',
+                     bordercolor: 'rgba(0,0,0,0)',
+                     borderwidth: 0,
+                     showarrow: false
+                 });
             }
             
             if (source && source.trim()) {
@@ -2312,26 +2238,28 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                     layout.annotations = [];
                 }
                 
-                layout.annotations.push({
-                    text: wrapSourceText(source),
-                    xref: 'paper',
-                    yref: 'paper',
-                    x: 1, // flush right
-                    y: -0.15, // same position as footnote
-                    xanchor: 'right',
-                    yanchor: 'top',
-                    width: 0.3, // 30% width
-                    align: 'right',
-                    font: {
-                        size: 12,
-                        color: 'rgba(255,255,255,0.8)',
-                        family: 'Arial, sans-serif'
-                    },
-                    bgcolor: 'rgba(0,0,0,0)',
-                    bordercolor: 'rgba(0,0,0,0)',
-                    borderwidth: 0,
-                    showarrow: false
-                });
+                                 // Dynamic source positioning based on auto-spacing state
+                 const sourceY = autoSpacing ? -0.15 : -0.20;
+                 layout.annotations.push({
+                     text: source.startsWith('Source: ') ? source : 'Source: ' + source,
+                     xref: 'paper',
+                     yref: 'paper',
+                     x: 1, // flush right
+                     y: sourceY, // dynamic positioning based on auto-spacing
+                     xanchor: 'right',
+                     yanchor: 'top',
+                     width: 0.3, // 30% width
+                     align: 'right',
+                     font: {
+                         size: 12,
+                         color: 'rgba(255,255,255,0.8)',
+                         family: 'Arial, sans-serif'
+                     },
+                     bgcolor: 'rgba(0,0,0,0)',
+                     bordercolor: 'rgba(0,0,0,0)',
+                     borderwidth: 0,
+                     showarrow: false
+                 });
             }
             
             return { data: plotData, layout, config };
@@ -2367,10 +2295,28 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
             });
         });
 
-        // Data orientation change listener
-        document.querySelectorAll('input[name="dataOrientation"]').forEach(radio => {
-            radio.addEventListener('change', handleDataOrientationChange);
-        });
+                 // Data orientation change listener
+         document.querySelectorAll('input[name="dataOrientation"]').forEach(radio => {
+             radio.addEventListener('change', handleDataOrientationChange);
+         });
+         
+         // Auto-spacing change listener for dynamic margin updates and registration message
+         document.getElementById('autoSpacing').addEventListener('change', function() {
+             const autoSpacingMessage = document.getElementById('autoSpacingMessage');
+             
+             if (this.checked) {
+                 // Show registration message when auto-spacing is turned ON
+                 autoSpacingMessage.style.display = 'block';
+             } else {
+                 // Hide registration message when auto-spacing is turned OFF
+                 autoSpacingMessage.style.display = 'none';
+             }
+             
+             if (currentData.length > 0 && document.getElementById('plotlyChart').children.length > 0) {
+                 // Recalculate margins and regenerate chart when auto-spacing is toggled
+                 generateChart();
+             }
+         });
 
         // Auto-generate chart on column selection change (optional)
         ['xColumn', 'yColumn'].forEach(id => {

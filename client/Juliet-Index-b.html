@@ -1,9 +1,10 @@
 <!--
-client/Juliet-Index-a.html
-Updated: 2025-08-18 17:53:20
+client/Juliet-Index-b.html
+Updated: 2025-08-18 18:01:09
 Current working file - Session ID approach for autocomplete management
 UPDATED: Implemented hybrid client/server approach for Y-Axis Labels Mode
 FIXED: Removed server dependency for file upload - now uses native file parser only
+FIXED: Removed text wrapping for Subtitle, Footnote & Source - using text as-is
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -804,24 +805,23 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                 topMargin = Math.max(50, titleMeasurements.requiredSpace + 25); // Reduced from 50
             }
             
-            // Measure subtitle and add to top margin with less buffer
-            if (subtitle) {
-                // For subtitle, we need to account for Plotly's HTML rendering
-                const formattedSubtitle = wrapSubtitleText(subtitle, 100); // Wrap at 100 chars
-                const subtitleMeasurements = measureTextDimensions(
-                    formattedSubtitle,
-                    subtitleFontSize,
-                    fontFamily,
-                    maxTextWidth
-                );
-                
-                // Add subtitle height to existing top margin
-                topMargin += subtitleMeasurements.requiredSpace;
-                
-                // Less aggressive safety buffer
-                const safetyBuffer = Math.min(20, Math.floor(subtitle.length / 40) * 4);
-                topMargin += safetyBuffer;
-            }
+                         // Measure subtitle and add to top margin with less buffer
+             if (subtitle) {
+                 // For subtitle, we need to account for Plotly's HTML rendering
+                 const subtitleMeasurements = measureTextDimensions(
+                     subtitle,
+                     subtitleFontSize,
+                     fontFamily,
+                     maxTextWidth
+                 );
+                 
+                 // Add subtitle height to existing top margin
+                 topMargin += subtitleMeasurements.requiredSpace;
+                 
+                 // Less aggressive safety buffer
+                 const safetyBuffer = Math.min(20, Math.floor(subtitle.length / 40) * 4);
+                 topMargin += safetyBuffer;
+             }
             
             // Measure footnote and source for bottom margin with tighter spacing
             if (footnote || source) {
@@ -951,106 +951,7 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
             }
         }
 
-        // Text wrapping helper functions
-        function wrapSubtitleText(text, maxLength = 80) {
-            if (!text) return '';
-            const words = text.split(' ');
-            const lines = [];
-            let currentLine = '';
-            
-            words.forEach(word => {
-                if ((currentLine + ' ' + word).length > maxLength) {
-                    lines.push(currentLine.trim());
-                    currentLine = word;
-                } else {
-                    currentLine = currentLine ? currentLine + ' ' + word : word;
-                }
-            });
-            
-            if (currentLine) {
-                lines.push(currentLine.trim());
-            }
-            
-            return lines.join('<br>');
-        }
-
-        function wrapFootnoteText(text, maxLength = 100) {
-            if (!text) return '';
-            return wrapSubtitleText(text, maxLength);
-        }
-
-        function wrapSourceText(text, maxLength = 60) {
-            if (!text) return '';
-            if (!text.startsWith('Source: ')) {
-                text = 'Source: ' + text;
-            }
-            return wrapSubtitleText(text, maxLength);
-        }
-
-        /**
-         * Wraps text to fit within a specific percentage of chart width
-         * Used for footnotes and sources to ensure proper 40% width constraint
-         */
-        function wrapTextToWidth(text, widthPercentage) {
-            // Use fixed chart width (850px) from Plotly layout
-            const chartWidth = 850;
-            const maxPixelWidth = chartWidth * (widthPercentage / 100);
-            
-            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
-        }
-
-        function wrapTextByPixelWidth(text, maxPixelWidth, fontSize = 12, fontFamily = 'Arial, sans-serif') {
-            // Create a canvas to measure text width
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.font = `${fontSize}px ${fontFamily}`;
-            
-            const words = text.split(' ');
-            const lines = [];
-            let currentLine = '';
-            
-            for (let word of words) {
-                // Test if adding this word exceeds the pixel width
-                const testLine = currentLine + (currentLine ? ' ' : '') + word;
-                const testWidth = ctx.measureText(testLine).width;
-                
-                if (testWidth <= maxPixelWidth) {
-                    currentLine = testLine;
-                } else {
-                    if (currentLine) {
-                        lines.push(currentLine);
-                    }
-                    currentLine = word;
-                }
-            }
-            
-            if (currentLine) {
-                lines.push(currentLine);
-            }
-            
-            return lines.join('<br>');
-        }
-
-        function wrapFootnoteText(text) {
-            // Use fixed chart width (850px) and wrap to 30% width
-            const chartWidth = 850;
-            const maxPixelWidth = chartWidth * 0.3; // 30% of chart width = 255px
-            
-            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
-        }
-
-        function wrapSourceText(text) {
-            // Ensure source starts with "Source: "
-            if (!text.startsWith('Source: ')) {
-                text = 'Source: ' + text;
-            }
-            
-            // Use fixed chart width (850px) and wrap to 30% width
-            const chartWidth = 850;
-            const maxPixelWidth = chartWidth * 0.3; // 30% of chart width = 255px
-            
-            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
-        }
+                 // Text wrapping functions removed - using text as-is
 
         /**
          * Measures actual rendered text dimensions using a hidden DOM element
@@ -2005,11 +1906,10 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
             
             let plotData = [];
             
-            let titleText = title || '';
-            if (subtitle) {
-                const wrappedSubtitle = wrapSubtitleText(subtitle);
-                titleText = `${title}<br><span style="font-size: 14px; color: rgba(255,255,255,0.8);">${wrappedSubtitle}</span>`;
-            }
+                         let titleText = title || '';
+             if (subtitle) {
+                 titleText = `${title}<br><span style="font-size: 14px; color: rgba(255,255,255,0.8);">${subtitle}</span>`;
+             }
             
             let layout = {
                 title: {
@@ -2285,26 +2185,26 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                     layout.annotations = [];
                 }
                 
-                layout.annotations.push({
-                    text: `<i>${wrapFootnoteText(footnote)}</i>`,
-                    xref: 'paper',
-                    yref: 'paper',
-                    x: 0, // flush left
-                    y: -0.15, // base position
-                    xanchor: 'left',
-                    yanchor: 'top',
-                    width: 0.3, // 30% width
-                    align: 'left',
-                    font: {
-                        size: 12,
-                        color: 'rgba(255,255,255,0.8)',
-                        family: 'Arial, sans-serif'
-                    },
-                    bgcolor: 'rgba(0,0,0,0)',
-                    bordercolor: 'rgba(0,0,0,0)',
-                    borderwidth: 0,
-                    showarrow: false
-                });
+                                 layout.annotations.push({
+                     text: `<i>${footnote}</i>`,
+                     xref: 'paper',
+                     yref: 'paper',
+                     x: 0, // flush left
+                     y: -0.15, // base position
+                     xanchor: 'left',
+                     yanchor: 'top',
+                     width: 0.3, // 30% width
+                     align: 'left',
+                     font: {
+                         size: 12,
+                         color: 'rgba(255,255,255,0.8)',
+                         family: 'Arial, sans-serif'
+                     },
+                     bgcolor: 'rgba(0,0,0,0)',
+                     bordercolor: 'rgba(0,0,0,0)',
+                     borderwidth: 0,
+                     showarrow: false
+                 });
             }
             
             if (source && source.trim()) {
@@ -2312,26 +2212,26 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                     layout.annotations = [];
                 }
                 
-                layout.annotations.push({
-                    text: wrapSourceText(source),
-                    xref: 'paper',
-                    yref: 'paper',
-                    x: 1, // flush right
-                    y: -0.15, // same position as footnote
-                    xanchor: 'right',
-                    yanchor: 'top',
-                    width: 0.3, // 30% width
-                    align: 'right',
-                    font: {
-                        size: 12,
-                        color: 'rgba(255,255,255,0.8)',
-                        family: 'Arial, sans-serif'
-                    },
-                    bgcolor: 'rgba(0,0,0,0)',
-                    bordercolor: 'rgba(0,0,0,0)',
-                    borderwidth: 0,
-                    showarrow: false
-                });
+                                 layout.annotations.push({
+                     text: source.startsWith('Source: ') ? source : 'Source: ' + source,
+                     xref: 'paper',
+                     yref: 'paper',
+                     x: 1, // flush right
+                     y: -0.15, // same position as footnote
+                     xanchor: 'right',
+                     yanchor: 'top',
+                     width: 0.3, // 30% width
+                     align: 'right',
+                     font: {
+                         size: 12,
+                         color: 'rgba(255,255,255,0.8)',
+                         family: 'Arial, sans-serif'
+                     },
+                     bgcolor: 'rgba(0,0,0,0)',
+                     bordercolor: 'rgba(0,0,0,0)',
+                     borderwidth: 0,
+                     showarrow: false
+                 });
             }
             
             return { data: plotData, layout, config };

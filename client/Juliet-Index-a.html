@@ -1,9 +1,14 @@
 <!--
 client/Juliet-Index-a.html
-Updated: 2025-08-18 17:53:20
+Updated: 2025-08-18 23:30:31
 Current working file - Session ID approach for autocomplete management
 UPDATED: Implemented hybrid client/server approach for Y-Axis Labels Mode
 FIXED: Removed server dependency for file upload - now uses native file parser only
+ENHANCED: Dynamic footnote positioning based on auto-spacing state (y=-0.15 for ON, y=-0.20 for OFF)
+ENHANCED: Removed extra padding for auto-spacing OFF - now handled by dynamic positioning
+ENHANCED: Added registration message for auto-spacing ON state
+ENHANCED: Added dynamic text-wrapping for Subtitle, Footnote & Source notes with configurable chart width
+ENHANCED: Updated bottomMargin base value to 60px for better spacing
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -397,6 +402,14 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
             border: 1px solid #f59e0b;
             color: white;
         }
+        
+        .registration-message {
+            font-size: 12px;
+            color: #a8a8a8;
+            margin-top: 4px;
+            margin-left: 0;
+            font-style: italic;
+        }
 
         .loading {
             display: none;
@@ -637,9 +650,12 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                 <div class="display-option">
                     <span>Auto X-Spacing</span>
                     <label class="switch">
-                        <input type="checkbox" id="autoSpacing" checked>
+                        <input type="checkbox" id="autoSpacing">
                         <span class="slider"></span>
                     </label>
+                </div>
+                <div id="autoSpacingMessage" class="registration-message" style="display: none;">
+                    Only available to registered users.
                 </div>
                 
                 <div class="display-option">
@@ -742,6 +758,7 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
         let processedData = [];
         let rawData = [];
         let currentFileId = null;
+        let chartWidth = 850; // Default chart width, can be changed by user later
 
         function generateSessionId() {
             return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -780,10 +797,10 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
         }
 
         // Dynamic container sizing functions
-        function calculateDynamicMargins(title, subtitle, footnote, source) {
+        function calculateDynamicMargins(title, subtitle, footnote, source, autoSpacing = true) {
             // Tighter base margins - reduced from 80
             let topMargin = 50;
-            let bottomMargin = 50;
+            let bottomMargin = 85;
             
             // Font configurations matching Plotly's actual rendering
             const titleFontSize = 18;
@@ -804,7 +821,7 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                 topMargin = Math.max(50, titleMeasurements.requiredSpace + 25); // Reduced from 50
             }
             
-            // Measure subtitle and add to top margin with less buffer
+                                     // Measure subtitle and add to top margin with less buffer
             if (subtitle) {
                 // For subtitle, we need to account for Plotly's HTML rendering
                 const formattedSubtitle = wrapSubtitleText(subtitle, 100); // Wrap at 100 chars
@@ -830,8 +847,9 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                 
                 if (footnote) {
                     // Footnote uses 30% of chart width
+                    const wrappedFootnote = wrapFootnoteText(footnote);
                     const footnoteMeasurements = measureTextDimensions(
-                        footnote,
+                        wrappedFootnote,
                         annotationFontSize,
                         fontFamily,
                         chartWidth * 0.3
@@ -841,9 +859,9 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                 
                 if (source) {
                     // Source also uses 30% of chart width
-                    const sourceText = source.startsWith('Source: ') ? source : 'Source: ' + source;
+                    const wrappedSource = wrapSourceText(source);
                     const sourceMeasurements = measureTextDimensions(
-                        sourceText,
+                        wrappedSource,
                         annotationFontSize,
                         fontFamily,
                         chartWidth * 0.3
@@ -852,14 +870,17 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                 }
                 
                 // Use the larger of the two since they're side by side with tighter spacing
-                bottomMargin = 50 + Math.max(footnoteHeight, sourceHeight) + 10; // Reduced from 80 + 20
+                bottomMargin = 85 + Math.max(footnoteHeight, sourceHeight) + 10; // Updated base from 60 to 85
             }
             
             // Minimal safety margins (5% instead of 20%/15%)
             topMargin = Math.ceil(topMargin * 1.05);
             bottomMargin = Math.ceil(bottomMargin * 1.05);
             
-            console.log('Dynamic margins calculated:', { topMargin, bottomMargin });
+            // No extra padding needed - footnote positioning will handle spacing
+            console.log('Dynamic margins calculated based on auto-spacing state:', { autoSpacing });
+            
+            console.log('Dynamic margins calculated:', { topMargin, bottomMargin, autoSpacing });
             
             return { topMargin, bottomMargin };
         }
@@ -951,106 +972,7 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
             }
         }
 
-        // Text wrapping helper functions
-        function wrapSubtitleText(text, maxLength = 80) {
-            if (!text) return '';
-            const words = text.split(' ');
-            const lines = [];
-            let currentLine = '';
-            
-            words.forEach(word => {
-                if ((currentLine + ' ' + word).length > maxLength) {
-                    lines.push(currentLine.trim());
-                    currentLine = word;
-                } else {
-                    currentLine = currentLine ? currentLine + ' ' + word : word;
-                }
-            });
-            
-            if (currentLine) {
-                lines.push(currentLine.trim());
-            }
-            
-            return lines.join('<br>');
-        }
-
-        function wrapFootnoteText(text, maxLength = 100) {
-            if (!text) return '';
-            return wrapSubtitleText(text, maxLength);
-        }
-
-        function wrapSourceText(text, maxLength = 60) {
-            if (!text) return '';
-            if (!text.startsWith('Source: ')) {
-                text = 'Source: ' + text;
-            }
-            return wrapSubtitleText(text, maxLength);
-        }
-
-        /**
-         * Wraps text to fit within a specific percentage of chart width
-         * Used for footnotes and sources to ensure proper 40% width constraint
-         */
-        function wrapTextToWidth(text, widthPercentage) {
-            // Use fixed chart width (850px) from Plotly layout
-            const chartWidth = 850;
-            const maxPixelWidth = chartWidth * (widthPercentage / 100);
-            
-            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
-        }
-
-        function wrapTextByPixelWidth(text, maxPixelWidth, fontSize = 12, fontFamily = 'Arial, sans-serif') {
-            // Create a canvas to measure text width
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.font = `${fontSize}px ${fontFamily}`;
-            
-            const words = text.split(' ');
-            const lines = [];
-            let currentLine = '';
-            
-            for (let word of words) {
-                // Test if adding this word exceeds the pixel width
-                const testLine = currentLine + (currentLine ? ' ' : '') + word;
-                const testWidth = ctx.measureText(testLine).width;
-                
-                if (testWidth <= maxPixelWidth) {
-                    currentLine = testLine;
-                } else {
-                    if (currentLine) {
-                        lines.push(currentLine);
-                    }
-                    currentLine = word;
-                }
-            }
-            
-            if (currentLine) {
-                lines.push(currentLine);
-            }
-            
-            return lines.join('<br>');
-        }
-
-        function wrapFootnoteText(text) {
-            // Use fixed chart width (850px) and wrap to 30% width
-            const chartWidth = 850;
-            const maxPixelWidth = chartWidth * 0.3; // 30% of chart width = 255px
-            
-            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
-        }
-
-        function wrapSourceText(text) {
-            // Ensure source starts with "Source: "
-            if (!text.startsWith('Source: ')) {
-                text = 'Source: ' + text;
-            }
-            
-            // Use fixed chart width (850px) and wrap to 30% width
-            const chartWidth = 850;
-            const maxPixelWidth = chartWidth * 0.3; // 30% of chart width = 255px
-            
-            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
-        }
+                 // Text wrapping functions removed - using text as-is
 
         /**
          * Measures actual rendered text dimensions using a hidden DOM element
@@ -1110,6 +1032,88 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                     marginBottom: plotlyChart._fullLayout.margin.b
                 });
             }
+        }
+
+        // Text wrapping helper functions
+        function wrapSubtitleText(text, maxLength = 80) {
+            if (!text) return '';
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            words.forEach(word => {
+                if ((currentLine + ' ' + word).length > maxLength) {
+                    lines.push(currentLine.trim());
+                    currentLine = word;
+                } else {
+                    currentLine = currentLine ? currentLine + ' ' + word : word;
+                }
+            });
+            
+            if (currentLine) {
+                lines.push(currentLine.trim());
+            }
+            
+            return lines.join('<br>');
+        }
+
+        function wrapFootnoteText(text) {
+            if (!text) return '';
+            // Use dynamic chart width and wrap to 30% width
+            const maxPixelWidth = chartWidth * 0.3; // 30% of chart width
+            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
+        }
+
+        function wrapSourceText(text) {
+            if (!text) return '';
+            // Ensure source starts with "Source: "
+            if (!text.startsWith('Source: ')) {
+                text = 'Source: ' + text;
+            }
+            // Use dynamic chart width and wrap to 30% width
+            const maxPixelWidth = chartWidth * 0.3; // 30% of chart width
+            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
+        }
+
+        /**
+         * Wraps text to fit within a specific percentage of chart width
+         * Used for footnotes and sources to ensure proper width constraint
+         */
+        function wrapTextToWidth(text, widthPercentage) {
+            const maxPixelWidth = chartWidth * (widthPercentage / 100);
+            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
+        }
+
+        function wrapTextByPixelWidth(text, maxPixelWidth, fontSize = 12, fontFamily = 'Arial, sans-serif') {
+            // Create a canvas to measure text width
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.font = `${fontSize}px ${fontFamily}`;
+            
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            for (let word of words) {
+                // Test if adding this word exceeds the pixel width
+                const testLine = currentLine + (currentLine ? ' ' : '') + word;
+                const testWidth = ctx.measureText(testLine).width;
+                
+                if (testWidth <= maxPixelWidth) {
+                    currentLine = testLine;
+                } else {
+                    if (currentLine) {
+                        lines.push(currentLine);
+                    }
+                    currentLine = word;
+                }
+            }
+            
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+            
+            return lines.join('<br>');
         }
 
         function handleDataOrientationChange() {
@@ -1806,7 +1810,7 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                 showStatus('🎨 Generating your interactive chart...', 'warning');
                 
                 // Calculate required dimensions FIRST
-                const { topMargin, bottomMargin } = calculateDynamicMargins(title, subtitle, footnote, source);
+                const { topMargin, bottomMargin } = calculateDynamicMargins(title, subtitle, footnote, source, autoSpacing);
                 const containerHeight = calculateContainerHeight(topMargin, bottomMargin);
                 
                 // Update container height
@@ -1887,7 +1891,8 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                             yAxisTitle,
                             yPrefix,
                             ySuffix,
-                            yAxisLabelsMode: 'off' // Fall back to "Off" mode
+                            yAxisLabelsMode: 'off', // Fall back to "Off" mode
+                            autoSpacing: false // Force to false for fallback
                         });
                     }
                 } else {
@@ -1909,42 +1914,24 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                         yAxisTitle,
                         yPrefix,
                         ySuffix,
-                        yAxisLabelsMode
+                        yAxisLabelsMode,
+                        autoSpacing
                     });
                 }
                 
                 if (autoSpacing) {
-                    try {
-                        const xData = processedData.map(row => row[xColumn]);
-                        const spacingResponse = await fetch(`${API_ENDPOINT}/api/auto-spacing`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                x_labels: xData,
-                                chart_type: chartType
-                            })
-                        });
-                        
-                        if (spacingResponse.ok) {
-                            const spacingData = await spacingResponse.json();
-                            if (spacingData.success) {
-                                plotlyConfig.layout.xaxis = {
-                                    ...plotlyConfig.layout.xaxis,
-                                    ...spacingData.xaxis_config,
-                                    showgrid: verticalGrid,
-                                    showline: true,
-                                    linecolor: 'rgba(255,255,255,0.3)',
-                                    linewidth: 1
-                                };
-                                showStatus('✅ Auto-spacing applied successfully!', 'success');
-                            }
-                        }
-                    } catch (error) {
-                        console.warn('Auto-spacing failed, using default spacing:', error);
-                        showStatus('⚠️ Auto-spacing failed, using default spacing', 'warning');
-                    }
+                    // Auto-spacing is ON - show registration message and don't make server call
+                    showStatus('⚠️ You need to be registered to use this feature', 'warning');
+                } else {
+                    // Auto-spacing is OFF - add extra padding for vertical date labels
+                    plotlyConfig.layout.xaxis = {
+                        ...plotlyConfig.layout.xaxis,
+                        showgrid: verticalGrid,
+                        showline: true,
+                        linecolor: 'rgba(255,255,255,0.3)',
+                        linewidth: 1
+                    };
+                    showStatus('✅ Extra padding applied for non-auto-spacing mode', 'success');
                 }
                 
                 const plotlyChart = document.getElementById('plotlyChart');
@@ -1995,7 +1982,7 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                 horizontalGrid, verticalGrid, 
                 topMargin, bottomMargin, 
                 xAxisTitle, yAxisTitle,
-                yPrefix, ySuffix, yAxisLabelsMode  // Add these
+                yPrefix, ySuffix, yAxisLabelsMode, autoSpacing  // Add autoSpacing
             } = options;
             
             const xData = data.map(row => row[xColumn]);
@@ -2005,9 +1992,9 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
             
             let plotData = [];
             
-            let titleText = title || '';
+                                     let titleText = title || '';
             if (subtitle) {
-                const wrappedSubtitle = wrapSubtitleText(subtitle);
+                const wrappedSubtitle = wrapSubtitleText(subtitle, 100);
                 titleText = `${title}<br><span style="font-size: 14px; color: rgba(255,255,255,0.8);">${wrappedSubtitle}</span>`;
             }
             
@@ -2029,7 +2016,7 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 font: { color: 'white' },
                 height: 400 + topMargin + bottomMargin,
-                width: 850,  // Fixed width matching the attached file
+                width: chartWidth,  // Use dynamic chart width instead of fixed 850
                 autosize: false
             };
             
@@ -2285,12 +2272,14 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                     layout.annotations = [];
                 }
                 
+                                                 // Dynamic footnote positioning based on auto-spacing state
+                const footnoteY = autoSpacing ? -0.15 : -0.20;
                 layout.annotations.push({
                     text: `<i>${wrapFootnoteText(footnote)}</i>`,
                     xref: 'paper',
                     yref: 'paper',
                     x: 0, // flush left
-                    y: -0.15, // base position
+                    y: footnoteY, // dynamic positioning based on auto-spacing
                     xanchor: 'left',
                     yanchor: 'top',
                     width: 0.3, // 30% width
@@ -2312,12 +2301,14 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
                     layout.annotations = [];
                 }
                 
+                                                 // Dynamic source positioning based on auto-spacing state
+                const sourceY = autoSpacing ? -0.15 : -0.20;
                 layout.annotations.push({
                     text: wrapSourceText(source),
                     xref: 'paper',
                     yref: 'paper',
                     x: 1, // flush right
-                    y: -0.15, // same position as footnote
+                    y: sourceY, // dynamic positioning based on auto-spacing
                     xanchor: 'right',
                     yanchor: 'top',
                     width: 0.3, // 30% width
@@ -2370,6 +2361,24 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
         // Data orientation change listener
         document.querySelectorAll('input[name="dataOrientation"]').forEach(radio => {
             radio.addEventListener('change', handleDataOrientationChange);
+        });
+        
+        // Auto-spacing change listener for dynamic margin updates and registration message
+        document.getElementById('autoSpacing').addEventListener('change', function() {
+            const autoSpacingMessage = document.getElementById('autoSpacingMessage');
+            
+            if (this.checked) {
+                // Show registration message when auto-spacing is turned ON
+                autoSpacingMessage.style.display = 'block';
+            } else {
+                // Hide registration message when auto-spacing is turned OFF
+                autoSpacingMessage.style.display = 'none';
+            }
+            
+            if (currentData.length > 0 && document.getElementById('plotlyChart').children.length > 0) {
+                // Recalculate margins and regenerate chart when auto-spacing is toggled
+                generateChart();
+            }
         });
 
         // Auto-generate chart on column selection change (optional)
@@ -2434,9 +2443,23 @@ FIXED: Removed server dependency for file upload - now uses native file parser o
             }
         });
 
+        // Chart width update function for future use
+        function updateChartWidth(newWidth) {
+            if (newWidth && newWidth > 0) {
+                chartWidth = newWidth;
+                console.log('Chart width updated to:', chartWidth);
+                
+                // Regenerate chart if data is loaded
+                if (currentData.length > 0 && document.getElementById('plotlyChart').children.length > 0) {
+                    generateChart();
+                }
+            }
+        }
+
         // Initialize the application
         console.log('GetCharty initialized successfully!');
         console.log('Session ID:', sessionId);
+        console.log('Chart width:', chartWidth);
         
     </script>
 </body>

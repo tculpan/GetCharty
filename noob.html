@@ -1,0 +1,409 @@
+<!- noob ->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noob Tier Export Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            color: white;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .tier-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tier-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .tier-title {
+            font-size: 1.8rem;
+            color: #e94560;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .tier-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #6b7280, #9ca3af);
+            color: white;
+        }
+
+        .tier-description {
+            color: #a8a8a8;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .mock-main-area {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .mock-chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 30px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 15px;
+        }
+
+        .mock-chart-placeholder {
+            text-align: center;
+            color: #a8a8a8;
+        }
+
+        .mock-chart-placeholder h3 {
+            color: white;
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+        }
+
+        .mock-chart-placeholder p {
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e94560, #533483);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+        }
+
+        .export-row {
+            margin-top: 25px;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(107, 114, 128, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .export-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        .export-tab {
+            flex: 1;
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            position: relative;
+        }
+
+        .export-tab.active {
+            background: rgba(233, 69, 96, 0.2);
+            border-bottom-color: #e94560;
+            color: white;
+        }
+
+        .export-tab:not(.active) {
+            color: #a8a8a8;
+        }
+
+        .export-tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        .export-tab-content {
+            padding: 18px;
+            display: none;
+        }
+
+        .export-tab-content.active {
+            display: block;
+        }
+
+        .export-tab-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .export-btn {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 90px;
+            justify-content: center;
+            position: relative;
+        }
+
+        .export-btn:hover:not(.locked) {
+            background: rgba(233, 69, 96, 0.2);
+            border-color: #e94560;
+            transform: translateY(-1px);
+        }
+
+        .export-btn .icon {
+            font-size: 16px;
+        }
+
+        .export-btn .quality {
+            font-size: 10px;
+            color: #a8a8a8;
+            margin-left: 4px;
+        }
+
+        .export-btn.locked {
+            background: rgba(255, 255, 255, 0.01);
+            color: #4b5563;
+            border-color: rgba(255, 255, 255, 0.05);
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+
+        .export-btn.locked::after {
+            content: '✦';
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            font-size: 12px;
+            background: rgba(192, 192, 192, 0.9);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+
+        .export-btn.locked.viper::after {
+            content: 'VIPer';
+            background: rgba(251, 191, 36, 0.9);
+            color: #1f2937;
+            font-size: 7px;
+            font-weight: 600;
+            border-radius: 4px;
+            width: 24px;
+            height: 12px;
+            top: -6px;
+            right: -6px;
+        }
+
+        .export-btn.locked:hover {
+            background: rgba(251, 191, 36, 0.1);
+            border-color: rgba(251, 191, 36, 0.3);
+            color: #fbbf24;
+        }
+
+        .upgrade-prompt {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #60a5fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upgrade-prompt:hover {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tier-section noob">
+            <div class="mock-main-area">
+                <div class="mock-chart-container">
+                    <div class="mock-chart-placeholder">
+                        <div style="font-size: 40px; margin-bottom: 10px; opacity: 0.3;">📊</div>
+                        <h3>Your Chart Goes Here</h3>
+                        <p>Includes GetCharty.com Watermark</p>
+                    </div>
+                </div>
+                
+                <button class="btn-primary">🚀 Generate Chart</button>
+                
+                <div class="export-row">
+                    <div class="export-tabs">
+                        <div class="export-tab active" onclick="switchTab(this, 'export', 'noob')">
+                            <span>⬇️</span>
+                            <span>Export</span>
+                        </div>
+                        <div class="export-tab" onclick="switchTab(this, 'share', 'noob')">
+                            <span>🔗</span>
+                            <span>Share</span>
+                        </div>
+                    </div>
+                    
+                    <div class="export-tab-content active" data-tab="export">
+                        <div class="export-tab-buttons">
+                            <button class="export-btn" onclick="handleExport('JPG', 'noob')">
+                                <span class="icon">📷</span>
+                                <span>JPG</span>
+                                <span class="quality">720p</span>
+                            </button>
+                            <button class="export-btn locked" onclick="showUpgradePrompt('PDF', 'registered')">
+                                <span class="icon">📄</span>
+                                <span>PDF</span>
+                            </button>
+                            <button class="export-btn locked" onclick="showUpgradePrompt('HTML', 'registered')">
+                                <span class="icon">🌐</span>
+                                <span>HTML</span>
+                            </button>
+                            <button class="export-btn locked viper" onclick="showUpgradePrompt('SVG', 'viper')">
+                                <span class="icon">🎨</span>
+                                <span>SVG</span>
+                            </button>
+                            <button class="export-btn locked viper" onclick="showUpgradePrompt('PNG', 'viper')">
+                                <span class="icon">🖼️</span>
+                                <span>PNG</span>
+                            </button>
+                        </div>
+                        <div class="upgrade-prompt" onclick="upgradeToRegistered()">
+                            📈 Register for Free to get PDF & HTML exports
+                        </div>
+                    </div>
+                    
+                    <div class="export-tab-content" data-tab="share">
+                        <div class="export-tab-buttons">
+                            <button class="export-btn" onclick="handleExport('Socials', 'noob')">
+                                <span class="icon">📱</span>
+                                <span>Socials</span>
+                            </button>
+                            <button class="export-btn locked" onclick="showUpgradePrompt('Permalink', 'registered')">
+                                <span class="icon">🔗</span>
+                                <span>Permalink</span>
+                            </button>
+                            <button class="export-btn locked viper" onclick="showUpgradePrompt('Email', 'viper')">
+                                <span class="icon">📧</span>
+                                <span>Email</span>
+                            </button>
+                        </div>
+                        <div class="upgrade-prompt" onclick="upgradeToRegistered()">
+                            📈 Register for Free to unlock permalinks and more
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(clickedTab, tabName, tier) {
+            const container = clickedTab.closest('.export-row');
+            
+            container.querySelectorAll('.export-tab').forEach(tab => tab.classList.remove('active'));
+            container.querySelectorAll('.export-tab-content').forEach(content => content.classList.remove('active'));
+            
+            clickedTab.classList.add('active');
+            container.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        }
+
+        function showUpgradePrompt(feature, requiredTier) {
+            const tierNames = {
+                'registered': 'Registered',
+                'viper': 'VIPer'
+            };
+            
+            alert(`✦ ${feature} export requires ${tierNames[requiredTier]} membership.\n\nUpgrade now to unlock this feature!`);
+        }
+
+        function upgradeToRegistered() {
+            alert('🚀 Redirecting to registration page...\n\nRegister for free to unlock PDF, HTML exports and sharing features!');
+        }
+
+        function handleExport(format, tier) {
+            if (format === 'Socials') {
+                alert('📱 Social Sharing (Noob)\n\nShare your chart on:\n✅ Twitter (with watermark)\n✅ Facebook (with watermark)\n✦ LinkedIn (Requires Registered)\n✦ Instagram (Requires VIPer)');
+                return;
+            }
+            
+            const tierMessages = {
+                'noob': `📊 Basic Export: ${format}\n\nStandard quality with GetCharty watermark.`
+            };
+            
+            event.target.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                event.target.style.transform = '';
+            }, 150);
+            
+            alert(tierMessages[tier]);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,682 @@
+/*
+client/css/tier-styles.css
+Updated: 2025-08-21 14:24:37
+Tier-specific styling for GetCharty application
+*/
+
+/* Watermark Styles */
+.chart-watermark {
+    position: absolute;
+    pointer-events: none;
+    user-select: none;
+    z-index: 1000;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    transition: opacity 0.3s ease;
+}
+
+/* Tier-specific watermark opacity */
+.tier-noob .chart-watermark,
+.tier-registered .chart-watermark {
+    opacity: 0.4;
+}
+
+.tier-viper .chart-watermark {
+    opacity: 0.2;
+}
+
+/* Tier Progression Bar Styles */
+.tier-progression {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 12px;
+    margin: 15px 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tier-labels {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.tier-labels span {
+    font-size: 14px;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.tier-noob { 
+    color: #6b7280; 
+}
+
+.tier-registered { 
+    color: #3b82f6; 
+}
+
+.tier-viper { 
+    color: #fbbf24; 
+}
+
+/* Active tier highlighting */
+.tier-labels span.active {
+    color: #e94560;
+    text-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+}
+
+.usage-bar {
+    background: rgba(255, 255, 255, 0.1);
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 8px 0;
+}
+
+.usage-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #fbbf24, #ef4444);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+    width: 25%;
+}
+
+/* Velvet Curtain Button */
+.velvet-curtain-btn {
+    background: linear-gradient(135deg, #8B1538, #A0153E, #5D0E17);
+    color: #F8E8DC;
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(248, 232, 220, 0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(139, 21, 56, 0.3);
+    margin-top: 10px;
+}
+
+.velvet-curtain-btn:hover {
+    background: linear-gradient(135deg, #A0153E, #B91C51, #8B1538);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(139, 21, 56, 0.4);
+    border-color: rgba(248, 232, 220, 0.3);
+}
+
+/* Registration Messages */
+.registration-message {
+    font-size: 12px;
+    color: #a8a8a8;
+    margin-top: 4px;
+    margin-left: 0;
+    font-style: italic;
+    transition: opacity 0.3s ease;
+}
+
+/* Feature Restrictions */
+.feature-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.feature-disabled:hover {
+    opacity: 0.5;
+}
+
+/* Tier-specific feature visibility */
+.tier-noob .advanced-feature,
+.tier-noob .viper-feature {
+    display: none !important;
+}
+
+.tier-registered .viper-feature {
+    display: none !important;
+}
+
+/* Export Button Styles */
+.export-button {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    margin-left: 8px;
+}
+
+.export-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.export-button:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: #a8a8a8;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Button Container for Export Buttons */
+.button-container {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 800px;
+}
+
+/* Tier-specific chart type restrictions */
+.chart-type-btn.tier-restricted {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.chart-type-btn.tier-restricted:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Loading states for tier features */
+.tier-loading {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-top: 2px solid #e94560;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Tier upgrade prompts */
+.tier-upgrade-prompt {
+    background: rgba(233, 69, 96, 0.1);
+    border: 1px solid rgba(233, 69, 96, 0.3);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 10px 0;
+    text-align: center;
+    font-size: 13px;
+    color: #e94560;
+}
+
+.tier-upgrade-prompt .upgrade-btn {
+    background: linear-gradient(135deg, #e94560, #533483);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    margin-left: 8px;
+    transition: all 0.3s ease;
+}
+
+.tier-upgrade-prompt .upgrade-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(233, 69, 96, 0.3);
+}
+
+/* Tier-specific Chart Area Styling - Based on Your Designs */
+
+/* Noob Tier Styling */
+.tier-noob .chart-container {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 30px;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.tier-noob .chart-container::before {
+    content: "📊";
+    font-size: 40px;
+    margin-bottom: 10px;
+    opacity: 0.3;
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.tier-noob .chart-container::after {
+    content: "Your Chart Goes Here";
+    font-size: 18px;
+    color: white;
+    font-weight: 500;
+    position: absolute;
+    top: 60%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.tier-noob .chart-container .watermark-note {
+    content: "Includes GetCharty.com Watermark";
+    font-size: 14px;
+    color: #a8a8a8;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.tier-noob .generate-chart-btn {
+    background: linear-gradient(135deg, #e94560, #533483);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    align-self: center;
+    margin: 0 auto;
+}
+
+.tier-noob .generate-chart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+}
+
+/* Registered Tier Styling */
+.tier-registered .chart-container {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 30px;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.tier-registered .chart-container::before {
+    content: "📊";
+    font-size: 40px;
+    margin-bottom: 10px;
+    opacity: 0.3;
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.tier-registered .chart-container::after {
+    content: "Your Chart Goes Here";
+    font-size: 18px;
+    color: white;
+    font-weight: 500;
+    position: absolute;
+    top: 60%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.tier-registered .chart-container .watermark-note {
+    content: "Includes GetCharty.com Watermark";
+    font-size: 14px;
+    color: #a8a8a8;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.tier-registered .generate-chart-btn {
+    background: linear-gradient(135deg, #e94560, #533483);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    align-self: center;
+    margin: 0 auto;
+}
+
+.tier-registered .generate-chart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+}
+
+/* VIPer Tier Styling */
+.tier-viper .chart-container {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 30px;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.tier-viper .chart-container::before {
+    content: "📊";
+    font-size: 40px;
+    margin-bottom: 10px;
+    opacity: 0.3;
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.tier-viper .chart-container::after {
+    content: "Your Chart Goes Here";
+    font-size: 18px;
+    color: white;
+    font-weight: 500;
+    position: absolute;
+    top: 60%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.tier-viper .chart-container .watermark-note {
+    content: "No watermark!";
+    font-size: 14px;
+    color: #fbbf24;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.tier-viper .generate-chart-btn {
+    background: linear-gradient(135deg, #e94560, #533483);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    align-self: center;
+    margin: 0 auto;
+}
+
+.tier-viper .generate-chart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+}
+
+/* Export Interface Styling */
+.export-row {
+    margin-top: 25px;
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    overflow: hidden;
+    max-width: 600px;
+    width: 100%;
+}
+
+.tier-noob .export-row {
+    border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+.tier-registered .export-row {
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.tier-viper .export-row {
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.export-tabs {
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    position: relative;
+}
+
+.export-tab {
+    flex: 1;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    position: relative;
+}
+
+.export-tab.active {
+    background: rgba(233, 69, 96, 0.2);
+    border-bottom-color: #e94560;
+    color: white;
+}
+
+.export-tab:not(.active) {
+    color: #a8a8a8;
+}
+
+.export-tab:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+}
+
+.export-tab-content {
+    padding: 18px;
+    display: none;
+}
+
+.export-tab-content.active {
+    display: block;
+}
+
+.export-tab-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.export-btn {
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 90px;
+    justify-content: center;
+    position: relative;
+}
+
+.export-btn:hover:not(.locked) {
+    background: rgba(233, 69, 96, 0.2);
+    border-color: #e94560;
+    transform: translateY(-1px);
+}
+
+.export-btn .icon {
+    font-size: 16px;
+}
+
+.export-btn .quality {
+    font-size: 10px;
+    color: #a8a8a8;
+    margin-left: 4px;
+}
+
+.export-btn.locked {
+    background: rgba(255, 255, 255, 0.01);
+    color: #4b5563;
+    border-color: rgba(255, 255, 255, 0.05);
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+.export-btn.locked::after {
+    content: '✦';
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    font-size: 12px;
+    background: rgba(192, 192, 192, 0.9);
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.export-btn.locked.viper::after {
+    content: 'VIPer';
+    background: rgba(251, 191, 36, 0.9);
+    color: #1f2937;
+    font-size: 7px;
+    font-weight: 600;
+    border-radius: 4px;
+    width: 24px;
+    height: 12px;
+    top: -6px;
+    right: -6px;
+}
+
+.export-btn.locked:hover {
+    background: rgba(251, 191, 36, 0.1);
+    border-color: rgba(251, 191, 36, 0.3);
+    color: #fbbf24;
+}
+
+.export-btn.premium {
+    border-color: rgba(251, 191, 36, 0.3);
+    background: rgba(251, 191, 36, 0.1);
+}
+
+.export-btn.premium:hover {
+    background: rgba(251, 191, 36, 0.15);
+    border-color: #fbbf24;
+}
+
+.upgrade-prompt {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-top: 15px;
+    font-size: 12px;
+    color: #60a5fa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tier-registered .upgrade-prompt {
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    color: #fbbf24;
+}
+
+.upgrade-prompt:hover {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: #3b82f6;
+}
+
+.tier-registered .upgrade-prompt:hover {
+    background: rgba(251, 191, 36, 0.15);
+    border-color: #fbbf24;
+}
+
+/* Responsive design for tier elements */
+@media (max-width: 768px) {
+    .tier-labels span {
+        font-size: 12px;
+    }
+    
+    .velvet-curtain-btn {
+        font-size: 11px;
+        padding: 8px 12px;
+    }
+    
+    .button-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .export-button {
+        margin-left: 0;
+        margin-top: 8px;
+    }
+    
+    /* Mobile responsive chart containers */
+    .tier-noob .chart-container,
+    .tier-registered .chart-container,
+    .tier-viper .chart-container {
+        padding: 30px 20px;
+    }
+    
+    .tier-noob .chart-container::before,
+    .tier-registered .chart-container::before,
+    .tier-viper .chart-container::before {
+        font-size: 16px;
+    }
+    
+    .tier-viper .chart-container::before {
+        content: "Your Premium Chart Goes Here";
+        font-size: 18px;
+    }
+}

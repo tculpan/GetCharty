@@ -1,7 +1,8 @@
 <!-- 
 client/index.html - Main client-side working file
-Updated: 2025-08-20 18:40:43
+Updated: 2025-08-21 23:28:18
 ADDED: Tier progression bar with Noob/Registered/VIPer labels and velvet curtain button
+FIXED: Button visibility issue by ensuring tier class is applied to body
 -->
 
 <!-- Styling I 
@@ -15,6 +16,11 @@ PART 1 OF 4 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Tier-specific styling and functionality -->
+    <link rel="stylesheet" href="css/tier-styles.css">
+    <script src="js/tier-management.js"></script>
+    <script src="js/export-interface.js"></script>
     <style>
         * {
             margin: 0;
@@ -386,6 +392,11 @@ PART 1 OF 4 -->
             box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
         }
 
+        #generateBtnMain {
+            align-self: flex-start;
+            margin-left: 0;
+        }
+
         .chart-container {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
@@ -427,6 +438,21 @@ PART 1 OF 4 -->
         .chart-placeholder p {
             margin-bottom: 20px;
             font-size: 1rem;
+        }
+
+        .mock-chart-placeholder {
+            text-align: center;
+            color: #a8a8a8;
+        }
+
+        .mock-chart-placeholder h3 {
+            color: white;
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+        }
+
+        .mock-chart-placeholder p {
+            font-size: 14px;
         }
 
         .orientation-label {
@@ -842,15 +868,22 @@ Copy this AFTER Part 2 (after the sidebar closing div)
         <div class="main-area">
             <div class="chart-container" id="chartContainer">
                 <div id="plotlyChart" class="chart-placeholder">
-                    <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.3;">📊</div>
-                    <h2>Chart Preview Area</h2>
-                    <p>Upload data and configure settings to see your chart</p>
+                    <div class="mock-chart-placeholder">
+                        <div style="font-size: 40px; margin-bottom: 10px; opacity: 0.3;">📊</div>
+                        <h3>Your Chart Goes Here</h3>
+                        <p class="watermark-note">Includes GetCharty.com Watermark</p>
+                    </div>
                 </div>
             </div>
             
-            <button class="btn-primary" id="generateBtnMain" onclick="generateChart()" disabled style="margin-top: 20px; width: auto; padding: 15px 30px;">
+            <button class="btn-primary generate-chart-btn" id="generateBtnMain" onclick="generateChart()" disabled style="margin-top: 20px; width: auto; padding: 15px 30px;">
                 🚀 Generate Chart
             </button>
+            
+            <!-- Export Interface Container -->
+            <div id="exportInterfaceContainer" class="export-row" style="margin-top: 25px; display: none;">
+                <!-- Export interface will be dynamically generated here -->
+            </div>
         </div>
     </div>
 
@@ -1825,6 +1858,11 @@ Copy this AFTER Part 2 (after the sidebar closing div)
             } finally {
                 showLoading(false);
             }
+            
+            // Show export interface after chart is generated
+            if (window.exportInterface && typeof window.exportInterface.show === 'function') {
+                window.exportInterface.show();
+            }
         }
 
         function createPlotlyConfig(chartType, data, options) {
@@ -2128,9 +2166,24 @@ Copy this AFTER Part 2 (after the sidebar closing div)
         });
 
         updateHeaderOptions();
+        
+        // Initialize tier management system
+        if (window.tierManagement && typeof window.tierManagement.initialize === 'function') {
+            window.tierManagement.initialize();
+        } else {
+            console.warn('Tier management not available, applying fallback');
+            document.body.className = 'tier-noob';
+        }
+        
+        // Ensure body has a tier class for button visibility
+        if (!document.body.className.includes('tier-')) {
+            document.body.className = 'tier-noob';
+        }
+        
         console.log('GetCharty initialized successfully!');
         console.log('Session ID:', sessionId);
         console.log('Chart width:', chartWidth);
+        console.log('Body class:', document.body.className);
         
     </script>
 </body>

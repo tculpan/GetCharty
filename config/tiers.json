@@ -1,0 +1,166 @@
+{
+  "metadata": {
+    "filename": "config/tiers.json",
+    "updated": "2025-08-21 14:24:37",
+    "description": "Shared tier configuration for GetCharty client and server"
+  },
+  "tiers": {
+    "noob": {
+      "name": "Noob",
+      "description": "Anonymous users with basic features",
+      "features": {
+        "watermark": true,
+        "watermarkOpacity": 0.4,
+        "watermarkSize": 14,
+        "watermarkPosition": "bottom-left",
+        "exportJPG": true,
+        "autoSpacing": false,
+        "advancedCharts": false,
+        "customBranding": false,
+        "serverFeatures": false,
+        "prioritySupport": false
+      },
+      "limits": {
+        "monthlyCharts": 10,
+        "fileSizeMB": 5,
+        "concurrentSessions": 1,
+        "exportQuality": "standard"
+      },
+      "ui": {
+        "showVelvetCurtain": true,
+        "showUpgradePrompts": true,
+        "tierColor": "#6b7280",
+        "progressionPercent": 25
+      }
+    },
+    "registered": {
+      "name": "Registered",
+      "description": "Free registered users with enhanced features",
+      "features": {
+        "watermark": true,
+        "watermarkOpacity": 0.4,
+        "watermarkSize": 14,
+        "watermarkPosition": "bottom-left",
+        "exportJPG": true,
+        "autoSpacing": true,
+        "advancedCharts": true,
+        "customBranding": false,
+        "serverFeatures": true,
+        "prioritySupport": false
+      },
+      "limits": {
+        "monthlyCharts": 50,
+        "fileSizeMB": 10,
+        "concurrentSessions": 2,
+        "exportQuality": "high"
+      },
+      "ui": {
+        "showVelvetCurtain": false,
+        "showUpgradePrompts": true,
+        "tierColor": "#3b82f6",
+        "progressionPercent": 60
+      }
+    },
+    "viper": {
+      "name": "VIPer",
+      "description": "Paid users with premium features",
+      "features": {
+        "watermark": false,
+        "watermarkOpacity": 0.2,
+        "watermarkSize": 12,
+        "watermarkPosition": "bottom-left",
+        "exportJPG": true,
+        "autoSpacing": true,
+        "advancedCharts": true,
+        "customBranding": true,
+        "serverFeatures": true,
+        "prioritySupport": true
+      },
+      "limits": {
+        "monthlyCharts": -1,
+        "fileSizeMB": 25,
+        "concurrentSessions": 5,
+        "exportQuality": "premium"
+      },
+      "ui": {
+        "showVelvetCurtain": false,
+        "showUpgradePrompts": false,
+        "tierColor": "#fbbf24",
+        "progressionPercent": 100
+      }
+    }
+  },
+  "features": {
+    "watermark": {
+      "description": "Chart watermark functionality",
+      "tiers": ["noob", "registered"]
+    },
+    "exportJPG": {
+      "description": "Export charts as JPG images",
+      "tiers": ["noob", "registered", "viper"]
+    },
+    "autoSpacing": {
+      "description": "Automatic axis spacing",
+      "tiers": ["registered", "viper"]
+    },
+    "advancedCharts": {
+      "description": "Advanced chart types and options",
+      "tiers": ["registered", "viper"]
+    },
+    "customBranding": {
+      "description": "Custom colors and branding",
+      "tiers": ["viper"]
+    },
+    "serverFeatures": {
+      "description": "Server-side processing features",
+      "tiers": ["registered", "viper"]
+    },
+    "prioritySupport": {
+      "description": "Priority customer support",
+      "tiers": ["viper"]
+    }
+  },
+  "limits": {
+    "monthlyCharts": {
+      "description": "Maximum charts per month",
+      "noob": 10,
+      "registered": 50,
+      "viper": -1
+    },
+    "fileSizeMB": {
+      "description": "Maximum file upload size",
+      "noob": 5,
+      "registered": 10,
+      "viper": 25
+    },
+    "concurrentSessions": {
+      "description": "Maximum concurrent sessions",
+      "noob": 1,
+      "registered": 2,
+      "viper": 5
+    }
+  },
+  "upgrades": {
+    "noob_to_registered": {
+      "cost": "Free",
+      "requirements": ["email_verification"],
+      "benefits": [
+        "50 charts per month",
+        "Auto-spacing feature",
+        "Advanced chart types",
+        "Server-side features"
+      ]
+    },
+    "registered_to_viper": {
+      "cost": "$3/month",
+      "requirements": ["payment_verification"],
+      "benefits": [
+        "Unlimited charts",
+        "No watermarks",
+        "Custom branding",
+        "Priority support",
+        "Larger file uploads"
+      ]
+    }
+  }
+}

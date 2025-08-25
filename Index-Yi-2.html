@@ -1,0 +1,2011 @@
+<!--
+Filename: Index-Yi-2.html
+Updated: 2025-08-25 16:56:32
+Description: Complete tiered charting application - Option 2: Fixed Height with Scroll (max-height: 100vh with overflow-y: auto)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GetCharty -- A New, Better Way to Make Charts</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            height: 100vh;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            color: white;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar h2 {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            color: #e94560;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+        }
+
+        .main-area {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 30px;
+            overflow-y: auto;
+            max-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .section {
+            margin-bottom: 3px;
+            padding-bottom: 1px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section h3 {
+            color: #e94560;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.3);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            margin: 6px 0;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #e94560;
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .input-field::placeholder {
+            color: #a8a8a8;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-group .input-field {
+            flex: 1;
+        }
+
+        .chart-type-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .chart-type-btn {
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            color: #a8a8a8;
+            padding: 12px 8px;
+            text-align: center;
+        }
+
+        .chart-type-btn .icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .chart-type-btn .title {
+            font-size: 10px;
+            color: #a8a8a8;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+
+        .chart-type-btn:hover {
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+        }
+
+        .chart-type-btn.active {
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.3);
+            color: white;
+            box-shadow: 0 0 15px rgba(233, 69, 96, 0.3);
+        }
+
+        .chart-type-btn:hover .title,
+        .chart-type-btn.active .title {
+            color: white;
+        }
+
+        .file-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #a8a8a8;
+            text-align: center;
+            margin: 10px 0;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input:hover {
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.1);
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e94560, #533483);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px 0;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .chart-container.has-chart {
+            min-height: 500px;
+            display: block;
+            height: auto;
+            overflow: visible;
+            padding: 20px 20px 15px 20px;
+        }
+        
+        .chart-container.has-chart #plotlyChart {
+            width: 100%;
+        }
+
+        .chart-placeholder {
+            text-align: center;
+            color: #a8a8a8;
+        }
+
+        .chart-placeholder h2 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .chart-placeholder p {
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        .mock-chart-placeholder {
+            text-align: center;
+            color: #a8a8a8;
+        }
+
+        .mock-chart-placeholder h3 {
+            color: white;
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+        }
+
+        .mock-chart-placeholder p {
+            font-size: 14px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin: 12px 0;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: white;
+            transition: color 0.3s ease;
+        }
+
+        .radio-label input[type="radio"] {
+            accent-color: #e94560;
+        }
+
+        .orientation-label {
+            font-size: 12px;
+            color: #a8a8a8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .slider-container {
+            margin: 12px 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #e94560;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .display-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 12px 0;
+            padding: 8px 0;
+        }
+
+        .display-option span {
+            font-size: 14px;
+            color: white;
+        }
+
+        .dropdown {
+            padding: 8px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            min-width: 80px;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown:focus {
+            outline: none;
+            border-color: #e94560;
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+        }
+
+        .more-charts-dropdown {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            margin: 12px 0 0 0;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .more-charts-dropdown:focus {
+            outline: none;
+            border-color: #e94560;
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+        }
+
+        /* TIER PROGRESSION STYLES */
+        .tier-progression {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+        }
+
+        .tier-labels {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .tier-labels span {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .tier-noob { color: #6b7280; }
+        .tier-registered { color: #3b82f6; }
+        .tier-viper { color: #fbbf24; }
+
+        .usage-bar {
+            background: rgba(255, 255, 255, 0.1);
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .usage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #fbbf24, #ef4444);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 25%;
+        }
+
+        .velvet-curtain-btn {
+            background: linear-gradient(135deg, #8B1538, #A0153E, #5D0E17);
+            color: #F8E8DC;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(248, 232, 220, 0.2);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 8px rgba(139, 21, 56, 0.3);
+            margin-top: 10px;
+        }
+
+        .velvet-curtain-btn:hover {
+            background: linear-gradient(135deg, #A0153E, #B91C51, #8B1538);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(139, 21, 56, 0.4);
+            border-color: rgba(248, 232, 220, 0.3);
+        }
+
+        .registration-message {
+            font-size: 12px;
+            color: #a8a8a8;
+            margin-top: 4px;
+            margin-left: 0;
+            font-style: italic;
+        }
+
+        /* Export Interface Styles */
+        .export-interface {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .export-tabs {
+            display: flex;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .export-tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            color: #a8a8a8;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .export-tab.active {
+            color: #e94560;
+            border-bottom-color: #e94560;
+        }
+
+        .export-tab:hover {
+            color: #e94560;
+        }
+
+        .export-content {
+            display: none;
+        }
+
+        .export-content.active {
+            display: block;
+        }
+
+        .export-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .export-button {
+            padding: 12px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+        }
+
+        .export-button:hover:not(.locked) {
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+        }
+
+        .export-button.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .export-button.viper {
+            border-color: #fbbf24;
+            color: #fbbf24;
+        }
+
+        .export-button.premium {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .export-button.social {
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .export-button.social.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .export-button.social.viper {
+            border-color: #fbbf24;
+            color: #fbbf24;
+        }
+
+        .export-button.social.premium {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .lock-icon {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: rgba(233, 69, 96, 0.2);
+            border: 1px solid #e94560;
+            color: white;
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: white;
+        }
+
+        .status-info {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid #3b82f6;
+            color: white;
+        }
+
+        .status-warning {
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid #f59e0b;
+            color: white;
+        }
+
+        /* Watermark styles */
+        .chart-watermark {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+            pointer-events: none;
+            user-select: none;
+            z-index: 1000;
+        }
+
+        .tier-noob .chart-watermark {
+            opacity: 0.8;
+            font-size: 14px;
+        }
+
+        .tier-registered .chart-watermark {
+            opacity: 0.6;
+            font-size: 12px;
+        }
+
+        .tier-viper .chart-watermark {
+            opacity: 0.3;
+            font-size: 10px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .sidebar-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .export-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Hidden elements for watermark generation */
+        .watermark-canvas {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar-layout">
+        <div class="sidebar">
+            <h2>📊 GetCharty</h2>
+            
+            <div class="section">
+                <h3>Data Import</h3>
+                <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls">
+                
+                <div class="orientation-label">Data Orientation</div>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="dataOrientation" value="vertical" checked>
+                        Vertical
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="dataOrientation" value="horizontal">
+                        Horizontal
+                    </label>
+                </div>
+                
+                <div class="orientation-label">Header Structure</div>
+                <div class="slider-container" id="headerStructureGroup" style="margin-bottom: 3px;">
+                    <label class="slider-label">
+                        <span id="headerStructureText">First row is headers</span>
+                        <label class="switch">
+                            <input type="checkbox" id="headerStructureToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </label>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="generateBtn" onclick="generateChart()" disabled>
+                🚀 Generate Chart
+            </button>
+            
+            <div class="section">
+                <h3>Chart Type</h3>
+                <div class="chart-type-grid">
+                    <div class="chart-type-btn active" data-chart-type="vertical_bar" title="Vertical Bar Chart">
+                        <div class="icon">📊</div>
+                        <div class="title">Vertical Bar</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="horizontal_bar" title="Horizontal Bar Chart">
+                        <div class="icon">📊</div>
+                        <div class="title">Horizontal Bar</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="line" title="Line Chart">
+                        <div class="icon">📈</div>
+                        <div class="title">Line</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="scatter" title="Scatter Plot">
+                        <div class="icon">🎯</div>
+                        <div class="title">Scatter</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="pie" title="Pie Chart">
+                        <div class="icon">🥧</div>
+                        <div class="title">Pie</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="histogram" title="Histogram">
+                        <div class="icon">📊</div>
+                        <div class="title">Histogram</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="box" title="Box Plot">
+                        <div class="icon">📦</div>
+                        <div class="title">Box Plot</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="heatmap" title="Heatmap">
+                        <div class="icon">🗺️</div>
+                        <div class="title">Heatmap</div>
+                    </div>
+                </div>
+                
+                <!-- TIER PROGRESSION SECTION -->
+                <div class="tier-progression">
+                    <div class="tier-labels">
+                        <span class="tier-noob">Noob</span>
+                        <span class="tier-registered">Registered</span>
+                        <span class="tier-viper">VIPer</span>
+                    </div>
+                    <div class="usage-bar">
+                        <div class="usage-fill"></div>
+                    </div>
+                    <div class="velvet-curtain-btn" onclick="window.open('Take_A_Peek.html', '_blank')">
+                        Peek Behind the Velvet Curtain
+                    </div>
+                </div>
+                
+                <select class="more-charts-dropdown">
+                    <option>📋 More Chart Types</option>
+                    <option>📋 Area Chart</option>
+                    <option>📊 Histogram</option>
+                    <option>📈 Step Chart</option>
+                    <option>🌡️ Gauge Chart</option>
+                    <option>🗺️ Heatmap</option>
+                    <option>🌊 Waterfall Chart</option>
+                    <option>📈 Candlestick Chart</option>
+                    <option>🎯 Bubble Chart</option>
+                    <option>📊 Funnel Chart</option>
+                    <option>🌳 Treemap</option>
+                    <option>📡 Radar Chart</option>
+                    <option>📊 Box Plot</option>
+                </select>
+            </div>
+            
+            <div class="section">
+                <h3>Chart Information</h3>
+                <input class="input-field" id="chartTitle" placeholder="Chart Title">
+                <input class="input-field" id="chartSubtitle" placeholder="Subtitle">
+                <input class="input-field" id="chartFootnote" placeholder="Footnote (appears below chart, left-aligned)">
+                <input class="input-field" id="chartSource" placeholder="Data Source (appears below chart, right-aligned)">
+            </div>
+            
+            <div class="section">
+                <h3>Axis Labels</h3>
+                <input class="input-field" id="xAxisTitle" placeholder="X-Axis Title">
+                <input class="input-field" id="yAxisTitle" placeholder="Y-Axis Title">
+                <div class="input-group">
+                    <input class="input-field" id="yPrefix" placeholder="Y-Prefix">
+                    <input class="input-field" id="ySuffix" placeholder="Y-Suffix">
+                </div>
+                <div style="margin-top: 12px;">
+                    <label style="display: block; color: #a8a8a8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 600;">Y-Axis Denominator</label>
+                    <input class="input-field" placeholder="eg. 100; 1,000,000">
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>Display Options</h3>
+                
+                <div class="display-option">
+                    <span>Horizontal Grid Lines</span>
+                    <label class="switch">
+                        <input type="checkbox" id="horizontalGrid" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="display-option">
+                    <span>Vertical Grid Lines</span>
+                    <label class="switch">
+                        <input type="checkbox" id="verticalGrid">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="display-option">
+                    <span>X-Axis Labels</span>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="display-option">
+                    <span>Auto X-Spacing</span>
+                    <label class="switch">
+                        <input type="checkbox" id="autoSpacing">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div id="autoSpacingMessage" class="registration-message" style="display: none;">
+                    Only available to registered users.
+                </div>
+                
+                <div class="display-option">
+                    <span>Y-Axis Labels</span>
+                    <select class="dropdown" id="yAxisLabelsMode">
+                        <option value="on">On</option>
+                        <option value="off">Off</option>
+                        <option value="top">Top Only</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Column Selection</h3>
+                <select id="xColumn" class="input-field">
+                    <option>Select X-Axis Column</option>
+                </select>
+                <select id="yColumn" class="input-field">
+                    <option>Select Y-Axis Column</option>
+                </select>
+                <select id="zColumn" class="input-field">
+                    <option value="">Z-Axis Column (3D only)</option>
+                </select>
+                <select id="colorColumn" class="input-field">
+                    <option value="">Color Column (optional)</option>
+                </select>
+            </div>
+
+            <div class="section">
+                <h3>Chart Options</h3>
+                <select id="aggregation" class="input-field">
+                    <option value="none">No Aggregation</option>
+                    <option value="count">Count</option>
+                    <option value="sum">Sum</option>
+                    <option value="average">Average</option>
+                    <option value="max">Maximum</option>
+                    <option value="min">Minimum</option>
+                </select>
+                <select id="maxItems" class="input-field">
+                    <option value="10">Top 10</option>
+                    <option value="20">Top 20</option>
+                    <option value="50">Top 50</option>
+                    <option value="all">Show All</option>
+                </select>
+            </div>
+
+            <div class="section">
+                <h3>Advanced Styling</h3>
+                <select class="input-field">
+                    <option>🎨 Color Schemes</option>
+                    <option>🌈 Vibrant</option>
+                    <option>💼 Professional</option>
+                    <option>🌙 Dark Mode</option>
+                    <option>🌸 Pastel</option>
+                </select>
+                <select class="input-field">
+                    <option>🔤 Font Families</option>
+                    <option>Arial</option>
+                    <option>Helvetica</option>
+                    <option>Georgia</option>
+                    <option>Times New Roman</option>
+                </select>
+                <select class="input-field">
+                    <option>🎯 Element Colors</option>
+                    <option>Title Color</option>
+                    <option>Axis Color</option>
+                    <option>Grid Color</option>
+                    <option>Background Color</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="main-area">
+            <div class="chart-container" id="chartContainer">
+                <div id="plotlyChart" class="chart-placeholder">
+                    <div class="mock-chart-placeholder">
+                        <div style="font-size: 40px; margin-bottom: 10px; opacity: 0.3;">📊</div>
+                        <h3>Your Chart Goes Here</h3>
+                        <p class="watermark-note">Includes GetCharty.com Watermark</p>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn-primary generate-chart-btn" id="generateBtnMain" onclick="generateChart()" disabled style="margin-top: 20px; padding: 15px 30px;">
+                🚀 Generate Chart
+            </button>
+            
+            <!-- Export Interface Container -->
+            <div id="exportInterface" class="export-interface">
+                <div class="export-tabs">
+                    <button class="export-tab active" onclick="switchTab('export')">Export</button>
+                    <button class="export-tab" onclick="switchTab('share')">Share</button>
+                </div>
+
+                <div class="export-content active" id="exportContent">
+                    <h4 style="color: white; margin-bottom: 15px;">Export your chart in various formats</h4>
+                    <div class="export-buttons" id="exportButtons">
+                        <!-- Dynamically generated -->
+                    </div>
+                </div>
+
+                <div class="export-content" id="shareContent">
+                    <h4 style="color: white; margin-bottom: 15px;">Share your chart with others</h4>
+                    <div class="export-buttons" id="shareButtons">
+                        <!-- Dynamically generated -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API configuration
+        const API_ENDPOINT = 'http://localhost:5000';
+        
+        // Session management
+        let sessionId = localStorage.getItem('getcharty_session_id') || generateSessionId();
+        localStorage.setItem('getcharty_session_id', sessionId);
+        
+        let currentData = [];
+        let currentChart = null;
+        let processedData = [];
+        let rawData = [];
+        let currentFileId = null;
+        let chartWidth = 850; // Default chart width
+        let selectedOrientation = 'vertical';
+        let currentTier = 'noob';
+
+        // Tier Configuration
+        const TIER_CONFIG = {
+            noob: {
+                exportFormats: ['jpg'],
+                exportQuality: 'low',
+                watermarkOpacity: 0.8,
+                watermarkSize: 14,
+                features: {
+                    socialSharing: true,
+                    embedCode: true,
+                    directLinks: true,
+                    emailShare: true
+                }
+            },
+            registered: {
+                exportFormats: ['jpg', 'png'],
+                exportQuality: 'medium',
+                watermarkOpacity: 0.6,
+                watermarkSize: 12,
+                features: {
+                    socialSharing: true,
+                    embedCode: true,
+                    directLinks: true,
+                    emailShare: true
+                }
+            },
+            viper: {
+                exportFormats: ['jpg', 'png', 'svg', 'pdf'],
+                exportQuality: 'high',
+                watermarkOpacity: 0.3,
+                watermarkSize: 10,
+                features: {
+                    socialSharing: true,
+                    embedCode: true,
+                    directLinks: true,
+                    emailShare: true
+                }
+            }
+        };
+
+        function generateSessionId() {
+            return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTierManagement();
+            setupEventListeners();
+            updateHeaderStructureText();
+            updateExportInterface(); // Initialize export interface on page load
+        });
+
+        // Tier Management
+        function initializeTierManagement() {
+            try {
+                currentTier = localStorage.getItem('getcharty_tier') || 'noob';
+                document.body.className = `tier-${currentTier}`;
+                updateTierIndicator();
+                updateWatermarkText();
+            } catch (error) {
+                console.error('Tier management initialization failed:', error);
+                document.body.className = 'tier-noob';
+            }
+        }
+
+        function updateTierIndicator() {
+            const tierNames = {
+                noob: 'Noob',
+                registered: 'Registered',
+                viper: 'VIPer'
+            };
+        }
+
+        function updateWatermarkText() {
+            const watermarkNote = document.querySelector('.watermark-note');
+            if (watermarkNote) {
+                const tierNames = {
+                    noob: 'Noob',
+                    registered: 'Registered',
+                    viper: 'VIPer'
+                };
+                watermarkNote.textContent = `Includes GetCharty.com Watermark (${tierNames[currentTier]} Tier)`;
+            }
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            // File input
+            document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+            
+            // Chart type buttons
+            document.querySelectorAll('.chart-type-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Data orientation radio buttons
+            document.querySelectorAll('input[name="dataOrientation"]').forEach(radio => {
+                radio.addEventListener('change', handleDataOrientationChange);
+            });
+
+            // Header structure toggle
+            const headerToggle = document.getElementById('headerStructureToggle');
+            if (headerToggle) {
+                headerToggle.addEventListener('change', updateHeaderStructureText);
+            }
+            
+            // Auto-spacing toggle
+            const autoSpacingToggle = document.getElementById('autoSpacing');
+            if (autoSpacingToggle) {
+                autoSpacingToggle.addEventListener('change', handleAutoSpacingChange);
+            }
+        }
+
+        function handleDataOrientationChange() {
+            const selectedRadio = document.querySelector('input[name="dataOrientation"]:checked');
+            if (!selectedRadio) return;
+            
+            selectedOrientation = selectedRadio.value;
+            updateHeaderStructureText();
+            showStatus(`📐 Data orientation changed to ${selectedOrientation}`, 'info');
+            
+            if (rawData.length > 0) {
+                processDataWithHeaders();
+                showStatus(`✅ Data reoriented to ${selectedOrientation} format with ${currentData.length} rows!`, 'success');
+            } else {
+                showStatus(`⚙️ Orientation set to ${selectedOrientation}. This will be applied when you upload data.`, 'info');
+            }
+        }
+
+        function updateHeaderStructureText() {
+            const headerText = document.getElementById('headerStructureText');
+            const headerToggle = document.getElementById('headerStructureToggle');
+            
+            if (headerText && headerToggle) {
+                if (selectedOrientation === 'vertical') {
+                    headerText.textContent = headerToggle.checked ? 'First row is headers' : 'No headers';
+                } else {
+                    headerText.textContent = headerToggle.checked ? 'First column is headers' : 'No headers';
+                }
+            }
+        }
+
+        function handleAutoSpacingChange() {
+            const autoSpacingToggle = document.getElementById('autoSpacing');
+            const autoSpacingMessage = document.getElementById('autoSpacingMessage');
+            
+            if (autoSpacingToggle && autoSpacingMessage) {
+                if (autoSpacingToggle.checked) {
+                    autoSpacingMessage.style.display = 'block';
+                    showStatus('⚠️ Auto-spacing requires registration. Feature will be limited.', 'warning');
+                } else {
+                    autoSpacingMessage.style.display = 'none';
+                    showStatus('✅ Using manual spacing mode', 'success');
+                }
+            }
+        }
+
+        // File Handling
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                parseFileContent(content, file.name);
+            };
+
+            if (file.name.endsWith('.csv')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        function parseFileContent(content, filename) {
+            try {
+                if (filename.endsWith('.csv')) {
+                    Papa.parse(content, {
+                        header: false,
+                        skipEmptyLines: true,
+                        complete: function(results) {
+                            rawData = results.data.filter(row => row.length > 0 && row.some(cell => cell !== ''));
+                            processDataWithHeaders();
+                            showStatus(`✅ CSV file loaded with ${rawData.length} rows`, 'success');
+                            document.getElementById('generateBtn').disabled = false;
+                            document.getElementById('generateBtnMain').disabled = false;
+                        },
+                        error: function(error) {
+                            showStatus(`❌ Error parsing CSV: ${error.message}`, 'error');
+                        }
+                    });
+                } else {
+                    // Excel file handling
+                    const workbook = XLSX.read(content, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    rawData = rawData.filter(row => row.length > 0 && row.some(cell => cell !== ''));
+                    processDataWithHeaders();
+                    showStatus(`✅ Excel file loaded with ${rawData.length} rows`, 'success');
+                    document.getElementById('generateBtn').disabled = false;
+                    document.getElementById('generateBtnMain').disabled = false;
+                }
+            } catch (error) {
+                showStatus(`❌ Error processing file: ${error.message}`, 'error');
+            }
+        }
+
+        function processDataWithHeaders() {
+            if (rawData.length === 0) return;
+
+            const headerToggle = document.getElementById('headerStructureToggle');
+            const useHeaders = headerToggle ? headerToggle.checked : false;
+
+            if (selectedOrientation === 'horizontal') {
+                // Transpose data first, then handle headers
+                let transposedData = transposeData(rawData);
+                if (useHeaders) {
+                    const headers = transposedData[0];
+                    transposedData = transposedData.slice(1);
+                    // Rename columns using headers
+                    transposedData = transposedData.map((row, index) => {
+                        const newRow = {};
+                        headers.forEach((header, colIndex) => {
+                            newRow[header || `Column ${colIndex + 1}`] = row[colIndex];
+                        });
+                        return newRow;
+                    });
+                }
+                currentData = transposedData;
+            } else {
+                // Vertical data
+                if (useHeaders) {
+                    const headers = rawData[0];
+                    const dataRows = rawData.slice(1);
+                    currentData = dataRows.map(row => {
+                        const newRow = {};
+                        headers.forEach((header, index) => {
+                            newRow[header || `Column ${index + 1}`] = row[index];
+                        });
+                        return newRow;
+                    });
+                } else {
+                    currentData = rawData.map((row, index) => {
+                        const newRow = {};
+                        row.forEach((cell, colIndex) => {
+                            newRow[`Column ${colIndex + 1}`] = cell;
+                        });
+                        return newRow;
+                    });
+                }
+            }
+
+            currentFileId = `local_${Date.now()}`;
+        }
+
+        function transposeData(data) {
+            if (data.length === 0) return [];
+            const maxCols = Math.max(...data.map(row => row.length));
+            const transposed = [];
+            
+            for (let i = 0; i < maxCols; i++) {
+                transposed[i] = [];
+                for (let j = 0; j < data.length; j++) {
+                    transposed[i][j] = data[j][i] || '';
+                }
+            }
+            
+            return transposed;
+        }
+
+        // Data processing functions
+        function prepareChartData() {
+            return currentData;
+        }
+
+        function showDataPreview(data) {
+            // Optional: Add data preview functionality if needed
+            console.log('Data prepared:', data.length, 'rows');
+        }
+
+        // Chart Generation
+        async function generateChart() {
+            if (currentData.length === 0) {
+                showStatus('❌ No data available. Please upload a file first.', 'error');
+                return;
+            }
+
+            const chartType = document.querySelector('.chart-type-btn.active').dataset.chartType;
+            const title = document.getElementById('chartTitle').value || 'Chart Title';
+            const subtitle = document.getElementById('chartSubtitle').value || '';
+            const footnote = document.getElementById('chartFootnote').value || '';
+            const source = document.getElementById('chartSource').value || '';
+            const autoSpacing = document.getElementById('autoSpacing') ? document.getElementById('autoSpacing').checked : false;
+            
+            try {
+                showStatus('🎨 Generating your interactive chart...', 'warning');
+                
+                // Calculate dynamic margins and container height
+                const { topMargin, bottomMargin } = calculateDynamicMargins(title, subtitle, footnote, source, autoSpacing);
+                const containerHeight = calculateContainerHeight(topMargin, bottomMargin);
+                
+                const chartContainer = document.getElementById('chartContainer');
+                chartContainer.style.height = `${containerHeight}px`;
+                chartContainer.style.minHeight = 'unset';
+                
+                // Process and prepare data
+                processedData = prepareChartData();
+                showDataPreview(processedData);
+                
+                const config = createChartConfig(chartType, {
+                    title,
+                    subtitle,
+                    footnote,
+                    source,
+                    topMargin,
+                    bottomMargin,
+                    autoSpacing
+                });
+                
+                // Add watermark to chart container
+                if (!document.querySelector('.chart-watermark')) {
+                    const watermark = document.createElement('div');
+                    watermark.className = 'chart-watermark';
+                    watermark.textContent = 'GetCharty.com';
+                    chartContainer.appendChild(watermark);
+                }
+
+                const plotlyChart = document.getElementById('plotlyChart');
+                if (plotlyChart) {
+                    plotlyChart.innerHTML = '';
+                    Plotly.newPlot('plotlyChart', config.data, config.layout, config.options)
+                        .then(function() {
+                            syncContainerWithPlotly();
+                            validateAndAdjustChartSpacing();
+                            showStatus('✅ Chart generated successfully!', 'success');
+                            updateExportInterface(); // Update export interface after chart generation
+                        });
+                }
+                
+                if (chartContainer) {
+                    chartContainer.classList.add('has-chart');
+                }
+                
+            } catch (error) {
+                showStatus(`❌ Error generating chart: ${error.message}`, 'error');
+                console.error('Chart generation error:', error);
+            }
+        }
+
+        function createChartConfig(chartType, options) {
+            const { 
+                title, subtitle, footnote, source, 
+                topMargin, bottomMargin, autoSpacing
+            } = options;
+
+            // Get column names
+            const columns = Object.keys(currentData[0] || {});
+            const xColumn = columns[0] || 'Column 1';
+            const yColumn = columns[1] || 'Column 2';
+
+            // Prepare data
+            const xValues = currentData.map(row => row[xColumn]);
+            const yValues = currentData.map(row => parseFloat(row[yColumn]) || 0);
+
+            let data = [];
+            
+            // Create title with wrapped subtitle
+            let titleText = title || '';
+            if (subtitle) {
+                const wrappedSubtitle = wrapSubtitleText(subtitle, 100);
+                titleText = `${title}<br><span style="font-size: 14px; color: rgba(255,255,255,0.8);">${wrappedSubtitle}</span>`;
+            }
+            
+            let layout = {
+                title: {
+                    text: titleText,
+                    font: { size: 18, color: 'white' },
+                    x: 0.5,
+                    xanchor: 'center'
+                },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'white' },
+                xaxis: {
+                    gridcolor: 'rgba(255,255,255,0.1)',
+                    zerolinecolor: 'rgba(255,255,255,0.2)'
+                },
+                yaxis: {
+                    gridcolor: 'rgba(255,255,255,0.1)',
+                    zerolinecolor: 'rgba(255,255,255,0.2)'
+                },
+                margin: { l: 80, r: 65, t: topMargin, b: bottomMargin },
+                height: 400 + topMargin + bottomMargin,
+                width: chartWidth,
+                autosize: false
+            };
+
+            // Add annotations for footnote and source with text wrapping
+            const annotations = [];
+            if (footnote) {
+                const footnoteY = autoSpacing ? -0.15 : -0.20;
+                annotations.push({
+                    text: `<i>${wrapFootnoteText(footnote)}</i>`,
+                    showarrow: false,
+                    xref: 'paper',
+                    yref: 'paper',
+                    x: 0,
+                    y: footnoteY,
+                    xanchor: 'left',
+                    yanchor: 'top',
+                    width: 0.3,
+                    align: 'left',
+                    font: { 
+                        size: 12, 
+                        color: 'rgba(255,255,255,0.8)',
+                        family: 'Arial, sans-serif'
+                    },
+                    bgcolor: 'rgba(0,0,0,0)',
+                    bordercolor: 'rgba(0,0,0,0)',
+                    borderwidth: 0
+                });
+            }
+            if (source) {
+                const sourceY = autoSpacing ? -0.15 : -0.20;
+                annotations.push({
+                    text: wrapSourceText(source),
+                    showarrow: false,
+                    xref: 'paper',
+                    yref: 'paper',
+                    x: 1,
+                    y: sourceY,
+                    xanchor: 'right',
+                    yanchor: 'top',
+                    width: 0.3,
+                    align: 'right',
+                    font: { 
+                        size: 12, 
+                        color: 'rgba(255,255,255,0.8)',
+                        family: 'Arial, sans-serif'
+                    },
+                    bgcolor: 'rgba(0,0,0,0)',
+                    bordercolor: 'rgba(0,0,0,0)',
+                    borderwidth: 0
+                });
+            }
+            if (annotations.length > 0) {
+                layout.annotations = annotations;
+            }
+
+            // Create chart data based on type
+            switch (chartType) {
+                case 'vertical_bar':
+                    data = [{
+                        x: xValues,
+                        y: yValues,
+                        type: 'bar',
+                        marker: { color: '#e94560' }
+                    }];
+                    break;
+                case 'horizontal_bar':
+                    data = [{
+                        x: yValues,
+                        y: xValues,
+                        type: 'bar',
+                        orientation: 'h',
+                        marker: { color: '#e94560' }
+                    }];
+                    break;
+                case 'line':
+                    data = [{
+                        x: xValues,
+                        y: yValues,
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        line: { color: '#e94560', width: 3 },
+                        marker: { color: '#e94560', size: 8 }
+                    }];
+                    break;
+                case 'scatter':
+                    data = [{
+                        x: xValues,
+                        y: yValues,
+                        type: 'scatter',
+                        mode: 'markers',
+                        marker: { color: '#e94560', size: 10 }
+                    }];
+                    break;
+                case 'pie':
+                    data = [{
+                        labels: xValues,
+                        values: yValues,
+                        type: 'pie',
+                        marker: { colors: ['#e94560', '#533483', '#16213e', '#0f3460'] }
+                    }];
+                    break;
+                case 'histogram':
+                    data = [{
+                        x: yValues,
+                        type: 'histogram',
+                        marker: { color: '#e94560' }
+                    }];
+                    break;
+                case 'box':
+                    data = [{
+                        y: yValues,
+                        type: 'box',
+                        marker: { color: '#e94560' }
+                    }];
+                    break;
+                case 'heatmap':
+                    // For heatmap, we need 2D data
+                    const heatmapData = [];
+                    for (let i = 0; i < Math.min(xValues.length, 10); i++) {
+                        heatmapData.push([yValues[i] || 0]);
+                    }
+                    data = [{
+                        z: heatmapData,
+                        type: 'heatmap',
+                        colorscale: 'Viridis'
+                    }];
+                    break;
+                default:
+                    data = [{
+                        x: xValues,
+                        y: yValues,
+                        type: 'bar',
+                        marker: { color: '#e94560' }
+                    }];
+            }
+
+            return {
+                data: data,
+                layout: layout,
+                options: {
+                    responsive: true,
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d']
+                }
+            };
+        }
+
+        // Export Interface
+        function updateExportInterface() {
+            updateExportButtons();
+            updateShareButtons();
+        }
+
+        function updateExportButtons() {
+            const container = document.getElementById('exportButtons');
+            if (!container) return;
+
+            const config = TIER_CONFIG[currentTier];
+            container.innerHTML = '';
+
+            const exportOptions = [
+                { format: 'jpg', label: '📷 JPG', tier: 'noob' },
+                { format: 'png', label: '🖼️ PNG', tier: 'registered' },
+                { format: 'svg', label: '🎨 SVG', tier: 'viper' },
+                { format: 'pdf', label: '📄 PDF', tier: 'viper' }
+            ];
+
+            exportOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'export-button';
+                button.textContent = option.label;
+                
+                if (!config.exportFormats.includes(option.format)) {
+                    button.classList.add('locked');
+                    button.innerHTML += '<span class="lock-icon">🔒</span>';
+                    button.onclick = () => showUpgradePrompt(option.tier);
+                } else {
+                    button.onclick = () => exportChart(option.format);
+                }
+
+                if (option.tier === 'viper') button.classList.add('viper');
+                if (option.tier === 'registered') button.classList.add('premium');
+
+                container.appendChild(button);
+            });
+        }
+
+        function updateShareButtons() {
+            const container = document.getElementById('shareButtons');
+            if (!container) return;
+
+            const config = TIER_CONFIG[currentTier];
+            container.innerHTML = '';
+
+            const shareOptions = [
+                { platform: 'facebook', label: '📘 Facebook', feature: 'socialSharing' },
+                { platform: 'twitter', label: '🐦 Twitter', feature: 'socialSharing' },
+                { platform: 'linkedin', label: '💼 LinkedIn', feature: 'socialSharing' },
+                { platform: 'embed', label: '📋 Embed Code', feature: 'embedCode' },
+                { platform: 'link', label: '🔗 Direct Link', feature: 'directLinks' },
+                { platform: 'email', label: '📧 Email', feature: 'emailShare' }
+            ];
+
+            shareOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'export-button social';
+                button.textContent = option.label;
+                
+                if (!config.features[option.feature]) {
+                    button.classList.add('locked');
+                    button.innerHTML += '<span class="lock-icon">🔒</span>';
+                    button.onclick = () => showUpgradePrompt('registered');
+                } else {
+                    button.onclick = () => shareChart(option.platform);
+                }
+
+                container.appendChild(button);
+            });
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.export-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.export-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + 'Content').classList.add('active');
+        }
+
+        // Export Functionality
+        function exportChart(format) {
+            if (format === 'jpg') {
+                exportAsJPG();
+            } else {
+                showStatus(`❌ ${format.toUpperCase()} export not implemented yet`, 'warning');
+            }
+        }
+
+        function exportAsJPG() {
+            const chartElement = document.getElementById('plotlyChart');
+            if (!chartElement) {
+                showStatus('❌ Chart element not found', 'error');
+                return;
+            }
+
+            html2canvas(chartElement, {
+                backgroundColor: null,
+                scale: 2,
+                useCORS: true,
+                allowTaint: true
+            }).then(canvas => {
+                // Add watermark to canvas
+                addWatermarkToCanvas(canvas, TIER_CONFIG[currentTier]);
+                
+                // Convert to blob and download
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `chart_${Date.now()}.jpg`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    showStatus('✅ Chart exported as JPG successfully!', 'success');
+                }, 'image/jpeg', 0.9);
+            }).catch(error => {
+                showStatus(`❌ Export failed: ${error.message}`, 'error');
+            });
+        }
+
+        function addWatermarkToCanvas(canvas, config) {
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Bottom-left watermark
+            ctx.fillStyle = `rgba(255, 255, 255, ${config.watermarkOpacity})`;
+            ctx.font = `${config.watermarkSize}px Arial`;
+            ctx.textAlign = 'left';
+            ctx.fillText('GetCharty.com', 10, height - 10);
+
+            // Diagonal watermark across center
+            ctx.save();
+            ctx.translate(width / 2, height / 2);
+            ctx.rotate(-Math.PI / 6);
+            ctx.fillStyle = `rgba(255, 255, 255, ${config.watermarkOpacity * 0.3})`;
+            ctx.font = `${config.watermarkSize * 2}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.fillText('GetCharty.com', 0, 0);
+            ctx.restore();
+        }
+
+        // Share Functionality
+        function shareChart(platform) {
+            const chartUrl = window.location.href;
+            const chartTitle = document.getElementById('chartTitle').value || 'My Chart';
+
+            switch (platform) {
+                case 'facebook':
+                    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(chartUrl)}`, '_blank');
+                    break;
+                case 'twitter':
+                    window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(chartUrl)}&text=${encodeURIComponent(chartTitle)}`, '_blank');
+                    break;
+                case 'linkedin':
+                    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(chartUrl)}`, '_blank');
+                    break;
+                case 'embed':
+                    showEmbedCode();
+                    break;
+                case 'link':
+                    showDirectLink();
+                    break;
+                case 'email':
+                    window.open(`mailto:?subject=${encodeURIComponent(chartTitle)}&body=${encodeURIComponent(`Check out my chart: ${chartUrl}`)}`, '_blank');
+                    break;
+                default:
+                    showStatus(`❌ ${platform} sharing not implemented`, 'warning');
+            }
+        }
+
+        function showEmbedCode() {
+            const embedCode = `<iframe src="${window.location.href}" width="800" height="600" frameborder="0"></iframe>`;
+            navigator.clipboard.writeText(embedCode).then(() => {
+                showStatus('✅ Embed code copied to clipboard!', 'success');
+            }).catch(() => {
+                showStatus('❌ Failed to copy embed code', 'error');
+            });
+        }
+
+        function showDirectLink() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                showStatus('✅ Direct link copied to clipboard!', 'success');
+            }).catch(() => {
+                showStatus('❌ Failed to copy direct link', 'error');
+            });
+        }
+
+        // Utility Functions
+        function showUpgradePrompt(requiredTier) {
+            const tierNames = {
+                noob: 'Noob',
+                registered: 'Registered',
+                viper: 'VIPer'
+            };
+            showStatus(`🔒 This feature requires ${tierNames[requiredTier]} tier or higher`, 'warning');
+        }
+
+        function showStatus(message, type) {
+            // Remove existing status messages
+            const existingStatus = document.querySelector('.status-message');
+            if (existingStatus) {
+                existingStatus.remove();
+            }
+
+            // Create new status message
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.textContent = message;
+
+            // Insert after the main area
+            const mainArea = document.querySelector('.main-area');
+            mainArea.insertBefore(statusDiv, mainArea.firstChild);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (statusDiv.parentNode) {
+                    statusDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Dynamic container sizing functions
+        function calculateDynamicMargins(title, subtitle, footnote, source, autoSpacing = true) {
+            let topMargin = 50;
+            let bottomMargin = 85;
+            
+            const titleFontSize = 18;
+            const subtitleFontSize = 14;
+            const annotationFontSize = 12;
+            const fontFamily = '-apple-system, BlinkMacSystemFont, sans-serif';
+            const chartWidth = 850;
+            const maxTextWidth = chartWidth * 0.85;
+            
+            if (title) {
+                const titleMeasurements = measureTextDimensions(
+                    title,
+                    titleFontSize,
+                    fontFamily,
+                    maxTextWidth
+                );
+                topMargin = Math.max(50, titleMeasurements.requiredSpace + 25);
+            }
+            
+            if (subtitle) {
+                const formattedSubtitle = wrapSubtitleText(subtitle, 100);
+                const subtitleMeasurements = measureTextDimensions(
+                    formattedSubtitle,
+                    subtitleFontSize,
+                    fontFamily,
+                    maxTextWidth
+                );
+                
+                topMargin += subtitleMeasurements.requiredSpace;
+                const safetyBuffer = Math.min(20, Math.floor(subtitle.length / 40) * 4);
+                topMargin += safetyBuffer;
+            }
+            
+            if (footnote || source) {
+                let footnoteHeight = 0;
+                let sourceHeight = 0;
+                
+                if (footnote) {
+                    const wrappedFootnote = wrapFootnoteText(footnote);
+                    const footnoteMeasurements = measureTextDimensions(
+                        wrappedFootnote,
+                        annotationFontSize,
+                        fontFamily,
+                        chartWidth * 0.3
+                    );
+                    footnoteHeight = footnoteMeasurements.requiredSpace;
+                }
+                
+                if (source) {
+                    const wrappedSource = wrapSourceText(source);
+                    const sourceMeasurements = measureTextDimensions(
+                        wrappedSource,
+                        annotationFontSize,
+                        fontFamily,
+                        chartWidth * 0.3
+                    );
+                    sourceHeight = sourceMeasurements.requiredSpace;
+                }
+                
+                bottomMargin = 85 + Math.max(footnoteHeight, sourceHeight) + 10;
+            }
+            
+            topMargin = Math.ceil(topMargin * 1.05);
+            bottomMargin = Math.ceil(bottomMargin * 1.05);
+            
+            return { topMargin, bottomMargin };
+        }
+
+        function calculateContainerHeight(topMargin, bottomMargin) {
+            const fixedChartHeight = 400;
+            const containerPadding = 30;
+            const extraBuffer = Math.max(0, (topMargin + bottomMargin - 200) * 0.05);
+            
+            return fixedChartHeight + topMargin + bottomMargin + containerPadding + extraBuffer;
+        }
+
+        function validateAndAdjustChartSpacing() {
+            setTimeout(() => {
+                const plotlyChart = document.getElementById('plotlyChart');
+                const chartContainer = document.getElementById('chartContainer');
+                
+                if (plotlyChart && plotlyChart._fullLayout) {
+                    const titleElements = plotlyChart.querySelectorAll('.gtitle');
+                    const annotations = plotlyChart.querySelectorAll('.annotation');
+                    const plotArea = plotlyChart.querySelector('.plot');
+                    
+                    if (titleElements.length > 0 && plotArea) {
+                        let maxTitleBottom = 0;
+                        
+                        titleElements.forEach(element => {
+                            const bounds = element.getBoundingClientRect();
+                            maxTitleBottom = Math.max(maxTitleBottom, bounds.bottom);
+                        });
+                        
+                        const plotBounds = plotArea.getBoundingClientRect();
+                        const overlap = maxTitleBottom - plotBounds.top;
+                        
+                        if (overlap > 0) {
+                            const currentLayout = plotlyChart._fullLayout;
+                            const newTopMargin = currentLayout.margin.t + overlap + 10;
+                            
+                            const currentHeight = parseInt(chartContainer.style.height);
+                            const newHeight = currentHeight + overlap + 10;
+                            chartContainer.style.height = `${newHeight}px`;
+                            
+                            Plotly.relayout('plotlyChart', {
+                                'margin.t': newTopMargin
+                            });
+                        }
+                    }
+                    
+                    if (annotations.length > 0) {
+                        annotations.forEach(annotation => {
+                            const bounds = annotation.getBoundingClientRect();
+                            const containerBounds = chartContainer.getBoundingClientRect();
+                            
+                            if (bounds.bottom > containerBounds.bottom) {
+                                const currentHeight = parseInt(chartContainer.style.height);
+                                const overflow = bounds.bottom - containerBounds.bottom;
+                                chartContainer.style.height = `${currentHeight + overflow + 20}px`;
+                            }
+                        });
+                    }
+                }
+            }, 150);
+        }
+
+        function syncContainerWithPlotly() {
+            const plotlyChart = document.getElementById('plotlyChart');
+            const chartContainer = document.getElementById('chartContainer');
+            
+            if (plotlyChart && chartContainer) {
+                const plotlyHeight = plotlyChart.layout ? plotlyChart.layout.height : 500;
+                const containerPadding = 30;
+                const totalHeight = plotlyHeight + containerPadding;
+                
+                chartContainer.style.height = `${totalHeight}px`;
+            }
+        }
+
+        function measureTextDimensions(text, fontSize, fontFamily, maxWidth) {
+            const measuringDiv = document.createElement('div');
+            measuringDiv.style.cssText = `
+                position: absolute;
+                visibility: hidden;
+                left: -9999px;
+                width: ${maxWidth}px;
+                font-size: ${fontSize}px;
+                font-family: ${fontFamily};
+                line-height: 1.5;
+                white-space: normal;
+                word-wrap: break-word;
+                word-break: break-word;
+                color: white;
+            `;
+            
+            measuringDiv.innerHTML = text.replace(/\n/g, '<br>');
+            document.body.appendChild(measuringDiv);
+            
+            const totalHeight = measuringDiv.offsetHeight;
+            
+            const singleLineDiv = document.createElement('div');
+            singleLineDiv.style.cssText = measuringDiv.style.cssText;
+            singleLineDiv.innerHTML = 'Ag';
+            document.body.appendChild(singleLineDiv);
+            
+            const singleLineHeight = singleLineDiv.offsetHeight;
+            const numberOfLines = Math.ceil(totalHeight / singleLineHeight);
+            
+            document.body.removeChild(measuringDiv);
+            document.body.removeChild(singleLineDiv);
+            
+            return {
+                totalHeight: totalHeight,
+                numberOfLines: numberOfLines,
+                lineHeight: singleLineHeight,
+                requiredSpace: totalHeight + (fontSize * 0.5)
+            };
+        }
+
+        // Text wrapping helper functions
+        function wrapSubtitleText(text, maxLength = 80) {
+            if (!text) return '';
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            words.forEach(word => {
+                if ((currentLine + ' ' + word).length > maxLength) {
+                    lines.push(currentLine.trim());
+                    currentLine = word;
+                } else {
+                    currentLine = currentLine ? currentLine + ' ' + word : word;
+                }
+            });
+            
+            if (currentLine) {
+                lines.push(currentLine.trim());
+            }
+            
+            return lines.join('<br>');
+        }
+
+        function wrapFootnoteText(text) {
+            if (!text) return '';
+            const maxPixelWidth = chartWidth * 0.3;
+            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
+        }
+
+        function wrapSourceText(text) {
+            if (!text) return '';
+            if (!text.startsWith('Source: ')) {
+                text = 'Source: ' + text;
+            }
+            const maxPixelWidth = chartWidth * 0.3;
+            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
+        }
+
+        function wrapTextByPixelWidth(text, maxPixelWidth, fontSize = 12, fontFamily = 'Arial, sans-serif') {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.font = `${fontSize}px ${fontFamily}`;
+            
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            for (let word of words) {
+                const testLine = currentLine + (currentLine ? ' ' : '') + word;
+                const testWidth = ctx.measureText(testLine).width;
+                
+                if (testWidth <= maxPixelWidth) {
+                    currentLine = testLine;
+                } else {
+                    if (currentLine) {
+                        lines.push(currentLine);
+                    }
+                    currentLine = word;
+                }
+            }
+            
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+            
+            return lines.join('<br>');
+        }
+
+        // Test tier switching (for development)
+        function switchTier(tier) {
+            currentTier = tier;
+            localStorage.setItem('getcharty_tier', tier);
+            document.body.className = `tier-${tier}`;
+            updateTierIndicator();
+            updateWatermarkText();
+            updateExportInterface();
+            showStatus(`✅ Switched to ${tier} tier`, 'success');
+        }
+
+        // Add test buttons for tier switching
+        const testButtons = document.createElement('div');
+        testButtons.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 10000; display: flex; gap: 5px;';
+        testButtons.innerHTML = `
+            <button onclick="switchTier('noob')" style="padding: 5px 10px; background: #6b7280; color: white; border: none; border-radius: 3px; cursor: pointer;">Noob</button>
+            <button onclick="switchTier('registered')" style="padding: 5px 10px; background: #3b82f6; color: white; border: none; border-radius: 3px; cursor: pointer;">Registered</button>
+            <button onclick="switchTier('viper')" style="padding: 5px 10px; background: #fbbf24; color: white; border: none; border-radius: 3px; cursor: pointer;">VIPer</button>
+        `;
+        document.body.appendChild(testButtons);
+    </script>
+</body>
+</html>

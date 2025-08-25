@@ -1,6 +1,6 @@
 <!--
 Filename: Index-Yi-2.html
-Updated: 2025-08-25 16:56:32
+Updated: 2025-08-25 23:38:22
 Description: Complete tiered charting application - Option 2: Fixed Height with Scroll (max-height: 100vh with overflow-y: auto)
 -->
 
@@ -481,12 +481,13 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             border-radius: 16px;
             padding: 25px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            margin-top: 20px;
+            margin: 20px auto 0 auto;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .export-tabs {
             display: flex;
+            justify-content: center;
             border-bottom: 2px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 20px;
         }
@@ -501,6 +502,10 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             color: #a8a8a8;
             border-bottom: 3px solid transparent;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
         }
 
         .export-tab.active {
@@ -508,8 +513,47 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             border-bottom-color: #e94560;
         }
 
-        .export-tab:hover {
-            color: #e94560;
+        .export-tab:hover:not(.locked) {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        .export-tab.locked {
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+
+        .export-tab.locked::after {
+            content: '🔒';
+            font-size: 10px;
+            margin-left: 4px;
+        }
+
+        .export-tab.locked:hover {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+        }
+
+        .tab-badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: #3b82f6;
+            color: white;
+            font-size: 8px;
+            padding: 2px 4px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .tab-badge.premium {
+            background: #fbbf24;
+            color: #1f2937;
+        }
+
+        .tab-badge.new {
+            background: #10b981;
+            color: white;
         }
 
         .export-content {
@@ -521,75 +565,151 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
         }
 
         .export-buttons {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
             margin-top: 20px;
         }
 
         .export-button {
-            padding: 12px 20px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.08);
             color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 16px;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 500;
             transition: all 0.3s ease;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 90px;
+            justify-content: center;
             position: relative;
         }
 
         .export-button:hover:not(.locked) {
-            border-color: #e94560;
             background: rgba(233, 69, 96, 0.2);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+            border-color: #e94560;
+            transform: translateY(-1px);
+        }
+
+        .export-button .icon {
+            font-size: 16px;
+        }
+
+        .export-button .quality {
+            font-size: 10px;
+            color: #a8a8a8;
+            margin-left: 4px;
         }
 
         .export-button.locked {
-            opacity: 0.5;
+            background: rgba(255, 255, 255, 0.03);
+            color: #6b7280;
+            border-color: rgba(255, 255, 255, 0.08);
             cursor: not-allowed;
-            background: rgba(255, 255, 255, 0.02);
         }
 
-        .export-button.viper {
-            border-color: #fbbf24;
+        .export-button.locked::after {
+            content: '🔒';
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            font-size: 12px;
+            background: rgba(251, 191, 36, 0.9);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .export-button.locked:hover {
+            background: rgba(251, 191, 36, 0.1);
+            border-color: rgba(251, 191, 36, 0.3);
             color: #fbbf24;
         }
 
         .export-button.premium {
-            border-color: #3b82f6;
-            color: #3b82f6;
+            border-color: rgba(251, 191, 36, 0.3);
+            background: rgba(251, 191, 36, 0.1);
         }
 
-        .export-button.social {
-            border-color: #10b981;
-            color: #10b981;
-        }
-
-        .export-button.social.locked {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .export-button.social.viper {
+        .export-button.premium:hover {
+            background: rgba(251, 191, 36, 0.15);
             border-color: #fbbf24;
+        }
+
+        .export-button.premium::before {
+            content: '✨';
+            margin-right: 2px;
+        }
+
+        .export-button.new {
+            border-color: rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .export-button.new::after {
+            content: 'NEW';
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            font-size: 8px;
+            background: #10b981;
+            color: white;
+            padding: 2px 4px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .locked-tab-content {
+            text-align: center;
+            padding: 30px;
+            color: #6b7280;
+        }
+
+        .locked-tab-content .lock-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .locked-tab-content h3 {
+            margin-bottom: 10px;
+            color: #a8a8a8;
+        }
+
+        .upgrade-prompt {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #60a5fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upgrade-prompt:hover {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: #3b82f6;
+        }
+
+        .upgrade-prompt.viper {
+            background: rgba(251, 191, 36, 0.1);
+            border-color: rgba(251, 191, 36, 0.3);
             color: #fbbf24;
         }
 
-        .export-button.social.premium {
-            border-color: #3b82f6;
-            color: #3b82f6;
-        }
-
-        .lock-icon {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            font-size: 0.8em;
-            opacity: 0.7;
+        .upgrade-prompt.viper:hover {
+            background: rgba(251, 191, 36, 0.15);
+            border-color: #fbbf24;
         }
 
         .status-message {
@@ -912,7 +1032,7 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     <div class="mock-chart-placeholder">
                         <div style="font-size: 40px; margin-bottom: 10px; opacity: 0.3;">📊</div>
                         <h3>Your Chart Goes Here</h3>
-                        <p class="watermark-note">Includes GetCharty.com Watermark</p>
+
                     </div>
                 </div>
             </div>
@@ -924,22 +1044,26 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             <!-- Export Interface Container -->
             <div id="exportInterface" class="export-interface">
                 <div class="export-tabs">
-                    <button class="export-tab active" onclick="switchTab('export')">Export</button>
-                    <button class="export-tab" onclick="switchTab('share')">Share</button>
+                    <div class="export-tab active" onclick="switchTab(this, 'export')">
+                        <span>Export</span>
+                    </div>
+                    <div class="export-tab" onclick="switchTab(this, 'share')" id="shareTab">
+                        <span>Share</span>
+                    </div>
                 </div>
 
-                <div class="export-content active" id="exportContent">
-                    <h4 style="color: white; margin-bottom: 15px;">Export your chart in various formats</h4>
+                <div class="export-content active" id="exportContent" data-tab="export">
                     <div class="export-buttons" id="exportButtons">
                         <!-- Dynamically generated -->
                     </div>
+                    <div class="upgrade-prompt" id="exportUpgradePrompt" style="display: none;"></div>
                 </div>
 
-                <div class="export-content" id="shareContent">
-                    <h4 style="color: white; margin-bottom: 15px;">Share your chart with others</h4>
+                <div class="export-content" id="shareContent" data-tab="share">
                     <div class="export-buttons" id="shareButtons">
                         <!-- Dynamically generated -->
                     </div>
+                    <div class="upgrade-prompt" id="shareUpgradePrompt" style="display: none;"></div>
                 </div>
             </div>
         </div>
@@ -960,23 +1084,23 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
         let currentFileId = null;
         let chartWidth = 850; // Default chart width
         let selectedOrientation = 'vertical';
-        let currentTier = 'noob';
+        let currentHappyness = 1;
 
-        // Tier Configuration
-        const TIER_CONFIG = {
-            noob: {
+        // Happyness Configuration
+        const HAPPYNESS_CONFIG = {
+            1: {
                 exportFormats: ['jpg'],
                 exportQuality: 'low',
                 watermarkOpacity: 0.8,
                 watermarkSize: 14,
                 features: {
                     socialSharing: true,
-                    embedCode: true,
-                    directLinks: true,
+                    embedCode: false,
+                    directLinks: false,
                     emailShare: true
                 }
             },
-            registered: {
+            3: {
                 exportFormats: ['jpg', 'png'],
                 exportQuality: 'medium',
                 watermarkOpacity: 0.6,
@@ -988,7 +1112,7 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     emailShare: true
                 }
             },
-            viper: {
+            5: {
                 exportFormats: ['jpg', 'png', 'svg', 'pdf'],
                 exportQuality: 'high',
                 watermarkOpacity: 0.3,
@@ -1008,30 +1132,30 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
-            initializeTierManagement();
+            initializeHappynessManagement();
             setupEventListeners();
             updateHeaderStructureText();
             updateExportInterface(); // Initialize export interface on page load
         });
 
-        // Tier Management
-        function initializeTierManagement() {
+        // Happyness Management
+        function initializeHappynessManagement() {
             try {
-                currentTier = localStorage.getItem('getcharty_tier') || 'noob';
-                document.body.className = `tier-${currentTier}`;
-                updateTierIndicator();
+                currentHappyness = parseInt(localStorage.getItem('getcharty_happyness')) || 1;
+                document.body.className = `happyness-${currentHappyness}`;
+                updateHappynessIndicator();
                 updateWatermarkText();
             } catch (error) {
-                console.error('Tier management initialization failed:', error);
-                document.body.className = 'tier-noob';
+                console.error('Happyness management initialization failed:', error);
+                document.body.className = 'happyness-1';
             }
         }
 
-        function updateTierIndicator() {
-            const tierNames = {
-                noob: 'Noob',
-                registered: 'Registered',
-                viper: 'VIPer'
+        function updateHappynessIndicator() {
+            const happynessNames = {
+                1: 'Noob',
+                3: 'Registered',
+                5: 'VIPer'
             };
         }
 
@@ -1043,7 +1167,7 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     registered: 'Registered',
                     viper: 'VIPer'
                 };
-                watermarkNote.textContent = `Includes GetCharty.com Watermark (${tierNames[currentTier]} Tier)`;
+                // watermarkNote.textContent = ''; // Removed watermark text as requested
             }
         }
 
@@ -1084,13 +1208,13 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             
             selectedOrientation = selectedRadio.value;
             updateHeaderStructureText();
-            showStatus(`📐 Data orientation changed to ${selectedOrientation}`, 'info');
+            // showStatus(`📐 Data orientation changed to ${selectedOrientation}`, 'info');
             
             if (rawData.length > 0) {
                 processDataWithHeaders();
-                showStatus(`✅ Data reoriented to ${selectedOrientation} format with ${currentData.length} rows!`, 'success');
+                // showStatus(`✅ Data reoriented to ${selectedOrientation} format with ${currentData.length} rows!`, 'success');
             } else {
-                showStatus(`⚙️ Orientation set to ${selectedOrientation}. This will be applied when you upload data.`, 'info');
+                // showStatus(`⚙️ Orientation set to ${selectedOrientation}. This will be applied when you upload data.`, 'info');
             }
         }
 
@@ -1117,7 +1241,7 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     showStatus('⚠️ Auto-spacing requires registration. Feature will be limited.', 'warning');
                 } else {
                     autoSpacingMessage.style.display = 'none';
-                    showStatus('✅ Using manual spacing mode', 'success');
+                    // showStatus('✅ Using manual spacing mode', 'success');
                 }
             }
         }
@@ -1149,12 +1273,12 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                         complete: function(results) {
                             rawData = results.data.filter(row => row.length > 0 && row.some(cell => cell !== ''));
                             processDataWithHeaders();
-                            showStatus(`✅ CSV file loaded with ${rawData.length} rows`, 'success');
+                            console.log(`✅ CSV file loaded with ${rawData.length} rows`);
                             document.getElementById('generateBtn').disabled = false;
                             document.getElementById('generateBtnMain').disabled = false;
                         },
                         error: function(error) {
-                            showStatus(`❌ Error parsing CSV: ${error.message}`, 'error');
+                            console.log(`❌ Error parsing CSV: ${error.message}`);
                         }
                     });
                 } else {
@@ -1165,12 +1289,12 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
                     rawData = rawData.filter(row => row.length > 0 && row.some(cell => cell !== ''));
                     processDataWithHeaders();
-                    showStatus(`✅ Excel file loaded with ${rawData.length} rows`, 'success');
+                    console.log(`✅ Excel file loaded with ${rawData.length} rows`);
                     document.getElementById('generateBtn').disabled = false;
                     document.getElementById('generateBtnMain').disabled = false;
                 }
             } catch (error) {
-                showStatus(`❌ Error processing file: ${error.message}`, 'error');
+                console.log(`❌ Error processing file: ${error.message}`);
             }
         }
 
@@ -1250,7 +1374,7 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
         // Chart Generation
         async function generateChart() {
             if (currentData.length === 0) {
-                showStatus('❌ No data available. Please upload a file first.', 'error');
+                console.log('❌ No data available. Please upload a file first.');
                 return;
             }
 
@@ -1262,7 +1386,7 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             const autoSpacing = document.getElementById('autoSpacing') ? document.getElementById('autoSpacing').checked : false;
             
             try {
-                showStatus('🎨 Generating your interactive chart...', 'warning');
+                // showStatus('🎨 Generating your interactive chart...', 'warning');
                 
                 // Calculate dynamic margins and container height
                 const { topMargin, bottomMargin } = calculateDynamicMargins(title, subtitle, footnote, source, autoSpacing);
@@ -1301,8 +1425,9 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                         .then(function() {
                             syncContainerWithPlotly();
                             validateAndAdjustChartSpacing();
-                            showStatus('✅ Chart generated successfully!', 'success');
-                            updateExportInterface(); // Update export interface after chart generation
+                            // showStatus('✅ Chart generated successfully!', 'success');
+                            document.getElementById('exportInterface').style.display = 'block';
+                            updateExportInterface();
                         });
                 }
                 
@@ -1311,7 +1436,7 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                 }
                 
             } catch (error) {
-                showStatus(`❌ Error generating chart: ${error.message}`, 'error');
+                console.log(`❌ Error generating chart: ${error.message}`);
                 console.error('Chart generation error:', error);
             }
         }
@@ -1516,79 +1641,150 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
 
         function updateExportButtons() {
             const container = document.getElementById('exportButtons');
+            const upgradePrompt = document.getElementById('exportUpgradePrompt');
             if (!container) return;
 
-            const config = TIER_CONFIG[currentTier];
+            const config = HAPPYNESS_CONFIG[currentHappyness];
             container.innerHTML = '';
 
             const exportOptions = [
-                { format: 'jpg', label: '📷 JPG', tier: 'noob' },
-                { format: 'png', label: '🖼️ PNG', tier: 'registered' },
-                { format: 'svg', label: '🎨 SVG', tier: 'viper' },
-                { format: 'pdf', label: '📄 PDF', tier: 'viper' }
+                { format: 'jpg', label: 'JPG', icon: '📷', quality: getQualityLabel('jpg'), happyness: 1 },
+                { format: 'png', label: 'PNG', icon: '🖼️', quality: getQualityLabel('png'), happyness: 3 },
+                { format: 'pdf', label: 'PDF', icon: '📄', quality: getQualityLabel('pdf'), happyness: 3 },
+                { format: 'svg', label: 'SVG', icon: '🎨', quality: '', happyness: 5 }
             ];
 
             exportOptions.forEach(option => {
                 const button = document.createElement('button');
                 button.className = 'export-button';
-                button.textContent = option.label;
                 
                 if (!config.exportFormats.includes(option.format)) {
                     button.classList.add('locked');
-                    button.innerHTML += '<span class="lock-icon">🔒</span>';
-                    button.onclick = () => showUpgradePrompt(option.tier);
+                    button.onclick = () => showUpgradePrompt(option.happyness);
                 } else {
                     button.onclick = () => exportChart(option.format);
+                    
+                    // Add premium styling based on tier
+                    if (option.happyness === 5) {
+                        button.classList.add('premium');
+                    }
                 }
 
-                if (option.tier === 'viper') button.classList.add('viper');
-                if (option.tier === 'registered') button.classList.add('premium');
+                button.innerHTML = `
+                    <span class="icon">${option.icon}</span>
+                    <span>${option.label}</span>
+                    ${option.quality ? `<span class="quality">${option.quality}</span>` : ''}
+                `;
 
                 container.appendChild(button);
             });
+
+            // Show upgrade prompt if needed
+            showExportUpgradePrompt();
+        }
+
+        function getQualityLabel(format) {
+            if (currentHappyness === 1) return '720p';
+            if (currentHappyness === 3) return '1080p';
+            if (currentHappyness === 5) return '4K';
+            return '';
+        }
+
+
+
+        function showExportUpgradePrompt() {
+            const upgradePrompt = document.getElementById('exportUpgradePrompt');
+            
+            if (currentHappyness === 1) {
+                upgradePrompt.textContent = '📈 Upgrade to Registered for PDF & PNG exports + Sharing features';
+                upgradePrompt.className = 'upgrade-prompt';
+                upgradePrompt.style.display = 'block';
+            } else if (currentHappyness === 3) {
+                upgradePrompt.textContent = '✨ Upgrade to VIPer for professional SVG exports & more';
+                upgradePrompt.className = 'upgrade-prompt viper';
+                upgradePrompt.style.display = 'block';
+            } else {
+                upgradePrompt.style.display = 'none';
+            }
         }
 
         function updateShareButtons() {
             const container = document.getElementById('shareButtons');
+            const upgradePrompt = document.getElementById('shareUpgradePrompt');
+            const shareTab = document.getElementById('shareTab');
             if (!container) return;
 
-            const config = TIER_CONFIG[currentTier];
+            const config = HAPPYNESS_CONFIG[currentHappyness];
             container.innerHTML = '';
 
+            // Remove locked state from share tab
+            shareTab.classList.remove('locked');
+
             const shareOptions = [
-                { platform: 'facebook', label: '📘 Facebook', feature: 'socialSharing' },
-                { platform: 'twitter', label: '🐦 Twitter', feature: 'socialSharing' },
-                { platform: 'linkedin', label: '💼 LinkedIn', feature: 'socialSharing' },
-                { platform: 'embed', label: '📋 Embed Code', feature: 'embedCode' },
-                { platform: 'link', label: '🔗 Direct Link', feature: 'directLinks' },
-                { platform: 'email', label: '📧 Email', feature: 'emailShare' }
+                { platform: 'socials', label: 'Social', icon: '🐦', feature: 'socialSharing', happyness: 1 },
+                { platform: 'link', label: 'Permalink', icon: '🔗', feature: 'directLinks', happyness: 3 },
+                { platform: 'code', label: 'Code', icon: '📋', feature: 'embedCode', happyness: 5 },
+                { platform: 'email', label: 'Email', icon: '📤', feature: 'emailShare', happyness: 1 }
             ];
 
             shareOptions.forEach(option => {
                 const button = document.createElement('button');
-                button.className = 'export-button social';
-                button.textContent = option.label;
+                button.className = 'export-button';
                 
                 if (!config.features[option.feature]) {
                     button.classList.add('locked');
-                    button.innerHTML += '<span class="lock-icon">🔒</span>';
-                    button.onclick = () => showUpgradePrompt('registered');
+                    button.onclick = () => showUpgradePrompt(option.happyness);
                 } else {
                     button.onclick = () => shareChart(option.platform);
+                    
+                    // Add premium styling for VIPer features (if we had any)
+                    if (option.happyness === 5) {
+                        button.classList.add('premium');
+                    }
                 }
+
+                button.innerHTML = `
+                    <span class="icon">${option.icon}</span>
+                    <span>${option.label}</span>
+                `;
 
                 container.appendChild(button);
             });
+
+            // Show upgrade prompt if needed
+            showShareUpgradePrompt();
         }
 
-        function switchTab(tabName) {
-            // Update tab buttons
-            document.querySelectorAll('.export-tab').forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
+        function showShareUpgradePrompt() {
+            const upgradePrompt = document.getElementById('shareUpgradePrompt');
+            
+            if (currentHappyness === 1) {
+                upgradePrompt.textContent = '📈 Upgrade to Registered for Permalink sharing & Code export';
+                upgradePrompt.className = 'upgrade-prompt';
+                upgradePrompt.style.display = 'block';
+            } else if (currentHappyness === 3) {
+                upgradePrompt.textContent = '✨ Upgrade to VIPer for professional Code export & more';
+                upgradePrompt.className = 'upgrade-prompt viper';
+                upgradePrompt.style.display = 'block';
+            } else {
+                upgradePrompt.style.display = 'none';
+            }
+        }
 
-            // Update content
-            document.querySelectorAll('.export-content').forEach(content => content.classList.remove('active'));
-            document.getElementById(tabName + 'Content').classList.add('active');
+        function upgradeToRegistered() {
+            console.log('🚀 Redirecting to Registered upgrade page...');
+        }
+
+        function switchTab(clickedTab, tabName) {
+            const container = clickedTab.closest('.export-interface');
+            
+            // Remove active class from all tabs and contents in this container
+            container.querySelectorAll('.export-tab').forEach(tab => tab.classList.remove('active'));
+            container.querySelectorAll('.export-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            clickedTab.classList.add('active');
+            container.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
         }
 
         // Export Functionality
@@ -1596,14 +1792,14 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             if (format === 'jpg') {
                 exportAsJPG();
             } else {
-                showStatus(`❌ ${format.toUpperCase()} export not implemented yet`, 'warning');
+                console.log(`❌ ${format.toUpperCase()} export not implemented yet`);
             }
         }
 
         function exportAsJPG() {
             const chartElement = document.getElementById('plotlyChart');
             if (!chartElement) {
-                showStatus('❌ Chart element not found', 'error');
+                console.log('❌ Chart element not found');
                 return;
             }
 
@@ -1614,7 +1810,7 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                 allowTaint: true
             }).then(canvas => {
                 // Add watermark to canvas
-                addWatermarkToCanvas(canvas, TIER_CONFIG[currentTier]);
+                addWatermarkToCanvas(canvas, HAPPYNESS_CONFIG[currentHappyness]);
                 
                 // Convert to blob and download
                 canvas.toBlob(blob => {
@@ -1626,10 +1822,10 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
-                    showStatus('✅ Chart exported as JPG successfully!', 'success');
+                    console.log('✅ Chart exported as JPG successfully!');
                 }, 'image/jpeg', 0.9);
             }).catch(error => {
-                showStatus(`❌ Export failed: ${error.message}`, 'error');
+                console.log(`❌ Export failed: ${error.message}`);
             });
         }
 
@@ -1657,58 +1853,149 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
 
         // Share Functionality
         function shareChart(platform) {
-            const chartUrl = window.location.href;
             const chartTitle = document.getElementById('chartTitle').value || 'My Chart';
+            const chartSubtitle = document.getElementById('chartSubtitle').value || '';
+            
+            // Create chart permalink with chart data
+            const chartData = {
+                title: chartTitle,
+                subtitle: chartSubtitle,
+                data: currentData,
+                chartType: document.querySelector('.chart-type-btn.active').dataset.chartType,
+                timestamp: Date.now()
+            };
+            
+            // Generate permalink (this would typically be saved to a database and return a URL)
+            const chartPermalink = generateChartPermalink(chartData);
 
             switch (platform) {
-                case 'facebook':
-                    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(chartUrl)}`, '_blank');
-                    break;
-                case 'twitter':
-                    window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(chartUrl)}&text=${encodeURIComponent(chartTitle)}`, '_blank');
-                    break;
-                case 'linkedin':
-                    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(chartUrl)}`, '_blank');
-                    break;
-                case 'embed':
-                    showEmbedCode();
+                case 'socials':
+                    // Create sharing text with title and subtitle
+                    const sharingText = chartSubtitle ? `${chartTitle} - ${chartSubtitle}` : chartTitle;
+                    
+                    // Open all social platforms in sequence
+                    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(chartPermalink)}&quote=${encodeURIComponent(sharingText)}`, '_blank');
+                    setTimeout(() => {
+                        window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(chartPermalink)}&text=${encodeURIComponent(sharingText)}`, '_blank');
+                    }, 100);
+                    setTimeout(() => {
+                        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(chartPermalink)}&title=${encodeURIComponent(chartTitle)}&summary=${encodeURIComponent(chartSubtitle)}`, '_blank');
+                    }, 200);
                     break;
                 case 'link':
                     showDirectLink();
                     break;
                 case 'email':
-                    window.open(`mailto:?subject=${encodeURIComponent(chartTitle)}&body=${encodeURIComponent(`Check out my chart: ${chartUrl}`)}`, '_blank');
+                    window.open(`mailto:?subject=${encodeURIComponent(chartTitle)}&body=${encodeURIComponent(`Check out my chart: ${chartPermalink}`)}`, '_blank');
                     break;
                 default:
-                    showStatus(`❌ ${platform} sharing not implemented`, 'warning');
+                    console.log(`❌ ${platform} sharing not implemented`);
             }
         }
 
         function showEmbedCode() {
             const embedCode = `<iframe src="${window.location.href}" width="800" height="600" frameborder="0"></iframe>`;
             navigator.clipboard.writeText(embedCode).then(() => {
-                showStatus('✅ Embed code copied to clipboard!', 'success');
+                console.log('✅ Embed code copied to clipboard!');
             }).catch(() => {
-                showStatus('❌ Failed to copy embed code', 'error');
+                console.log('❌ Failed to copy embed code');
             });
         }
 
+        function generateChartPermalink(chartData) {
+            // Generate a unique ID for the chart
+            const chartId = generateUniqueChartId();
+            
+            // Store chart data locally (in a real app, this would go to a database)
+            storeChartData(chartId, chartData);
+            
+            // Return a clean permalink URL
+            return `https://getcharty.com/chart/${chartId}`;
+        }
+
+        function generateUniqueChartId() {
+            // Generate a short, unique ID for the chart
+            return 'chart_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        }
+
+        function storeChartData(chartId, chartData) {
+            // Store chart data in localStorage (in production, this would be a database)
+            const storedCharts = JSON.parse(localStorage.getItem('getcharty_charts') || '{}');
+            
+            // Generate or get hashed userID
+            const hashedUserId = generateHashedUserId();
+            
+            storedCharts[chartId] = {
+                title: chartData.title,
+                subtitle: chartData.subtitle,
+                chartType: chartData.chartType,
+                data: chartData.data,
+                timestamp: chartData.timestamp,
+                created: new Date().toISOString(),
+                userId: hashedUserId,
+                happyness: currentHappyness
+            };
+            localStorage.setItem('getcharty_charts', JSON.stringify(storedCharts));
+        }
+
+        function generateHashedUserId() {
+            // Get or create a unique user identifier
+            let userId = localStorage.getItem('getcharty_user_id');
+            
+            if (!userId) {
+                // Generate a new unique user ID
+                userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('getcharty_user_id', userId);
+            }
+            
+            // Create a simple hash of the user ID (in production, use proper hashing)
+            return simpleHash(userId);
+        }
+
+        function simpleHash(str) {
+            // Simple hash function (in production, use crypto-js or similar)
+            let hash = 0;
+            if (str.length === 0) return hash.toString();
+            
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32-bit integer
+            }
+            
+            // Convert to positive hex string
+            return Math.abs(hash).toString(16);
+        }
+
         function showDirectLink() {
-            navigator.clipboard.writeText(window.location.href).then(() => {
-                showStatus('✅ Direct link copied to clipboard!', 'success');
+            const chartTitle = document.getElementById('chartTitle').value || 'My Chart';
+            const chartSubtitle = document.getElementById('chartSubtitle').value || '';
+            
+            const chartData = {
+                title: chartTitle,
+                subtitle: chartSubtitle,
+                data: currentData,
+                chartType: document.querySelector('.chart-type-btn.active').dataset.chartType,
+                timestamp: Date.now()
+            };
+            
+            const chartPermalink = generateChartPermalink(chartData);
+            
+            navigator.clipboard.writeText(chartPermalink).then(() => {
+                console.log('✅ Chart permalink copied to clipboard!');
             }).catch(() => {
-                showStatus('❌ Failed to copy direct link', 'error');
+                console.log('❌ Failed to copy chart permalink');
             });
         }
 
         // Utility Functions
-        function showUpgradePrompt(requiredTier) {
-            const tierNames = {
-                noob: 'Noob',
-                registered: 'Registered',
-                viper: 'VIPer'
+        function showUpgradePrompt(requiredHappyness) {
+            const happynessNames = {
+                1: 'Noob',
+                3: 'Registered',
+                5: 'VIPer'
             };
-            showStatus(`🔒 This feature requires ${tierNames[requiredTier]} tier or higher`, 'warning');
+            console.log(`🔒 This feature requires ${happynessNames[requiredHappyness]} tier or higher`);
         }
 
         function showStatus(message, type) {
@@ -1986,24 +2273,30 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             return lines.join('<br>');
         }
 
-        // Test tier switching (for development)
-        function switchTier(tier) {
-            currentTier = tier;
-            localStorage.setItem('getcharty_tier', tier);
-            document.body.className = `tier-${tier}`;
-            updateTierIndicator();
+        // Test happyness switching (for development)
+        function switchHappyness(happyness) {
+            currentHappyness = happyness;
+            localStorage.setItem('getcharty_happyness', happyness);
+            document.body.className = `happyness-${happyness}`;
+            updateHappynessIndicator();
             updateWatermarkText();
             updateExportInterface();
-            showStatus(`✅ Switched to ${tier} tier`, 'success');
+            
+            const happynessNames = {
+                1: 'Noob',
+                3: 'Registered',
+                5: 'VIPer'
+            };
+            console.log(`✅ Switched to ${happynessNames[happyness]} tier`);
         }
 
-        // Add test buttons for tier switching
+        // Add test buttons for happyness switching
         const testButtons = document.createElement('div');
         testButtons.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 10000; display: flex; gap: 5px;';
         testButtons.innerHTML = `
-            <button onclick="switchTier('noob')" style="padding: 5px 10px; background: #6b7280; color: white; border: none; border-radius: 3px; cursor: pointer;">Noob</button>
-            <button onclick="switchTier('registered')" style="padding: 5px 10px; background: #3b82f6; color: white; border: none; border-radius: 3px; cursor: pointer;">Registered</button>
-            <button onclick="switchTier('viper')" style="padding: 5px 10px; background: #fbbf24; color: white; border: none; border-radius: 3px; cursor: pointer;">VIPer</button>
+            <button onclick="switchHappyness(1)" style="padding: 5px 10px; background: #6b7280; color: white; border: none; border-radius: 3px; cursor: pointer;">Noob</button>
+            <button onclick="switchHappyness(3)" style="padding: 5px 10px; background: #3b82f6; color: white; border: none; border-radius: 3px; cursor: pointer;">Registered</button>
+            <button onclick="switchHappyness(5)" style="padding: 5px 10px; background: #fbbf24; color: white; border: none; border-radius: 3px; cursor: pointer;">VIPer</button>
         `;
         document.body.appendChild(testButtons);
     </script>

@@ -1,0 +1,2746 @@
+<!--
+Filename: Index-Yi-2-Capture.html
+Updated: 2025-08-27 01:33:33
+Description: Complete tiered charting application with enhanced JPEG export - Option 2: Fixed Height with Scroll (max-height: 100vh with overflow-y: auto)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GetCharty -- A New, Better Way to Make Charts</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            height: 100vh;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            color: white;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar h2 {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            color: #e94560;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+        }
+
+        .main-area {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 30px;
+            overflow-y: auto;
+            max-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .section {
+            margin-bottom: 3px;
+            padding-bottom: 1px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section h3 {
+            color: #e94560;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.3);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            margin: 6px 0;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #e94560;
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .input-field::placeholder {
+            color: #a8a8a8;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-group .input-field {
+            flex: 1;
+        }
+
+        .chart-type-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .chart-type-btn {
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            color: #a8a8a8;
+            padding: 12px 8px;
+            text-align: center;
+        }
+
+        .chart-type-btn .icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .chart-type-btn .title {
+            font-size: 10px;
+            color: #a8a8a8;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+
+        .chart-type-btn:hover {
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+        }
+
+        .chart-type-btn.active {
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.3);
+            color: white;
+            box-shadow: 0 0 15px rgba(233, 69, 96, 0.3);
+        }
+
+        .chart-type-btn:hover .title,
+        .chart-type-btn.active .title {
+            color: white;
+        }
+
+        .file-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #a8a8a8;
+            text-align: center;
+            margin: 10px 0;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input:hover {
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.1);
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e94560, #533483);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px 0;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .chart-container.has-chart {
+            min-height: 500px;
+            display: block;
+            height: auto;
+            overflow: visible;
+            padding: 20px 20px 15px 20px;
+        }
+        
+        .chart-container.has-chart #plotlyChart {
+            width: 100%;
+        }
+
+        .chart-placeholder {
+            text-align: center;
+            color: #a8a8a8;
+        }
+
+        .chart-placeholder h2 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .chart-placeholder p {
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        .mock-chart-placeholder {
+            text-align: center;
+            color: #a8a8a8;
+        }
+
+        .mock-chart-placeholder h3 {
+            color: white;
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+        }
+
+        .mock-chart-placeholder p {
+            font-size: 14px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin: 12px 0;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: white;
+            transition: color 0.3s ease;
+        }
+
+        .radio-label input[type="radio"] {
+            accent-color: #e94560;
+        }
+
+        .orientation-label {
+            font-size: 12px;
+            color: #e94560;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.3);
+        }
+
+        .section.locked h3 {
+            color: #666 !important;
+            text-shadow: none !important;
+        }
+
+        .section.locked .input-field {
+            opacity: 0.5;
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .display-option.locked {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .display-option.locked .switch {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .display-option.locked .radio-group {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .input-group.locked {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .input-group.locked .input-field {
+            opacity: 0.5;
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .data-summary {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            color: white;
+        }
+
+        .data-summary h3 {
+            color: #e94560;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.3);
+        }
+
+        .data-summary p {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+        }
+
+        .data-preview-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .data-preview {
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .data-preview table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        
+        .data-preview th,
+        .data-preview td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .data-preview th {
+            background: rgba(233, 69, 96, 0.3);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .slider-container {
+            margin: 12px 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #e94560;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .display-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 12px 0;
+            padding: 8px 0;
+        }
+
+        .display-option span {
+            font-size: 14px;
+            color: white;
+        }
+
+        .dropdown {
+            padding: 8px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            min-width: 80px;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown:focus {
+            outline: none;
+            border-color: #e94560;
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+        }
+
+        .more-charts-dropdown {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            margin: 12px 0 0 0;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .more-charts-dropdown:focus {
+            outline: none;
+            border-color: #e94560;
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+        }
+
+        /* TIER PROGRESSION STYLES */
+        .tier-progression {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+        }
+
+        .tier-labels {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .tier-labels span {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .tier-noob { color: #6b7280; }
+        .tier-registered { color: #3b82f6; }
+        .tier-viper { color: #fbbf24; }
+
+        .usage-bar {
+            background: rgba(255, 255, 255, 0.1);
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .usage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #fbbf24, #ef4444);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 25%;
+        }
+
+        .velvet-curtain-btn {
+            background: linear-gradient(135deg, #8B1538, #A0153E, #5D0E17);
+            color: #F8E8DC;
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(248, 232, 220, 0.2);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 8px rgba(139, 21, 56, 0.3);
+            margin-top: 10px;
+        }
+
+        .velvet-curtain-btn:hover {
+            background: linear-gradient(135deg, #A0153E, #B91C51, #8B1538);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(139, 21, 56, 0.4);
+            border-color: rgba(248, 232, 220, 0.3);
+        }
+
+        .registration-message {
+            font-size: 12px;
+            color: #a8a8a8;
+            margin-top: 4px;
+            margin-left: 0;
+            font-style: italic;
+        }
+
+        /* Export Interface Styles */
+        .export-interface {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            margin: 20px auto 0 auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .export-tabs {
+            display: flex;
+            justify-content: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .export-tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            color: #a8a8a8;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        .export-tab.active {
+            color: #e94560;
+            border-bottom-color: #e94560;
+        }
+
+        .export-tab:hover:not(.locked) {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        .export-tab.locked {
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+
+        .export-tab.locked::after {
+            content: '🔒';
+            font-size: 10px;
+            margin-left: 4px;
+        }
+
+        .export-tab.locked:hover {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+        }
+
+        .tab-badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: #3b82f6;
+            color: white;
+            font-size: 8px;
+            padding: 2px 4px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .tab-badge.premium {
+            background: #fbbf24;
+            color: #1f2937;
+        }
+
+        .tab-badge.new {
+            background: #10b981;
+            color: white;
+        }
+
+        .export-content {
+            display: none;
+        }
+
+        .export-content.active {
+            display: block;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .export-button {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 90px;
+            justify-content: center;
+            position: relative;
+        }
+
+        .export-button:hover:not(.locked) {
+            background: rgba(233, 69, 96, 0.2);
+            border-color: #e94560;
+            transform: translateY(-1px);
+        }
+
+        .export-button .icon {
+            font-size: 16px;
+        }
+
+        .export-button .quality {
+            font-size: 10px;
+            color: #a8a8a8;
+            margin-left: 4px;
+        }
+
+        .export-button.locked {
+            background: rgba(255, 255, 255, 0.03);
+            color: #6b7280;
+            border-color: rgba(255, 255, 255, 0.08);
+            cursor: not-allowed;
+        }
+
+        .export-button.locked::after {
+            content: '🔒';
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            font-size: 12px;
+            background: rgba(251, 191, 36, 0.9);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .export-button.locked:hover {
+            background: rgba(251, 191, 36, 0.1);
+            border-color: rgba(251, 191, 36, 0.3);
+            color: #fbbf24;
+        }
+
+        .export-button.premium {
+            border-color: rgba(251, 191, 36, 0.3);
+            background: rgba(251, 191, 36, 0.1);
+        }
+
+        .export-button.premium:hover {
+            background: rgba(251, 191, 36, 0.15);
+            border-color: #fbbf24;
+        }
+
+        .export-button.premium::before {
+            content: '✨';
+            margin-right: 2px;
+        }
+
+        .export-button.new {
+            border-color: rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .export-button.new::after {
+            content: 'NEW';
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            font-size: 8px;
+            background: #10b981;
+            color: white;
+            padding: 2px 4px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .locked-tab-content {
+            text-align: center;
+            padding: 30px;
+            color: #6b7280;
+        }
+
+        .locked-tab-content .lock-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .locked-tab-content h3 {
+            margin-bottom: 10px;
+            color: #a8a8a8;
+        }
+
+        .upgrade-prompt {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #60a5fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upgrade-prompt:hover {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: #3b82f6;
+        }
+
+        .upgrade-prompt.viper {
+            background: rgba(251, 191, 36, 0.1);
+            border-color: rgba(251, 191, 36, 0.3);
+            color: #fbbf24;
+        }
+
+        .upgrade-prompt.viper:hover {
+            background: rgba(251, 191, 36, 0.15);
+            border-color: #fbbf24;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: rgba(233, 69, 96, 0.2);
+            border: 1px solid #e94560;
+            color: white;
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: white;
+        }
+
+        .status-info {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid #3b82f6;
+            color: white;
+        }
+
+        .status-warning {
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid #f59e0b;
+            color: white;
+        }
+
+        /* Watermark styles */
+        .chart-watermark {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+            pointer-events: none;
+            user-select: none;
+            z-index: 1000;
+        }
+
+        .tier-noob .chart-watermark {
+            opacity: 0.8;
+            font-size: 14px;
+        }
+
+        .tier-registered .chart-watermark {
+            opacity: 0.6;
+            font-size: 12px;
+        }
+
+        .tier-viper .chart-watermark {
+            opacity: 0.3;
+            font-size: 10px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .sidebar-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .export-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Hidden elements for watermark generation */
+        .watermark-canvas {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar-layout">
+        <div class="sidebar">
+            <h2>📊 GetCharty</h2>
+            
+            <div class="section">
+                <h3>Data Import</h3>
+                <input type="file" id="fileInput" class="file-input" accept=".csv,.xlsx,.xls">
+                
+                <div class="orientation-label">Data Orientation</div>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="dataOrientation" value="vertical" checked>
+                        Vertical
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="dataOrientation" value="horizontal">
+                        Horizontal
+                    </label>
+                </div>
+                
+                <div class="orientation-label">Header Structure</div>
+                <div class="slider-container" id="headerStructureGroup" style="margin-bottom: 3px;">
+                    <label class="slider-label">
+                        <span id="headerStructureText">First row is headers</span>
+                        <label class="switch">
+                            <input type="checkbox" id="headerStructureToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </label>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="generateBtn" onclick="generateChart()" disabled>
+                🚀 Generate Chart
+            </button>
+            
+            <div class="section">
+                <h3>Chart Type</h3>
+                <div class="chart-type-grid">
+                    <div class="chart-type-btn active" data-chart-type="vertical_bar" title="Vertical Bar Chart">
+                        <div class="icon">📊</div>
+                        <div class="title">Vertical Bar</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="horizontal_bar" title="Horizontal Bar Chart">
+                        <div class="icon">📊</div>
+                        <div class="title">Horizontal Bar</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="line" title="Line Chart">
+                        <div class="icon">📈</div>
+                        <div class="title">Line</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="scatter" title="Scatter Plot">
+                        <div class="icon">🎯</div>
+                        <div class="title">Scatter</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="pie" title="Pie Chart">
+                        <div class="icon">🥧</div>
+                        <div class="title">Pie</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="histogram" title="Histogram">
+                        <div class="icon">📊</div>
+                        <div class="title">Histogram</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="box" title="Box Plot">
+                        <div class="icon">📦</div>
+                        <div class="title">Box Plot</div>
+                    </div>
+                    <div class="chart-type-btn" data-chart-type="heatmap" title="Heatmap">
+                        <div class="icon">🗺️</div>
+                        <div class="title">Heatmap</div>
+                    </div>
+                </div>
+                
+                <!-- TIER PROGRESSION SECTION -->
+                <div class="tier-progression">
+                    <div class="tier-labels">
+                        <span class="tier-noob">Noob</span>
+                        <span class="tier-registered">Registered</span>
+                        <span class="tier-viper">VIPer</span>
+                    </div>
+                    <div class="usage-bar">
+                        <div class="usage-fill"></div>
+                    </div>
+                    <div class="velvet-curtain-btn" onclick="window.open('Take_A_Peek.html', '_blank')">
+                        Peek Behind the Velvet Curtain
+                    </div>
+                </div>
+                
+                <select class="more-charts-dropdown">
+                    <option>📋 More Chart Types</option>
+                    <option>📋 Area Chart</option>
+                    <option>📊 Histogram</option>
+                    <option>📈 Step Chart</option>
+                    <option>🌡️ Gauge Chart</option>
+                    <option>🗺️ Heatmap</option>
+                    <option>🌊 Waterfall Chart</option>
+                    <option>📈 Candlestick Chart</option>
+                    <option>🎯 Bubble Chart</option>
+                    <option>📊 Funnel Chart</option>
+                    <option>🌳 Treemap</option>
+                    <option>📡 Radar Chart</option>
+                    <option>📊 Box Plot</option>
+                </select>
+            </div>
+            
+            <div class="section">
+                <h3>Chart Information</h3>
+                <input class="input-field" id="chartTitle" placeholder="Chart Title">
+                <input class="input-field" id="chartSubtitle" placeholder="Subtitle">
+                <input class="input-field" id="chartFootnote" placeholder="Footnote (appears below chart, left-aligned)">
+                <input class="input-field" id="chartSource" placeholder="Data Source (appears below chart, right-aligned)">
+            </div>
+            
+            <div class="section" id="axisLabelsSection">
+                <h3>Axis Labels</h3>
+                <input class="input-field" id="xAxisTitle" placeholder="X-Axis Title">
+                <input class="input-field" id="yAxisTitle" placeholder="Y-Axis Title">
+                <div class="input-group" id="prefixSuffixGroup">
+                    <input class="input-field" id="yPrefix" placeholder="Y-Prefix">
+                    <input class="input-field" id="ySuffix" placeholder="Y-Suffix">
+                </div>
+                <div style="margin-top: 12px;">
+                    <label style="display: block; color: #a8a8a8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 600;">Y-Axis Denominator</label>
+                    <input class="input-field" placeholder="eg. 100; 1,000,000">
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>Display Options</h3>
+                
+                <div class="display-option" id="horizontalGridOption">
+                    <span>Horizontal Grid Lines</span>
+                    <label class="switch">
+                        <input type="checkbox" id="horizontalGrid" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="display-option" id="verticalGridOption">
+                    <span>Vertical Grid Lines</span>
+                    <label class="switch">
+                        <input type="checkbox" id="verticalGrid">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="display-option">
+                    <span>X-Axis Labels</span>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="display-option">
+                    <span>Auto X-Spacing</span>
+                    <label class="switch">
+                        <input type="checkbox" id="autoSpacing">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div id="autoSpacingMessage" class="registration-message" style="display: none;">
+                    Only available to registered users.
+                </div>
+                
+                <div class="display-option" id="yAxisModeOption">
+                    <span>Y-Axis Labels</span>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="yAxisLabelsMode" value="on" checked>
+                            On
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="yAxisLabelsMode" value="off">
+                            Off
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="yAxisLabelsMode" value="top">
+                            Top Only
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- <div class="section">
+                <h3>Column Selection</h3>
+                <select id="xColumn" class="input-field">
+                    <option>Select X-Axis Column</option>
+                </select>
+                <select id="yColumn" class="input-field">
+                    <option>Select Y-Axis Column</option>
+                </select>
+                <select id="zColumn" class="input-field">
+                    <option value="">Z-Axis Column (3D only)</option>
+                </select>
+                <select id="colorColumn" class="input-field">
+                    <option value="">Color Column (optional)</option>
+                </select>
+            </div> -->
+
+            <div class="section" id="aggregationSection">
+                <h3 id="aggregationTitle">Data Aggregation Options</h3>
+                <select id="aggregation" class="input-field">
+                    <option value="none">No Aggregation</option>
+                    <option value="count">Count</option>
+                    <option value="sum">Sum</option>
+                    <option value="average">Average</option>
+                    <option value="max">Maximum</option>
+                    <option value="min">Minimum</option>
+                </select>
+                <select id="maxItems" class="input-field">
+                    <option value="10">Top 10</option>
+                    <option value="20">Top 20</option>
+                    <option value="50">Top 50</option>
+                    <option value="all">Show All</option>
+                </select>
+            </div>
+
+            <div class="section">
+                <h3>Advanced Styling</h3>
+                <select class="input-field">
+                    <option>🎨 Color Schemes</option>
+                    <option>🌈 Vibrant</option>
+                    <option>💼 Professional</option>
+                    <option>🌙 Dark Mode</option>
+                    <option>🌸 Pastel</option>
+                </select>
+                <select class="input-field">
+                    <option>🔤 Font Families</option>
+                    <option>Arial</option>
+                    <option>Helvetica</option>
+                    <option>Georgia</option>
+                    <option>Times New Roman</option>
+                </select>
+                <select class="input-field">
+                    <option>🎯 Element Colors</option>
+                    <option>Title Color</option>
+                    <option>Axis Color</option>
+                    <option>Grid Color</option>
+                    <option>Background Color</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="main-area">
+            <div class="chart-container" id="chartContainer">
+                <div id="plotlyChart" class="chart-placeholder">
+                    <div class="mock-chart-placeholder">
+                        <div style="font-size: 40px; margin-bottom: 10px; opacity: 0.3;">📊</div>
+                        <h3>Your Chart Goes Here</h3>
+
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn-primary generate-chart-btn" id="generateBtnMain" onclick="generateChart()" disabled style="margin-top: 20px; padding: 15px 30px;">
+                🚀 Generate Chart
+            </button>
+            
+            <!-- Export Interface Container -->
+            <div id="exportInterface" class="export-interface">
+                <div class="export-tabs">
+                    <div class="export-tab active" onclick="switchTab(this, 'export')">
+                        <span>Export</span>
+                    </div>
+                    <div class="export-tab" onclick="switchTab(this, 'share')" id="shareTab">
+                        <span>Share</span>
+                    </div>
+                </div>
+
+                <div class="export-content active" id="exportContent" data-tab="export">
+                    <div class="export-buttons" id="exportButtons">
+                        <!-- Dynamically generated -->
+                    </div>
+                    <div class="upgrade-prompt" id="exportUpgradePrompt" style="display: none;"></div>
+                </div>
+
+                <div class="export-content" id="shareContent" data-tab="share">
+                    <div class="export-buttons" id="shareButtons">
+                        <!-- Dynamically generated -->
+                    </div>
+                    <div class="upgrade-prompt" id="shareUpgradePrompt" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API configuration
+        const API_ENDPOINT = 'http://localhost:5000';
+        
+        // Session management
+        let sessionId = localStorage.getItem('getcharty_session_id') || generateSessionId();
+        localStorage.setItem('getcharty_session_id', sessionId);
+        
+        let currentData = [];
+        let currentChart = null;
+        let processedData = [];
+        let rawData = [];
+        let currentFileId = null;
+        let chartWidth = 850; // Default chart width
+        let selectedOrientation = 'vertical';
+        let currentHappyness = 1;
+
+        // Happyness Configuration
+        const HAPPYNESS_CONFIG = {
+            1: {
+                exportFormats: ['jpeg-720p'],
+                exportQuality: 'low',
+                watermarkOpacity: 0.8,
+                watermarkSize: 14,
+                features: {
+                    socialSharing: true,
+                    embedCode: false,
+                    directLinks: false,
+                    emailShare: true
+                },
+                aggregation: false,
+                gridControl: false,
+                axisLabels: true,
+                prefixSuffix: false,
+                yAxisMode: false
+            },
+            3: {
+                exportFormats: ['jpeg-1080p', 'png'],
+                exportQuality: 'medium',
+                watermarkOpacity: 0.6,
+                watermarkSize: 12,
+                features: {
+                    socialSharing: true,
+                    embedCode: true,
+                    directLinks: true,
+                    emailShare: true
+                },
+                aggregation: true,
+                gridControl: true,
+                axisLabels: true,
+                prefixSuffix: true,
+                yAxisMode: false
+            },
+            5: {
+                exportFormats: ['jpeg-2k', 'jpeg-4k', 'png', 'svg', 'pdf'],
+                exportQuality: 'high',
+                watermarkOpacity: 0.3,
+                watermarkSize: 10,
+                features: {
+                    socialSharing: true,
+                    embedCode: true,
+                    directLinks: true,
+                    emailShare: true
+                },
+                aggregation: true,
+                gridControl: true,
+                axisLabels: true,
+                prefixSuffix: true,
+                yAxisMode: true
+            }
+        };
+
+        function generateSessionId() {
+            return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeHappynessManagement();
+            setupEventListeners();
+            updateHeaderStructureText();
+            updateExportInterface(); // Initialize export interface on page load
+        });
+
+        // Happyness Management
+        function initializeHappynessManagement() {
+            try {
+                currentHappyness = parseInt(localStorage.getItem('getcharty_happyness')) || 1;
+                document.body.className = `happyness-${currentHappyness}`;
+                updateHappynessIndicator();
+                updateWatermarkText();
+            } catch (error) {
+                console.error('Happyness management initialization failed:', error);
+                document.body.className = 'happyness-1';
+            }
+        }
+
+        function updateHappynessIndicator() {
+            const happynessNames = {
+                1: 'Noob',
+                3: 'Registered',
+                5: 'VIPer'
+            };
+        }
+
+        function updateWatermarkText() {
+            const watermarkNote = document.querySelector('.watermark-note');
+            if (watermarkNote) {
+                const tierNames = {
+                    noob: 'Noob',
+                    registered: 'Registered',
+                    viper: 'VIPer'
+                };
+                // watermarkNote.textContent = ''; // Removed watermark text as requested
+            }
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            // File input
+            document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+            
+            // Chart type buttons
+            document.querySelectorAll('.chart-type-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Data orientation radio buttons
+            document.querySelectorAll('input[name="dataOrientation"]').forEach(radio => {
+                radio.addEventListener('change', handleDataOrientationChange);
+            });
+
+            // Header structure toggle
+            const headerToggle = document.getElementById('headerStructureToggle');
+            if (headerToggle) {
+                headerToggle.addEventListener('change', updateHeaderStructureText);
+            }
+            
+            // Auto-spacing toggle
+            const autoSpacingToggle = document.getElementById('autoSpacing');
+            if (autoSpacingToggle) {
+                autoSpacingToggle.addEventListener('change', handleAutoSpacingChange);
+            }
+            
+            // Grid line toggles
+            const horizontalGridToggle = document.getElementById('horizontalGrid');
+            const verticalGridToggle = document.getElementById('verticalGrid');
+            if (horizontalGridToggle) {
+                horizontalGridToggle.addEventListener('change', handleGridChange);
+            }
+            if (verticalGridToggle) {
+                verticalGridToggle.addEventListener('change', handleGridChange);
+            }
+            
+            // Axis label controls
+            const axisLabelInputs = ['xAxisTitle', 'yAxisTitle', 'yPrefix', 'ySuffix'];
+            axisLabelInputs.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('change', handleAxisLabelChange);
+                }
+            });
+            
+            // Y-axis labels mode radio buttons
+            document.querySelectorAll('input[name="yAxisLabelsMode"]').forEach(radio => {
+                radio.addEventListener('change', handleAxisLabelChange);
+            });
+        }
+
+        function handleDataOrientationChange() {
+            const selectedRadio = document.querySelector('input[name="dataOrientation"]:checked');
+            if (!selectedRadio) return;
+            
+            selectedOrientation = selectedRadio.value;
+            updateHeaderStructureText();
+            // showStatus(`📐 Data orientation changed to ${selectedOrientation}`, 'info');
+            
+            if (rawData.length > 0) {
+                processDataWithHeaders();
+                // showStatus(`✅ Data reoriented to ${selectedOrientation} format with ${currentData.length} rows!`, 'success');
+            } else {
+                // showStatus(`⚙️ Orientation set to ${selectedOrientation}. This will be applied when you upload data.`, 'info');
+            }
+        }
+
+        function updateHeaderStructureText() {
+            const headerText = document.getElementById('headerStructureText');
+            const headerToggle = document.getElementById('headerStructureToggle');
+            
+            if (headerText && headerToggle) {
+                if (selectedOrientation === 'vertical') {
+                    headerText.textContent = headerToggle.checked ? 'First row is headers' : 'No headers';
+                } else {
+                    headerText.textContent = headerToggle.checked ? 'First column is headers' : 'No headers';
+                }
+            }
+        }
+
+        function handleAutoSpacingChange() {
+            const autoSpacingToggle = document.getElementById('autoSpacing');
+            const autoSpacingMessage = document.getElementById('autoSpacingMessage');
+            
+            if (autoSpacingToggle && autoSpacingMessage) {
+                if (autoSpacingToggle.checked) {
+                    autoSpacingMessage.style.display = 'block';
+                    showStatus('⚠️ Auto-spacing requires registration. Feature will be limited.', 'warning');
+                } else {
+                    autoSpacingMessage.style.display = 'none';
+                    // showStatus('✅ Using manual spacing mode', 'success');
+                }
+            }
+        }
+
+        function handleGridChange() {
+            const config = HAPPYNESS_CONFIG[currentHappyness];
+            if (!config.gridControl) {
+                console.log('🔒 Grid control requires Registered tier or higher');
+                return;
+            }
+            
+            // If chart exists, regenerate it with new grid settings
+            if (currentData.length > 0) {
+                generateChart();
+            }
+        }
+
+        function handleAxisLabelChange() {
+            const config = HAPPYNESS_CONFIG[currentHappyness];
+            if (!config.axisLabels) {
+                console.log('🔒 Axis labels require basic tier or higher');
+                return;
+            }
+            
+            // Check prefix/suffix access
+            const yPrefix = document.getElementById('yPrefix');
+            const ySuffix = document.getElementById('ySuffix');
+            if ((yPrefix && yPrefix.value) || (ySuffix && ySuffix.value)) {
+                if (!config.prefixSuffix) {
+                    console.log('🔒 Prefix/Suffix requires Registered tier or higher');
+                    return;
+                }
+            }
+            
+            // Check Y-axis mode access
+            const yAxisModeRadio = document.querySelector('input[name="yAxisLabelsMode"]:checked');
+            if (yAxisModeRadio && yAxisModeRadio.value === 'top') {
+                if (!config.yAxisMode) {
+                    console.log('🔒 Y-Axis Mode requires VIPer tier or higher');
+                    return;
+                }
+            }
+            
+            // If chart exists, regenerate it with new axis label settings
+            if (currentData.length > 0) {
+                generateChart();
+            }
+        }
+
+        // File Handling
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                parseFileContent(content, file.name);
+            };
+
+            if (file.name.endsWith('.csv')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        function parseFileContent(content, filename) {
+            try {
+                if (filename.endsWith('.csv')) {
+                    Papa.parse(content, {
+                        header: false,
+                        skipEmptyLines: true,
+                        complete: function(results) {
+                            rawData = results.data.filter(row => row.length > 0 && row.some(cell => cell !== ''));
+                            processDataWithHeaders();
+                            console.log(`✅ CSV file loaded with ${rawData.length} rows`);
+                            document.getElementById('generateBtn').disabled = false;
+                            document.getElementById('generateBtnMain').disabled = false;
+                        },
+                        error: function(error) {
+                            console.log(`❌ Error parsing CSV: ${error.message}`);
+                        }
+                    });
+                } else {
+                    // Excel file handling
+                    const workbook = XLSX.read(content, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    rawData = rawData.filter(row => row.length > 0 && row.some(cell => cell !== ''));
+                    processDataWithHeaders();
+                    console.log(`✅ Excel file loaded with ${rawData.length} rows`);
+                    document.getElementById('generateBtn').disabled = false;
+                    document.getElementById('generateBtnMain').disabled = false;
+                }
+            } catch (error) {
+                console.log(`❌ Error processing file: ${error.message}`);
+            }
+        }
+
+        function processDataWithHeaders() {
+            if (rawData.length === 0) return;
+
+            const headerToggle = document.getElementById('headerStructureToggle');
+            const useHeaders = headerToggle ? headerToggle.checked : false;
+
+            if (selectedOrientation === 'horizontal') {
+                // Transpose data first, then handle headers
+                let transposedData = transposeData(rawData);
+                if (useHeaders) {
+                    const headers = transposedData[0];
+                    transposedData = transposedData.slice(1);
+                    // Rename columns using headers
+                    transposedData = transposedData.map((row, index) => {
+                        const newRow = {};
+                        headers.forEach((header, colIndex) => {
+                            newRow[header || `Column ${colIndex + 1}`] = row[colIndex];
+                        });
+                        return newRow;
+                    });
+                }
+                currentData = transposedData;
+            } else {
+                // Vertical data
+                if (useHeaders) {
+                    const headers = rawData[0];
+                    const dataRows = rawData.slice(1);
+                    currentData = dataRows.map(row => {
+                        const newRow = {};
+                        headers.forEach((header, index) => {
+                            newRow[header || `Column ${index + 1}`] = row[index];
+                        });
+                        return newRow;
+                    });
+                } else {
+                    currentData = rawData.map((row, index) => {
+                        const newRow = {};
+                        row.forEach((cell, colIndex) => {
+                            newRow[`Column ${colIndex + 1}`] = cell;
+                        });
+                        return newRow;
+                    });
+                }
+            }
+
+            currentFileId = `local_${Date.now()}`;
+        }
+
+        function transposeData(data) {
+            if (data.length === 0) return [];
+            const maxCols = Math.max(...data.map(row => row.length));
+            const transposed = [];
+            
+            for (let i = 0; i < maxCols; i++) {
+                transposed[i] = [];
+                for (let j = 0; j < data.length; j++) {
+                    transposed[i][j] = data[j][i] || '';
+                }
+            }
+            
+            return transposed;
+        }
+
+        // Data processing functions
+        function prepareChartData() {
+            return currentData;
+        }
+
+        function showDataPreview(data) {
+            if (!data.length) return;
+            
+            // Create data summary
+            let summary = document.getElementById('dataSummary');
+            if (!summary) {
+                summary = document.createElement('div');
+                summary.id = 'dataSummary';
+                summary.className = 'data-summary';
+                const generateBtn = document.getElementById('generateBtnMain');
+                if (generateBtn) {
+                    generateBtn.parentNode.insertBefore(summary, generateBtn.nextSibling);
+                } else {
+                    document.querySelector('.main-area').appendChild(summary);
+                }
+            }
+            
+            const columns = Object.keys(data[0]);
+            const rowCount = data.length;
+            const columnCount = columns.length;
+            
+            summary.innerHTML = `
+                <p>We Count <strong>${columnCount}</strong> Columns and <strong>${rowCount}</strong> Rows. Scroll Down to See the Data</p>
+            `;
+            summary.style.display = 'block';
+            
+            // Create data preview
+            let preview = document.getElementById('dataPreview');
+            if (!preview) {
+                preview = document.createElement('div');
+                preview.id = 'dataPreview';
+                preview.className = 'data-preview-section';
+                preview.innerHTML = '<h3>📋 Data Preview</h3><div class="data-preview" id="dataPreviewContent"></div>';
+                
+                // Insert after export interface
+                const exportInterface = document.getElementById('exportInterface');
+                if (exportInterface) {
+                    exportInterface.parentNode.insertBefore(preview, exportInterface.nextSibling);
+                } else {
+                    document.querySelector('.main-area').appendChild(preview);
+                }
+            }
+            
+            const previewContent = document.getElementById('dataPreviewContent');
+            if (!previewContent) return;
+            
+            let html = '<div style="overflow-x: auto;"><table><thead><tr>';
+            
+            columns.forEach(col => {
+                html += `<th>${col}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            // Show ALL rows (no limit)
+            data.forEach(row => {
+                html += '<tr>';
+                columns.forEach(col => {
+                    let value = row[col];
+                    if (value === null || value === undefined) {
+                        value = '<em style="color: #999;">null</em>';
+                    } else if (typeof value === 'number') {
+                        value = value.toLocaleString();
+                    }
+                    html += `<td>${value}</td>`;
+                });
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div>';
+            previewContent.innerHTML = html;
+            preview.style.display = 'block';
+        }
+
+        // Chart Generation
+        async function generateChart() {
+            if (currentData.length === 0) {
+                console.log('❌ No data available. Please upload a file first.');
+                return;
+            }
+
+            const chartType = document.querySelector('.chart-type-btn.active').dataset.chartType;
+            const title = document.getElementById('chartTitle').value || 'Chart Title';
+            const subtitle = document.getElementById('chartSubtitle').value || '';
+            const footnote = document.getElementById('chartFootnote').value || '';
+            const source = document.getElementById('chartSource').value || '';
+            const autoSpacing = document.getElementById('autoSpacing') ? document.getElementById('autoSpacing').checked : false;
+            const horizontalGrid = document.getElementById('horizontalGrid') ? document.getElementById('horizontalGrid').checked : true;
+            const verticalGrid = document.getElementById('verticalGrid') ? document.getElementById('verticalGrid').checked : false;
+            const xAxisTitle = document.getElementById('xAxisTitle') ? document.getElementById('xAxisTitle').value : '';
+            const yAxisTitle = document.getElementById('yAxisTitle') ? document.getElementById('yAxisTitle').value : '';
+            const yPrefix = document.getElementById('yPrefix') ? document.getElementById('yPrefix').value : '';
+            const ySuffix = document.getElementById('ySuffix') ? document.getElementById('ySuffix').value : '';
+            const yAxisLabelsMode = document.querySelector('input[name="yAxisLabelsMode"]:checked') ? document.querySelector('input[name="yAxisLabelsMode"]:checked').value : 'on';
+            
+            try {
+                // showStatus('🎨 Generating your interactive chart...', 'warning');
+                
+                // Calculate dynamic margins and container height
+                const { topMargin, bottomMargin } = calculateDynamicMargins(title, subtitle, footnote, source, autoSpacing);
+                const containerHeight = calculateContainerHeight(topMargin, bottomMargin);
+                
+                const chartContainer = document.getElementById('chartContainer');
+                chartContainer.style.height = `${containerHeight}px`;
+                chartContainer.style.minHeight = 'unset';
+                
+                // Process and prepare data
+                processedData = prepareChartData();
+                showDataPreview(processedData);
+                
+                const config = createChartConfig(chartType, {
+                    title,
+                    subtitle,
+                    footnote,
+                    source,
+                    topMargin,
+                    bottomMargin,
+                    autoSpacing,
+                    horizontalGrid,
+                    verticalGrid,
+                    xAxisTitle,
+                    yAxisTitle,
+                    yPrefix,
+                    ySuffix,
+                    yAxisLabelsMode
+                });
+                
+                // Add watermark to chart container
+                if (!document.querySelector('.chart-watermark')) {
+                    const watermark = document.createElement('div');
+                    watermark.className = 'chart-watermark';
+                    watermark.textContent = 'GetCharty.com';
+                    chartContainer.appendChild(watermark);
+                }
+
+                const plotlyChart = document.getElementById('plotlyChart');
+                if (plotlyChart) {
+                    plotlyChart.innerHTML = '';
+                    Plotly.newPlot('plotlyChart', config.data, config.layout, config.options)
+                        .then(function() {
+                            syncContainerWithPlotly();
+                            validateAndAdjustChartSpacing();
+                            // showStatus('✅ Chart generated successfully!', 'success');
+                            document.getElementById('exportInterface').style.display = 'block';
+                            updateExportInterface();
+                        });
+                }
+                
+                if (chartContainer) {
+                    chartContainer.classList.add('has-chart');
+                }
+                
+            } catch (error) {
+                console.log(`❌ Error generating chart: ${error.message}`);
+                console.error('Chart generation error:', error);
+            }
+        }
+
+        function createChartConfig(chartType, options) {
+            const { 
+                title, subtitle, footnote, source, 
+                topMargin, bottomMargin, autoSpacing,
+                horizontalGrid, verticalGrid,
+                xAxisTitle, yAxisTitle, yPrefix, ySuffix, yAxisLabelsMode
+            } = options;
+
+            // Get column names
+            const columns = Object.keys(currentData[0] || {});
+            const xColumn = columns[0] || 'Column 1';
+            const yColumn = columns[1] || 'Column 2';
+
+            // Prepare data
+            const xValues = currentData.map(row => row[xColumn]);
+            const yValues = currentData.map(row => parseFloat(row[yColumn]) || 0);
+
+            let data = [];
+            
+            // Create title with wrapped subtitle
+            let titleText = title || '';
+            if (subtitle) {
+                const wrappedSubtitle = wrapSubtitleText(subtitle, 100);
+                titleText = `${title}<br><span style="font-size: 14px; color: rgba(255,255,255,0.8);">${wrappedSubtitle}</span>`;
+            }
+            
+            let layout = {
+                title: {
+                    text: titleText,
+                    font: { size: 18, color: 'white' },
+                    x: 0.5,
+                    xanchor: 'center'
+                },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: 'white' },
+                xaxis: applyGridSettings({
+                    title: xAxisTitle || xColumn,
+                    gridcolor: 'rgba(255,255,255,0.1)',
+                    zerolinecolor: 'rgba(255,255,255,0.2)',
+                    color: 'white'
+                }, verticalGrid, horizontalGrid),
+                yaxis: applyGridSettings({
+                    title: yAxisTitle || yColumn || 'Value',
+                    gridcolor: 'rgba(255,255,255,0.1)',
+                    zerolinecolor: 'rgba(255,255,255,0.2)',
+                    color: 'white',
+                    zeroline: true,
+                    zerolinecolor: 'gray',
+                    zerolinewidth: 2,
+                    tickprefix: yAxisLabelsMode === 'on' ? yPrefix : '',
+                    ticksuffix: yAxisLabelsMode === 'on' ? ySuffix : '',
+                    showticklabels: yAxisLabelsMode !== 'off'
+                }, horizontalGrid, verticalGrid),
+                margin: { l: 80, r: 65, t: topMargin, b: bottomMargin },
+                height: 400 + topMargin + bottomMargin,
+                width: chartWidth,
+                autosize: false
+            };
+
+            // Add annotations for footnote and source with text wrapping
+            const annotations = [];
+            if (footnote) {
+                const footnoteY = autoSpacing ? -0.15 : -0.20;
+                annotations.push({
+                    text: `<i>${wrapFootnoteText(footnote)}</i>`,
+                    showarrow: false,
+                    xref: 'paper',
+                    yref: 'paper',
+                    x: 0,
+                    y: footnoteY,
+                    xanchor: 'left',
+                    yanchor: 'top',
+                    width: 0.3,
+                    align: 'left',
+                    font: { 
+                        size: 12, 
+                        color: 'rgba(255,255,255,0.8)',
+                        family: 'Arial, sans-serif'
+                    },
+                    bgcolor: 'rgba(0,0,0,0)',
+                    bordercolor: 'rgba(0,0,0,0)',
+                    borderwidth: 0
+                });
+            }
+            if (source) {
+                const sourceY = autoSpacing ? -0.15 : -0.20;
+                annotations.push({
+                    text: wrapSourceText(source),
+                    showarrow: false,
+                    xref: 'paper',
+                    yref: 'paper',
+                    x: 1,
+                    y: sourceY,
+                    xanchor: 'right',
+                    yanchor: 'top',
+                    width: 0.3,
+                    align: 'right',
+                    font: { 
+                        size: 12, 
+                        color: 'rgba(255,255,255,0.8)',
+                        family: 'Arial, sans-serif'
+                    },
+                    bgcolor: 'rgba(0,0,0,0)',
+                    bordercolor: 'rgba(0,0,0,0)',
+                    borderwidth: 0
+                });
+            }
+            if (annotations.length > 0) {
+                layout.annotations = annotations;
+            }
+
+            // Create chart data based on type
+            switch (chartType) {
+                case 'vertical_bar':
+                    data = [{
+                        x: xValues,
+                        y: yValues,
+                        type: 'bar',
+                        marker: { color: '#e94560' }
+                    }];
+                    break;
+                case 'horizontal_bar':
+                    data = [{
+                        x: yValues,
+                        y: xValues,
+                        type: 'bar',
+                        orientation: 'h',
+                        marker: { color: '#e94560' }
+                    }];
+                    break;
+                case 'line':
+                    data = [{
+                        x: xValues,
+                        y: yValues,
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        line: { color: '#e94560', width: 3 },
+                        marker: { color: '#e94560', size: 8 }
+                    }];
+                    break;
+                case 'scatter':
+                    data = [{
+                        x: xValues,
+                        y: yValues,
+                        type: 'scatter',
+                        mode: 'markers',
+                        marker: { color: '#e94560', size: 10 }
+                    }];
+                    break;
+                case 'pie':
+                    data = [{
+                        labels: xValues,
+                        values: yValues,
+                        type: 'pie',
+                        marker: { colors: ['#e94560', '#533483', '#16213e', '#0f3460'] }
+                    }];
+                    break;
+                case 'histogram':
+                    data = [{
+                        x: yValues,
+                        type: 'histogram',
+                        marker: { color: '#e94560' }
+                    }];
+                    break;
+                case 'box':
+                    data = [{
+                        y: yValues,
+                        type: 'box',
+                        marker: { color: '#e94560' }
+                    }];
+                    break;
+                case 'heatmap':
+                    // For heatmap, we need 2D data
+                    const heatmapData = [];
+                    for (let i = 0; i < Math.min(xValues.length, 10); i++) {
+                        heatmapData.push([yValues[i] || 0]);
+                    }
+                    data = [{
+                        z: heatmapData,
+                        type: 'heatmap',
+                        colorscale: 'Viridis'
+                    }];
+                    break;
+                default:
+                    data = [{
+                        x: xValues,
+                        y: yValues,
+                        type: 'bar',
+                        marker: { color: '#e94560' }
+                    }];
+            }
+
+            return {
+                data: data,
+                layout: layout,
+                options: {
+                    responsive: true,
+                    displayModeBar: currentHappyness >= 5, // Only show for VIPer (happyness >= 5)
+                    displaylogo: false, // Hide logo for all levels
+                    modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d']
+                }
+            };
+        }
+
+        // Export Interface
+        function updateExportInterface() {
+            updateExportButtons();
+            updateShareButtons();
+            updateAggregationSection();
+            updateGridControls();
+            updateAxisLabelControls();
+        }
+
+        function updateExportButtons() {
+            const container = document.getElementById('exportButtons');
+            const upgradePrompt = document.getElementById('exportUpgradePrompt');
+            if (!container) return;
+
+            const config = HAPPYNESS_CONFIG[currentHappyness];
+            container.innerHTML = '';
+
+            const exportOptions = [
+                { format: 'jpeg-720p', label: 'JPG (720p)', icon: '📷', quality: '720p', happyness: 1 },
+                { format: 'jpeg-1080p', label: 'JPG (1080p)', icon: '📷', quality: '1080p', happyness: 3 },
+                { format: 'jpeg-2k', label: 'JPG (2K)', icon: '📷', quality: '2K', happyness: 5 },
+                { format: 'jpeg-4k', label: 'JPG (4K)', icon: '📷', quality: '4K', happyness: 5 },
+                { format: 'png', label: 'PNG', icon: '🖼️', quality: getQualityLabel('png'), happyness: 3 },
+                { format: 'pdf', label: 'PDF', icon: '📄', quality: getQualityLabel('pdf'), happyness: 3 },
+                { format: 'svg', label: 'SVG', icon: '🎨', quality: '', happyness: 5 }
+            ];
+
+            exportOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'export-button';
+                
+                if (!config.exportFormats.includes(option.format)) {
+                    button.classList.add('locked');
+                    button.onclick = () => showUpgradePrompt(option.happyness);
+                } else {
+                    button.onclick = () => exportChart(option.format);
+                    
+                    // Add premium styling based on tier
+                    if (option.happyness === 5) {
+                        button.classList.add('premium');
+                    }
+                }
+
+                button.innerHTML = `
+                    <span class="icon">${option.icon}</span>
+                    <span>${option.label}</span>
+                    ${option.quality ? `<span class="quality">${option.quality}</span>` : ''}
+                `;
+
+                container.appendChild(button);
+            });
+
+            // Show upgrade prompt if needed
+            showExportUpgradePrompt();
+        }
+
+        function getQualityLabel(format) {
+            if (currentHappyness === 1) return '720p';
+            if (currentHappyness === 3) return '1080p';
+            if (currentHappyness === 5) return '4K';
+            return '';
+        }
+
+        function updateAggregationSection() {
+            const aggregationSection = document.getElementById('aggregationSection');
+            const config = HAPPYNESS_CONFIG[currentHappyness];
+            
+            if (aggregationSection) {
+                if (config.aggregation) {
+                    aggregationSection.classList.remove('locked');
+                } else {
+                    aggregationSection.classList.add('locked');
+                }
+            }
+        }
+
+        function updateGridControls() {
+            const horizontalGridOption = document.getElementById('horizontalGridOption');
+            const verticalGridOption = document.getElementById('verticalGridOption');
+            const config = HAPPYNESS_CONFIG[currentHappyness];
+            
+            if (horizontalGridOption && verticalGridOption) {
+                if (config.gridControl) {
+                    horizontalGridOption.classList.remove('locked');
+                    verticalGridOption.classList.remove('locked');
+                } else {
+                    horizontalGridOption.classList.add('locked');
+                    verticalGridOption.classList.add('locked');
+                }
+            }
+        }
+
+        function updateAxisLabelControls() {
+            const prefixSuffixGroup = document.getElementById('prefixSuffixGroup');
+            const yAxisModeOption = document.getElementById('yAxisModeOption');
+            const config = HAPPYNESS_CONFIG[currentHappyness];
+            
+            if (prefixSuffixGroup) {
+                if (config.prefixSuffix) {
+                    prefixSuffixGroup.classList.remove('locked');
+                } else {
+                    prefixSuffixGroup.classList.add('locked');
+                }
+            }
+            
+            if (yAxisModeOption) {
+                if (config.yAxisMode) {
+                    yAxisModeOption.classList.remove('locked');
+                } else {
+                    yAxisModeOption.classList.add('locked');
+                }
+            }
+        }
+
+        function applyGridSettings(axisConfig, horizontalGrid, verticalGrid) {
+            if (axisConfig) {
+                axisConfig.showgrid = horizontalGrid;
+                axisConfig.showline = true;
+                axisConfig.linecolor = 'rgba(255,255,255,0.3)';
+                axisConfig.linewidth = 1;
+            }
+            return axisConfig;
+        }
+
+
+
+        function showExportUpgradePrompt() {
+            const upgradePrompt = document.getElementById('exportUpgradePrompt');
+            
+            if (currentHappyness === 1) {
+                upgradePrompt.textContent = '📈 Upgrade to Registered for PDF & PNG exports + Sharing features';
+                upgradePrompt.className = 'upgrade-prompt';
+                upgradePrompt.style.display = 'block';
+            } else if (currentHappyness === 3) {
+                upgradePrompt.textContent = '✨ Upgrade to VIPer for professional SVG exports & more';
+                upgradePrompt.className = 'upgrade-prompt viper';
+                upgradePrompt.style.display = 'block';
+            } else {
+                upgradePrompt.style.display = 'none';
+            }
+        }
+
+        function updateShareButtons() {
+            const container = document.getElementById('shareButtons');
+            const upgradePrompt = document.getElementById('shareUpgradePrompt');
+            const shareTab = document.getElementById('shareTab');
+            if (!container) return;
+
+            const config = HAPPYNESS_CONFIG[currentHappyness];
+            container.innerHTML = '';
+
+            // Remove locked state from share tab
+            shareTab.classList.remove('locked');
+
+            const shareOptions = [
+                { platform: 'socials', label: 'Social', icon: '🐦', feature: 'socialSharing', happyness: 1 },
+                { platform: 'link', label: 'Permalink', icon: '🔗', feature: 'directLinks', happyness: 3 },
+                { platform: 'code', label: 'Code', icon: '📋', feature: 'embedCode', happyness: 5 },
+                { platform: 'email', label: 'Email', icon: '📤', feature: 'emailShare', happyness: 1 }
+            ];
+
+            shareOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'export-button';
+                
+                if (!config.features[option.feature]) {
+                    button.classList.add('locked');
+                    button.onclick = () => showUpgradePrompt(option.happyness);
+                } else {
+                    button.onclick = () => shareChart(option.platform);
+                    
+                    // Add premium styling for VIPer features (if we had any)
+                    if (option.happyness === 5) {
+                        button.classList.add('premium');
+                    }
+                }
+
+                button.innerHTML = `
+                    <span class="icon">${option.icon}</span>
+                    <span>${option.label}</span>
+                `;
+
+                container.appendChild(button);
+            });
+
+            // Show upgrade prompt if needed
+            showShareUpgradePrompt();
+        }
+
+        function showShareUpgradePrompt() {
+            const upgradePrompt = document.getElementById('shareUpgradePrompt');
+            
+            if (currentHappyness === 1) {
+                upgradePrompt.textContent = '📈 Upgrade to Registered for Permalink sharing & Code export';
+                upgradePrompt.className = 'upgrade-prompt';
+                upgradePrompt.style.display = 'block';
+            } else if (currentHappyness === 3) {
+                upgradePrompt.textContent = '✨ Upgrade to VIPer for professional Code export & more';
+                upgradePrompt.className = 'upgrade-prompt viper';
+                upgradePrompt.style.display = 'block';
+            } else {
+                upgradePrompt.style.display = 'none';
+            }
+        }
+
+        function upgradeToRegistered() {
+            console.log('🚀 Redirecting to Registered upgrade page...');
+        }
+
+        function switchTab(clickedTab, tabName) {
+            const container = clickedTab.closest('.export-interface');
+            
+            // Remove active class from all tabs and contents in this container
+            container.querySelectorAll('.export-tab').forEach(tab => tab.classList.remove('active'));
+            container.querySelectorAll('.export-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            clickedTab.classList.add('active');
+            container.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        }
+
+        // Export Functionality
+        function exportChart(format) {
+            if (format === 'jpg') {
+                exportAsJPG();
+            } else if (format === 'jpeg-720p') {
+                exportAsJpegTiered('720p', 0.8);
+            } else if (format === 'jpeg-1080p') {
+                exportAsJpegTiered('1080p', 0.9);
+            } else if (format === 'jpeg-2k') {
+                exportAsJpegTiered('2k', 0.95);
+            } else if (format === 'jpeg-4k') {
+                exportAsJpegTiered('4k', 0.95);
+            } else {
+                console.log(`❌ ${format.toUpperCase()} export not implemented yet`);
+            }
+        }
+
+        function exportAsJPG() {
+            const chartElement = document.getElementById('plotlyChart');
+            if (!chartElement) {
+                console.log('❌ Chart element not found');
+                return;
+            }
+
+            html2canvas(chartElement, {
+                backgroundColor: null,
+                scale: 2,
+                useCORS: true,
+                allowTaint: true
+            }).then(canvas => {
+                // Add watermark to canvas
+                addWatermarkToCanvas(canvas, HAPPYNESS_CONFIG[currentHappyness]);
+                
+                // Convert to blob and download
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `chart_${Date.now()}.jpg`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    console.log('✅ Chart exported as JPG successfully!');
+                }, 'image/jpeg', 0.9);
+            }).catch(error => {
+                console.log(`❌ Export failed: ${error.message}`);
+            });
+        }
+
+        function exportAsJpegTiered(resolution, quality) {
+            const chartElement = document.getElementById('plotlyChart');
+            if (!chartElement) {
+                console.log('❌ Chart element not found');
+                return;
+            }
+
+            // Generate filename with timestamp and resolution
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            const filename = `GetCharty_Chart_${timestamp}_${resolution.toUpperCase()}.jpg`;
+
+            try {
+                // Use the new saveJpeg function
+                saveJpeg(chartElement, filename, resolution, quality);
+                console.log(`✅ Chart exported as ${resolution} JPEG successfully!`);
+            } catch (error) {
+                console.log(`❌ Export failed: ${error.message}`);
+            }
+        }
+
+        function addWatermarkToCanvas(canvas, config) {
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Bottom-left watermark
+            ctx.fillStyle = `rgba(255, 255, 255, ${config.watermarkOpacity})`;
+            ctx.font = `${config.watermarkSize}px Arial`;
+            ctx.textAlign = 'left';
+            ctx.fillText('GetCharty.com', 10, height - 10);
+
+            // Diagonal watermark across center
+            ctx.save();
+            ctx.translate(width / 2, height / 2);
+            ctx.rotate(-Math.PI / 6);
+            ctx.fillStyle = `rgba(255, 255, 255, ${config.watermarkOpacity * 0.3})`;
+            ctx.font = `${config.watermarkSize * 2}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.fillText('GetCharty.com', 0, 0);
+            ctx.restore();
+        }
+
+        // Enhanced JPEG Export Function
+        async function saveJpeg(gd, filename, resolution = "1080p", quality = 0.95) {
+            // Resolution presets
+            const presets = {
+                "720p":  { width: 1280, height: 720 },
+                "1080p": { width: 1920, height: 1080 },
+                "2k":    { width: 2560, height: 1440 },
+                "4k":    { width: 3840, height: 2160 },
+            };
+
+            if (!(resolution in presets)) {
+                throw new Error(`Resolution must be one of ${Object.keys(presets)}`);
+            }
+
+            const { width, height } = presets[resolution];
+
+            // Export Plotly figure to PNG first
+            const url = await Plotly.toImage(gd, {
+                format: "png", // lossless first
+                width: width,
+                height: height,
+                scale: 1
+            });
+
+            // Convert PNG → JPEG with quality control
+            const img = new Image();
+            img.src = url;
+
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Add watermark to canvas
+                addWatermarkToCanvas(canvas, HAPPYNESS_CONFIG[currentHappyness]);
+
+                const jpegURL = canvas.toDataURL("image/jpeg", quality); // 0–1 quality scale
+
+                // Trigger download
+                const a = document.createElement("a");
+                a.href = jpegURL;
+                a.download = filename.endsWith(".jpg") || filename.endsWith(".jpeg")
+                    ? filename
+                    : `${filename}.jpg`;
+                a.click();
+                console.log(`Saved ${filename} at ${resolution} with quality=${quality}`);
+            };
+        }
+
+        // Share Functionality
+        function shareChart(platform) {
+            const chartTitle = document.getElementById('chartTitle').value || 'My Chart';
+            const chartSubtitle = document.getElementById('chartSubtitle').value || '';
+            
+            // Create chart permalink with chart data
+            const chartData = {
+                title: chartTitle,
+                subtitle: chartSubtitle,
+                data: currentData,
+                chartType: document.querySelector('.chart-type-btn.active').dataset.chartType,
+                timestamp: Date.now()
+            };
+            
+            // Generate permalink (this would typically be saved to a database and return a URL)
+            const chartPermalink = generateChartPermalink(chartData);
+
+            switch (platform) {
+                case 'socials':
+                    // Create sharing text with title and subtitle
+                    const sharingText = chartSubtitle ? `${chartTitle} - ${chartSubtitle}` : chartTitle;
+                    
+                    // Open all social platforms in sequence
+                    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(chartPermalink)}&quote=${encodeURIComponent(sharingText)}`, '_blank');
+                    setTimeout(() => {
+                        window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(chartPermalink)}&text=${encodeURIComponent(sharingText)}`, '_blank');
+                    }, 100);
+                    setTimeout(() => {
+                        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(chartPermalink)}&title=${encodeURIComponent(chartTitle)}&summary=${encodeURIComponent(chartSubtitle)}`, '_blank');
+                    }, 200);
+                    break;
+                case 'link':
+                    showDirectLink();
+                    break;
+                case 'email':
+                    window.open(`mailto:?subject=${encodeURIComponent(chartTitle)}&body=${encodeURIComponent(`Check out my chart: ${chartPermalink}`)}`, '_blank');
+                    break;
+                default:
+                    console.log(`❌ ${platform} sharing not implemented`);
+            }
+        }
+
+        function showEmbedCode() {
+            const embedCode = `<iframe src="${window.location.href}" width="800" height="600" frameborder="0"></iframe>`;
+            navigator.clipboard.writeText(embedCode).then(() => {
+                console.log('✅ Embed code copied to clipboard!');
+            }).catch(() => {
+                console.log('❌ Failed to copy embed code');
+            });
+        }
+
+        function generateChartPermalink(chartData) {
+            // Generate a unique ID for the chart
+            const chartId = generateUniqueChartId();
+            
+            // Store chart data locally (in a real app, this would go to a database)
+            storeChartData(chartId, chartData);
+            
+            // Return a clean permalink URL
+            return `https://getcharty.com/chart/${chartId}`;
+        }
+
+        function generateUniqueChartId() {
+            // Generate a short, unique ID for the chart
+            return 'chart_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        }
+
+        function storeChartData(chartId, chartData) {
+            // Store chart data in localStorage (in production, this would be a database)
+            const storedCharts = JSON.parse(localStorage.getItem('getcharty_charts') || '{}');
+            
+            // Generate or get hashed userID
+            const hashedUserId = generateHashedUserId();
+            
+            storedCharts[chartId] = {
+                title: chartData.title,
+                subtitle: chartData.subtitle,
+                chartType: chartData.chartType,
+                data: chartData.data,
+                timestamp: chartData.timestamp,
+                created: new Date().toISOString(),
+                userId: hashedUserId,
+                happyness: currentHappyness
+            };
+            localStorage.setItem('getcharty_charts', JSON.stringify(storedCharts));
+        }
+
+        function generateHashedUserId() {
+            // Get or create a unique user identifier
+            let userId = localStorage.getItem('getcharty_user_id');
+            
+            if (!userId) {
+                // Generate a new unique user ID
+                userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('getcharty_user_id', userId);
+            }
+            
+            // Create a simple hash of the user ID (in production, use proper hashing)
+            return simpleHash(userId);
+        }
+
+        function simpleHash(str) {
+            // Simple hash function (in production, use crypto-js or similar)
+            let hash = 0;
+            if (str.length === 0) return hash.toString();
+            
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32-bit integer
+            }
+            
+            // Convert to positive hex string
+            return Math.abs(hash).toString(16);
+        }
+
+        function showDirectLink() {
+            const chartTitle = document.getElementById('chartTitle').value || 'My Chart';
+            const chartSubtitle = document.getElementById('chartSubtitle').value || '';
+            
+            const chartData = {
+                title: chartTitle,
+                subtitle: chartSubtitle,
+                data: currentData,
+                chartType: document.querySelector('.chart-type-btn.active').dataset.chartType,
+                timestamp: Date.now()
+            };
+            
+            const chartPermalink = generateChartPermalink(chartData);
+            
+            navigator.clipboard.writeText(chartPermalink).then(() => {
+                console.log('✅ Chart permalink copied to clipboard!');
+            }).catch(() => {
+                console.log('❌ Failed to copy chart permalink');
+            });
+        }
+
+        // Utility Functions
+        function showUpgradePrompt(requiredHappyness) {
+            const happynessNames = {
+                1: 'Noob',
+                3: 'Registered',
+                5: 'VIPer'
+            };
+            console.log(`🔒 This feature requires ${happynessNames[requiredHappyness]} tier or higher`);
+        }
+
+        function showStatus(message, type) {
+            // Remove existing status messages
+            const existingStatus = document.querySelector('.status-message');
+            if (existingStatus) {
+                existingStatus.remove();
+            }
+
+            // Create new status message
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.textContent = message;
+
+            // Insert after the main area
+            const mainArea = document.querySelector('.main-area');
+            mainArea.insertBefore(statusDiv, mainArea.firstChild);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (statusDiv.parentNode) {
+                    statusDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Dynamic container sizing functions
+        function calculateDynamicMargins(title, subtitle, footnote, source, autoSpacing = true) {
+            let topMargin = 50;
+            let bottomMargin = 85;
+            
+            const titleFontSize = 18;
+            const subtitleFontSize = 14;
+            const annotationFontSize = 12;
+            const fontFamily = '-apple-system, BlinkMacSystemFont, sans-serif';
+            const chartWidth = 850;
+            const maxTextWidth = chartWidth * 0.85;
+            
+            if (title) {
+                const titleMeasurements = measureTextDimensions(
+                    title,
+                    titleFontSize,
+                    fontFamily,
+                    maxTextWidth
+                );
+                topMargin = Math.max(50, titleMeasurements.requiredSpace + 25);
+            }
+            
+            if (subtitle) {
+                const formattedSubtitle = wrapSubtitleText(subtitle, 100);
+                const subtitleMeasurements = measureTextDimensions(
+                    formattedSubtitle,
+                    subtitleFontSize,
+                    fontFamily,
+                    maxTextWidth
+                );
+                
+                topMargin += subtitleMeasurements.requiredSpace;
+                const safetyBuffer = Math.min(20, Math.floor(subtitle.length / 40) * 4);
+                topMargin += safetyBuffer;
+            }
+            
+            if (footnote || source) {
+                let footnoteHeight = 0;
+                let sourceHeight = 0;
+                
+                if (footnote) {
+                    const wrappedFootnote = wrapFootnoteText(footnote);
+                    const footnoteMeasurements = measureTextDimensions(
+                        wrappedFootnote,
+                        annotationFontSize,
+                        fontFamily,
+                        chartWidth * 0.3
+                    );
+                    footnoteHeight = footnoteMeasurements.requiredSpace;
+                }
+                
+                if (source) {
+                    const wrappedSource = wrapSourceText(source);
+                    const sourceMeasurements = measureTextDimensions(
+                        wrappedSource,
+                        annotationFontSize,
+                        fontFamily,
+                        chartWidth * 0.3
+                    );
+                    sourceHeight = sourceMeasurements.requiredSpace;
+                }
+                
+                bottomMargin = 85 + Math.max(footnoteHeight, sourceHeight) + 10;
+            }
+            
+            topMargin = Math.ceil(topMargin * 1.05);
+            bottomMargin = Math.ceil(bottomMargin * 1.05);
+            
+            return { topMargin, bottomMargin };
+        }
+
+        function calculateContainerHeight(topMargin, bottomMargin) {
+            const fixedChartHeight = 400;
+            const containerPadding = 30;
+            const extraBuffer = Math.max(0, (topMargin + bottomMargin - 200) * 0.05);
+            
+            return fixedChartHeight + topMargin + bottomMargin + containerPadding + extraBuffer;
+        }
+
+        function validateAndAdjustChartSpacing() {
+            setTimeout(() => {
+                const plotlyChart = document.getElementById('plotlyChart');
+                const chartContainer = document.getElementById('chartContainer');
+                
+                if (plotlyChart && plotlyChart._fullLayout) {
+                    const titleElements = plotlyChart.querySelectorAll('.gtitle');
+                    const annotations = plotlyChart.querySelectorAll('.annotation');
+                    const plotArea = plotlyChart.querySelector('.plot');
+                    
+                    if (titleElements.length > 0 && plotArea) {
+                        let maxTitleBottom = 0;
+                        
+                        titleElements.forEach(element => {
+                            const bounds = element.getBoundingClientRect();
+                            maxTitleBottom = Math.max(maxTitleBottom, bounds.bottom);
+                        });
+                        
+                        const plotBounds = plotArea.getBoundingClientRect();
+                        const overlap = maxTitleBottom - plotBounds.top;
+                        
+                        if (overlap > 0) {
+                            const currentLayout = plotlyChart._fullLayout;
+                            const newTopMargin = currentLayout.margin.t + overlap + 10;
+                            
+                            const currentHeight = parseInt(chartContainer.style.height);
+                            const newHeight = currentHeight + overlap + 10;
+                            chartContainer.style.height = `${newHeight}px`;
+                            
+                            Plotly.relayout('plotlyChart', {
+                                'margin.t': newTopMargin
+                            });
+                        }
+                    }
+                    
+                    if (annotations.length > 0) {
+                        annotations.forEach(annotation => {
+                            const bounds = annotation.getBoundingClientRect();
+                            const containerBounds = chartContainer.getBoundingClientRect();
+                            
+                            if (bounds.bottom > containerBounds.bottom) {
+                                const currentHeight = parseInt(chartContainer.style.height);
+                                const overflow = bounds.bottom - containerBounds.bottom;
+                                chartContainer.style.height = `${currentHeight + overflow + 20}px`;
+                            }
+                        });
+                    }
+                }
+            }, 150);
+        }
+
+        function syncContainerWithPlotly() {
+            const plotlyChart = document.getElementById('plotlyChart');
+            const chartContainer = document.getElementById('chartContainer');
+            
+            if (plotlyChart && chartContainer) {
+                const plotlyHeight = plotlyChart.layout ? plotlyChart.layout.height : 500;
+                const containerPadding = 30;
+                const totalHeight = plotlyHeight + containerPadding;
+                
+                chartContainer.style.height = `${totalHeight}px`;
+            }
+        }
+
+        function measureTextDimensions(text, fontSize, fontFamily, maxWidth) {
+            const measuringDiv = document.createElement('div');
+            measuringDiv.style.cssText = `
+                position: absolute;
+                visibility: hidden;
+                left: -9999px;
+                width: ${maxWidth}px;
+                font-size: ${fontSize}px;
+                font-family: ${fontFamily};
+                line-height: 1.5;
+                white-space: normal;
+                word-wrap: break-word;
+                word-break: break-word;
+                color: white;
+            `;
+            
+            measuringDiv.innerHTML = text.replace(/\n/g, '<br>');
+            document.body.appendChild(measuringDiv);
+            
+            const totalHeight = measuringDiv.offsetHeight;
+            
+            const singleLineDiv = document.createElement('div');
+            singleLineDiv.style.cssText = measuringDiv.style.cssText;
+            singleLineDiv.innerHTML = 'Ag';
+            document.body.appendChild(singleLineDiv);
+            
+            const singleLineHeight = singleLineDiv.offsetHeight;
+            const numberOfLines = Math.ceil(totalHeight / singleLineHeight);
+            
+            document.body.removeChild(measuringDiv);
+            document.body.removeChild(singleLineDiv);
+            
+            return {
+                totalHeight: totalHeight,
+                numberOfLines: numberOfLines,
+                lineHeight: singleLineHeight,
+                requiredSpace: totalHeight + (fontSize * 0.5)
+            };
+        }
+
+        // Text wrapping helper functions
+        function wrapSubtitleText(text, maxLength = 80) {
+            if (!text) return '';
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            words.forEach(word => {
+                if ((currentLine + ' ' + word).length > maxLength) {
+                    lines.push(currentLine.trim());
+                    currentLine = word;
+                } else {
+                    currentLine = currentLine ? currentLine + ' ' + word : word;
+                }
+            });
+            
+            if (currentLine) {
+                lines.push(currentLine.trim());
+            }
+            
+            return lines.join('<br>');
+        }
+
+        function wrapFootnoteText(text) {
+            if (!text) return '';
+            const maxPixelWidth = chartWidth * 0.3;
+            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
+        }
+
+        function wrapSourceText(text) {
+            if (!text) return '';
+            if (!text.startsWith('Source: ')) {
+                text = 'Source: ' + text;
+            }
+            const maxPixelWidth = chartWidth * 0.3;
+            return wrapTextByPixelWidth(text, maxPixelWidth, 12, 'Arial, sans-serif');
+        }
+
+        function wrapTextByPixelWidth(text, maxPixelWidth, fontSize = 12, fontFamily = 'Arial, sans-serif') {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.font = `${fontSize}px ${fontFamily}`;
+            
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            for (let word of words) {
+                const testLine = currentLine + (currentLine ? ' ' : '') + word;
+                const testWidth = ctx.measureText(testLine).width;
+                
+                if (testWidth <= maxPixelWidth) {
+                    currentLine = testLine;
+                } else {
+                    if (currentLine) {
+                        lines.push(currentLine);
+                    }
+                    currentLine = word;
+                }
+            }
+            
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+            
+            return lines.join('<br>');
+        }
+
+        // Test happyness switching (for development)
+        function switchHappyness(happyness) {
+            currentHappyness = happyness;
+            localStorage.setItem('getcharty_happyness', happyness);
+            document.body.className = `happyness-${happyness}`;
+            updateHappynessIndicator();
+            updateWatermarkText();
+            updateExportInterface();
+            
+            const happynessNames = {
+                1: 'Noob',
+                3: 'Registered',
+                5: 'VIPer'
+            };
+            console.log(`✅ Switched to ${happynessNames[happyness]} tier`);
+        }
+
+        // Add test buttons for happyness switching
+        const testButtons = document.createElement('div');
+        testButtons.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 10000; display: flex; gap: 5px;';
+        testButtons.innerHTML = `
+            <button onclick="switchHappyness(1)" style="padding: 5px 10px; background: #6b7280; color: white; border: none; border-radius: 3px; cursor: pointer;">Noob</button>
+            <button onclick="switchHappyness(3)" style="padding: 5px 10px; background: #3b82f6; color: white; border: none; border-radius: 3px; cursor: pointer;">Registered</button>
+            <button onclick="switchHappyness(5)" style="padding: 5px 10px; background: #fbbf24; color: white; border: none; border-radius: 3px; cursor: pointer;">VIPer</button>
+        `;
+        document.body.appendChild(testButtons);
+    </script>
+</body>
+</html>

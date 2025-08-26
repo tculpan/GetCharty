@@ -1,6 +1,6 @@
 <!--
 Filename: Index-Yi-2.html
-Updated: 2025-08-26 00:14:20
+Updated: 2025-08-26 16:14:34
 Description: Complete tiered charting application - Option 2: Fixed Height with Scroll (max-height: 100vh with overflow-y: auto)
 -->
 
@@ -289,10 +289,24 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
 
         .orientation-label {
             font-size: 12px;
-            color: #a8a8a8;
+            color: #e94560;
             margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.3);
+        }
+
+        .section.locked h3 {
+            color: #666 !important;
+            text-shadow: none !important;
+        }
+
+        .section.locked .input-field {
+            opacity: 0.5;
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.1);
         }
 
         .slider-container {
@@ -966,7 +980,7 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                 </div>
             </div>
 
-            <div class="section">
+            <!-- <div class="section">
                 <h3>Column Selection</h3>
                 <select id="xColumn" class="input-field">
                     <option>Select X-Axis Column</option>
@@ -980,10 +994,10 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                 <select id="colorColumn" class="input-field">
                     <option value="">Color Column (optional)</option>
                 </select>
-            </div>
+            </div> -->
 
-            <div class="section">
-                <h3>Chart Options</h3>
+            <div class="section" id="aggregationSection">
+                <h3 id="aggregationTitle">Data Aggregation Options</h3>
                 <select id="aggregation" class="input-field">
                     <option value="none">No Aggregation</option>
                     <option value="count">Count</option>
@@ -1098,7 +1112,8 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     embedCode: false,
                     directLinks: false,
                     emailShare: true
-                }
+                },
+                aggregation: false
             },
             3: {
                 exportFormats: ['jpg', 'png'],
@@ -1110,7 +1125,8 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     embedCode: true,
                     directLinks: true,
                     emailShare: true
-                }
+                },
+                aggregation: true
             },
             5: {
                 exportFormats: ['jpg', 'png', 'svg', 'pdf'],
@@ -1122,7 +1138,8 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     embedCode: true,
                     directLinks: true,
                     emailShare: true
-                }
+                },
+                aggregation: true
             }
         };
 
@@ -1637,6 +1654,7 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
         function updateExportInterface() {
             updateExportButtons();
             updateShareButtons();
+            updateAggregationSection();
         }
 
         function updateExportButtons() {
@@ -1688,6 +1706,19 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             if (currentHappyness === 3) return '1080p';
             if (currentHappyness === 5) return '4K';
             return '';
+        }
+
+        function updateAggregationSection() {
+            const aggregationSection = document.getElementById('aggregationSection');
+            const config = HAPPYNESS_CONFIG[currentHappyness];
+            
+            if (aggregationSection) {
+                if (config.aggregation) {
+                    aggregationSection.classList.remove('locked');
+                } else {
+                    aggregationSection.classList.add('locked');
+                }
+            }
         }
 
 

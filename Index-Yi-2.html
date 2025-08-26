@@ -1,6 +1,6 @@
 <!--
 Filename: Index-Yi-2.html
-Updated: 2025-08-27 00:23:51
+Updated: 2025-08-27 01:10:51
 Description: Complete tiered charting application - Option 2: Fixed Height with Scroll (max-height: 100vh with overflow-y: auto)
 -->
 
@@ -317,6 +317,90 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
         .display-option.locked .switch {
             opacity: 0.5;
             pointer-events: none;
+        }
+
+        .display-option.locked .radio-group {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .input-group.locked {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .input-group.locked .input-field {
+            opacity: 0.5;
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .data-summary {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            color: white;
+        }
+
+        .data-summary h3 {
+            color: #e94560;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.3);
+        }
+
+        .data-summary p {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0;
+        }
+
+        .data-preview-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .data-preview {
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .data-preview table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        
+        .data-preview th,
+        .data-preview td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .data-preview th {
+            background: rgba(233, 69, 96, 0.3);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
         }
 
         .slider-container {
@@ -928,11 +1012,11 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                 <input class="input-field" id="chartSource" placeholder="Data Source (appears below chart, right-aligned)">
             </div>
             
-            <div class="section">
+            <div class="section" id="axisLabelsSection">
                 <h3>Axis Labels</h3>
                 <input class="input-field" id="xAxisTitle" placeholder="X-Axis Title">
                 <input class="input-field" id="yAxisTitle" placeholder="Y-Axis Title">
-                <div class="input-group">
+                <div class="input-group" id="prefixSuffixGroup">
                     <input class="input-field" id="yPrefix" placeholder="Y-Prefix">
                     <input class="input-field" id="ySuffix" placeholder="Y-Suffix">
                 </div>
@@ -980,13 +1064,22 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     Only available to registered users.
                 </div>
                 
-                <div class="display-option">
+                <div class="display-option" id="yAxisModeOption">
                     <span>Y-Axis Labels</span>
-                    <select class="dropdown" id="yAxisLabelsMode">
-                        <option value="on">On</option>
-                        <option value="off">Off</option>
-                        <option value="top">Top Only</option>
-                    </select>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="yAxisLabelsMode" value="on" checked>
+                            On
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="yAxisLabelsMode" value="off">
+                            Off
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="yAxisLabelsMode" value="top">
+                            Top Only
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -1124,7 +1217,10 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     emailShare: true
                 },
                 aggregation: false,
-                gridControl: false
+                gridControl: false,
+                axisLabels: true,
+                prefixSuffix: false,
+                yAxisMode: false
             },
             3: {
                 exportFormats: ['jpg', 'png'],
@@ -1138,7 +1234,10 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     emailShare: true
                 },
                 aggregation: true,
-                gridControl: true
+                gridControl: true,
+                axisLabels: true,
+                prefixSuffix: true,
+                yAxisMode: false
             },
             5: {
                 exportFormats: ['jpg', 'png', 'svg', 'pdf'],
@@ -1152,7 +1251,10 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     emailShare: true
                 },
                 aggregation: true,
-                gridControl: true
+                gridControl: true,
+                axisLabels: true,
+                prefixSuffix: true,
+                yAxisMode: true
             }
         };
 
@@ -1240,6 +1342,20 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             if (verticalGridToggle) {
                 verticalGridToggle.addEventListener('change', handleGridChange);
             }
+            
+            // Axis label controls
+            const axisLabelInputs = ['xAxisTitle', 'yAxisTitle', 'yPrefix', 'ySuffix'];
+            axisLabelInputs.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('change', handleAxisLabelChange);
+                }
+            });
+            
+            // Y-axis labels mode radio buttons
+            document.querySelectorAll('input[name="yAxisLabelsMode"]').forEach(radio => {
+                radio.addEventListener('change', handleAxisLabelChange);
+            });
         }
 
         function handleDataOrientationChange() {
@@ -1294,6 +1410,38 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             }
             
             // If chart exists, regenerate it with new grid settings
+            if (currentData.length > 0) {
+                generateChart();
+            }
+        }
+
+        function handleAxisLabelChange() {
+            const config = HAPPYNESS_CONFIG[currentHappyness];
+            if (!config.axisLabels) {
+                console.log('🔒 Axis labels require basic tier or higher');
+                return;
+            }
+            
+            // Check prefix/suffix access
+            const yPrefix = document.getElementById('yPrefix');
+            const ySuffix = document.getElementById('ySuffix');
+            if ((yPrefix && yPrefix.value) || (ySuffix && ySuffix.value)) {
+                if (!config.prefixSuffix) {
+                    console.log('🔒 Prefix/Suffix requires Registered tier or higher');
+                    return;
+                }
+            }
+            
+            // Check Y-axis mode access
+            const yAxisModeRadio = document.querySelector('input[name="yAxisLabelsMode"]:checked');
+            if (yAxisModeRadio && yAxisModeRadio.value === 'top') {
+                if (!config.yAxisMode) {
+                    console.log('🔒 Y-Axis Mode requires VIPer tier or higher');
+                    return;
+                }
+            }
+            
+            // If chart exists, regenerate it with new axis label settings
             if (currentData.length > 0) {
                 generateChart();
             }
@@ -1420,8 +1568,76 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
         }
 
         function showDataPreview(data) {
-            // Optional: Add data preview functionality if needed
-            console.log('Data prepared:', data.length, 'rows');
+            if (!data.length) return;
+            
+            // Create data summary
+            let summary = document.getElementById('dataSummary');
+            if (!summary) {
+                summary = document.createElement('div');
+                summary.id = 'dataSummary';
+                summary.className = 'data-summary';
+                const generateBtn = document.getElementById('generateBtnMain');
+                if (generateBtn) {
+                    generateBtn.parentNode.insertBefore(summary, generateBtn.nextSibling);
+                } else {
+                    document.querySelector('.main-area').appendChild(summary);
+                }
+            }
+            
+            const columns = Object.keys(data[0]);
+            const rowCount = data.length;
+            const columnCount = columns.length;
+            
+            summary.innerHTML = `
+                <p>We Count <strong>${columnCount}</strong> Columns and <strong>${rowCount}</strong> Rows. Scroll Down to See the Data</p>
+            `;
+            summary.style.display = 'block';
+            
+            // Create data preview
+            let preview = document.getElementById('dataPreview');
+            if (!preview) {
+                preview = document.createElement('div');
+                preview.id = 'dataPreview';
+                preview.className = 'data-preview-section';
+                preview.innerHTML = '<h3>📋 Data Preview</h3><div class="data-preview" id="dataPreviewContent"></div>';
+                
+                // Insert after export interface
+                const exportInterface = document.getElementById('exportInterface');
+                if (exportInterface) {
+                    exportInterface.parentNode.insertBefore(preview, exportInterface.nextSibling);
+                } else {
+                    document.querySelector('.main-area').appendChild(preview);
+                }
+            }
+            
+            const previewContent = document.getElementById('dataPreviewContent');
+            if (!previewContent) return;
+            
+            let html = '<div style="overflow-x: auto;"><table><thead><tr>';
+            
+            columns.forEach(col => {
+                html += `<th>${col}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            // Show ALL rows (no limit)
+            data.forEach(row => {
+                html += '<tr>';
+                columns.forEach(col => {
+                    let value = row[col];
+                    if (value === null || value === undefined) {
+                        value = '<em style="color: #999;">null</em>';
+                    } else if (typeof value === 'number') {
+                        value = value.toLocaleString();
+                    }
+                    html += `<td>${value}</td>`;
+                });
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div>';
+            previewContent.innerHTML = html;
+            preview.style.display = 'block';
         }
 
         // Chart Generation
@@ -1439,6 +1655,11 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             const autoSpacing = document.getElementById('autoSpacing') ? document.getElementById('autoSpacing').checked : false;
             const horizontalGrid = document.getElementById('horizontalGrid') ? document.getElementById('horizontalGrid').checked : true;
             const verticalGrid = document.getElementById('verticalGrid') ? document.getElementById('verticalGrid').checked : false;
+            const xAxisTitle = document.getElementById('xAxisTitle') ? document.getElementById('xAxisTitle').value : '';
+            const yAxisTitle = document.getElementById('yAxisTitle') ? document.getElementById('yAxisTitle').value : '';
+            const yPrefix = document.getElementById('yPrefix') ? document.getElementById('yPrefix').value : '';
+            const ySuffix = document.getElementById('ySuffix') ? document.getElementById('ySuffix').value : '';
+            const yAxisLabelsMode = document.querySelector('input[name="yAxisLabelsMode"]:checked') ? document.querySelector('input[name="yAxisLabelsMode"]:checked').value : 'on';
             
             try {
                 // showStatus('🎨 Generating your interactive chart...', 'warning');
@@ -1464,7 +1685,12 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     bottomMargin,
                     autoSpacing,
                     horizontalGrid,
-                    verticalGrid
+                    verticalGrid,
+                    xAxisTitle,
+                    yAxisTitle,
+                    yPrefix,
+                    ySuffix,
+                    yAxisLabelsMode
                 });
                 
                 // Add watermark to chart container
@@ -1502,7 +1728,8 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             const { 
                 title, subtitle, footnote, source, 
                 topMargin, bottomMargin, autoSpacing,
-                horizontalGrid, verticalGrid
+                horizontalGrid, verticalGrid,
+                xAxisTitle, yAxisTitle, yPrefix, ySuffix, yAxisLabelsMode
             } = options;
 
             // Get column names
@@ -1534,12 +1761,22 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 font: { color: 'white' },
                 xaxis: applyGridSettings({
+                    title: xAxisTitle || xColumn,
                     gridcolor: 'rgba(255,255,255,0.1)',
-                    zerolinecolor: 'rgba(255,255,255,0.2)'
+                    zerolinecolor: 'rgba(255,255,255,0.2)',
+                    color: 'white'
                 }, verticalGrid, horizontalGrid),
                 yaxis: applyGridSettings({
+                    title: yAxisTitle || yColumn || 'Value',
                     gridcolor: 'rgba(255,255,255,0.1)',
-                    zerolinecolor: 'rgba(255,255,255,0.2)'
+                    zerolinecolor: 'rgba(255,255,255,0.2)',
+                    color: 'white',
+                    zeroline: true,
+                    zerolinecolor: 'gray',
+                    zerolinewidth: 2,
+                    tickprefix: yAxisLabelsMode === 'on' ? yPrefix : '',
+                    ticksuffix: yAxisLabelsMode === 'on' ? ySuffix : '',
+                    showticklabels: yAxisLabelsMode !== 'off'
                 }, horizontalGrid, verticalGrid),
                 margin: { l: 80, r: 65, t: topMargin, b: bottomMargin },
                 height: 400 + topMargin + bottomMargin,
@@ -1698,6 +1935,7 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             updateShareButtons();
             updateAggregationSection();
             updateGridControls();
+            updateAxisLabelControls();
         }
 
         function updateExportButtons() {
@@ -1776,6 +2014,28 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                 } else {
                     horizontalGridOption.classList.add('locked');
                     verticalGridOption.classList.add('locked');
+                }
+            }
+        }
+
+        function updateAxisLabelControls() {
+            const prefixSuffixGroup = document.getElementById('prefixSuffixGroup');
+            const yAxisModeOption = document.getElementById('yAxisModeOption');
+            const config = HAPPYNESS_CONFIG[currentHappyness];
+            
+            if (prefixSuffixGroup) {
+                if (config.prefixSuffix) {
+                    prefixSuffixGroup.classList.remove('locked');
+                } else {
+                    prefixSuffixGroup.classList.add('locked');
+                }
+            }
+            
+            if (yAxisModeOption) {
+                if (config.yAxisMode) {
+                    yAxisModeOption.classList.remove('locked');
+                } else {
+                    yAxisModeOption.classList.add('locked');
                 }
             }
         }

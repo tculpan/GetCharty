@@ -1,6 +1,6 @@
 <!--
 Filename: Index-Yi-2.html
-Updated: 2025-08-26 16:14:34
+Updated: 2025-08-27 00:23:51
 Description: Complete tiered charting application - Option 2: Fixed Height with Scroll (max-height: 100vh with overflow-y: auto)
 -->
 
@@ -307,6 +307,16 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             pointer-events: none;
             background: rgba(255, 255, 255, 0.02);
             border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .display-option.locked {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .display-option.locked .switch {
+            opacity: 0.5;
+            pointer-events: none;
         }
 
         .slider-container {
@@ -935,7 +945,7 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             <div class="section">
                 <h3>Display Options</h3>
                 
-                <div class="display-option">
+                <div class="display-option" id="horizontalGridOption">
                     <span>Horizontal Grid Lines</span>
                     <label class="switch">
                         <input type="checkbox" id="horizontalGrid" checked>
@@ -943,7 +953,7 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     </label>
                 </div>
                 
-                <div class="display-option">
+                <div class="display-option" id="verticalGridOption">
                     <span>Vertical Grid Lines</span>
                     <label class="switch">
                         <input type="checkbox" id="verticalGrid">
@@ -1113,7 +1123,8 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     directLinks: false,
                     emailShare: true
                 },
-                aggregation: false
+                aggregation: false,
+                gridControl: false
             },
             3: {
                 exportFormats: ['jpg', 'png'],
@@ -1126,7 +1137,8 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     directLinks: true,
                     emailShare: true
                 },
-                aggregation: true
+                aggregation: true,
+                gridControl: true
             },
             5: {
                 exportFormats: ['jpg', 'png', 'svg', 'pdf'],
@@ -1139,7 +1151,8 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     directLinks: true,
                     emailShare: true
                 },
-                aggregation: true
+                aggregation: true,
+                gridControl: true
             }
         };
 
@@ -1217,6 +1230,16 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             if (autoSpacingToggle) {
                 autoSpacingToggle.addEventListener('change', handleAutoSpacingChange);
             }
+            
+            // Grid line toggles
+            const horizontalGridToggle = document.getElementById('horizontalGrid');
+            const verticalGridToggle = document.getElementById('verticalGrid');
+            if (horizontalGridToggle) {
+                horizontalGridToggle.addEventListener('change', handleGridChange);
+            }
+            if (verticalGridToggle) {
+                verticalGridToggle.addEventListener('change', handleGridChange);
+            }
         }
 
         function handleDataOrientationChange() {
@@ -1260,6 +1283,19 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     autoSpacingMessage.style.display = 'none';
                     // showStatus('✅ Using manual spacing mode', 'success');
                 }
+            }
+        }
+
+        function handleGridChange() {
+            const config = HAPPYNESS_CONFIG[currentHappyness];
+            if (!config.gridControl) {
+                console.log('🔒 Grid control requires Registered tier or higher');
+                return;
+            }
+            
+            // If chart exists, regenerate it with new grid settings
+            if (currentData.length > 0) {
+                generateChart();
             }
         }
 
@@ -1401,6 +1437,8 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             const footnote = document.getElementById('chartFootnote').value || '';
             const source = document.getElementById('chartSource').value || '';
             const autoSpacing = document.getElementById('autoSpacing') ? document.getElementById('autoSpacing').checked : false;
+            const horizontalGrid = document.getElementById('horizontalGrid') ? document.getElementById('horizontalGrid').checked : true;
+            const verticalGrid = document.getElementById('verticalGrid') ? document.getElementById('verticalGrid').checked : false;
             
             try {
                 // showStatus('🎨 Generating your interactive chart...', 'warning');
@@ -1424,7 +1462,9 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     source,
                     topMargin,
                     bottomMargin,
-                    autoSpacing
+                    autoSpacing,
+                    horizontalGrid,
+                    verticalGrid
                 });
                 
                 // Add watermark to chart container
@@ -1461,7 +1501,8 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
         function createChartConfig(chartType, options) {
             const { 
                 title, subtitle, footnote, source, 
-                topMargin, bottomMargin, autoSpacing
+                topMargin, bottomMargin, autoSpacing,
+                horizontalGrid, verticalGrid
             } = options;
 
             // Get column names
@@ -1492,14 +1533,14 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 font: { color: 'white' },
-                xaxis: {
+                xaxis: applyGridSettings({
                     gridcolor: 'rgba(255,255,255,0.1)',
                     zerolinecolor: 'rgba(255,255,255,0.2)'
-                },
-                yaxis: {
+                }, verticalGrid, horizontalGrid),
+                yaxis: applyGridSettings({
                     gridcolor: 'rgba(255,255,255,0.1)',
                     zerolinecolor: 'rgba(255,255,255,0.2)'
-                },
+                }, horizontalGrid, verticalGrid),
                 margin: { l: 80, r: 65, t: topMargin, b: bottomMargin },
                 height: 400 + topMargin + bottomMargin,
                 width: chartWidth,
@@ -1644,7 +1685,8 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                 layout: layout,
                 options: {
                     responsive: true,
-                    displayModeBar: true,
+                    displayModeBar: currentHappyness >= 5, // Only show for VIPer (happyness >= 5)
+                    displaylogo: false, // Hide logo for all levels
                     modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d']
                 }
             };
@@ -1655,6 +1697,7 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
             updateExportButtons();
             updateShareButtons();
             updateAggregationSection();
+            updateGridControls();
         }
 
         function updateExportButtons() {
@@ -1719,6 +1762,32 @@ Description: Complete tiered charting application - Option 2: Fixed Height with 
                     aggregationSection.classList.add('locked');
                 }
             }
+        }
+
+        function updateGridControls() {
+            const horizontalGridOption = document.getElementById('horizontalGridOption');
+            const verticalGridOption = document.getElementById('verticalGridOption');
+            const config = HAPPYNESS_CONFIG[currentHappyness];
+            
+            if (horizontalGridOption && verticalGridOption) {
+                if (config.gridControl) {
+                    horizontalGridOption.classList.remove('locked');
+                    verticalGridOption.classList.remove('locked');
+                } else {
+                    horizontalGridOption.classList.add('locked');
+                    verticalGridOption.classList.add('locked');
+                }
+            }
+        }
+
+        function applyGridSettings(axisConfig, horizontalGrid, verticalGrid) {
+            if (axisConfig) {
+                axisConfig.showgrid = horizontalGrid;
+                axisConfig.showline = true;
+                axisConfig.linecolor = 'rgba(255,255,255,0.3)';
+                axisConfig.linewidth = 1;
+            }
+            return axisConfig;
         }
 
 

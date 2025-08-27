@@ -1,6 +1,6 @@
 <!--
 Filename: Index-Yi-2-Capture.html
-Updated: 2025-08-27 01:33:33
+Updated: 2025-08-27 17:32:15
 Description: Complete tiered charting application with enhanced JPEG export - Option 2: Fixed Height with Scroll (max-height: 100vh with overflow-y: auto)
 -->
 
@@ -632,9 +632,18 @@ Description: Complete tiered charting application with enhanced JPEG export - Op
         }
 
         .export-tab.locked::after {
-            content: '🔒';
+            content: '⭐';
             font-size: 10px;
             margin-left: 4px;
+            color: #3b82f6;
+        }
+
+        .export-tab.locked.happyness-3::after {
+            color: #3b82f6;
+        }
+
+        .export-tab.locked.happyness-5::after {
+            color: #fbbf24;
         }
 
         .export-tab.locked:hover {
@@ -722,18 +731,27 @@ Description: Complete tiered charting application with enhanced JPEG export - Op
         }
 
         .export-button.locked::after {
-            content: '🔒';
+            content: '⭐';
             position: absolute;
             top: -4px;
             right: -4px;
             font-size: 12px;
-            background: rgba(251, 191, 36, 0.9);
+            background: rgba(59, 130, 246, 0.9);
             border-radius: 50%;
             width: 16px;
             height: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: white;
+        }
+
+        .export-button.locked.happyness-3::after {
+            background: rgba(59, 130, 246, 0.9);
+        }
+
+        .export-button.locked.happyness-5::after {
+            background: rgba(251, 191, 36, 0.9);
         }
 
         .export-button.locked:hover {
@@ -1240,7 +1258,7 @@ Description: Complete tiered charting application with enhanced JPEG export - Op
                 yAxisMode: false
             },
             5: {
-                exportFormats: ['jpeg-2k', 'jpeg-4k', 'png', 'svg', 'pdf'],
+                exportFormats: ['jpeg-2k', 'png', 'svg', 'pdf'],
                 exportQuality: 'high',
                 watermarkOpacity: 0.3,
                 watermarkSize: 10,
@@ -1946,11 +1964,18 @@ Description: Complete tiered charting application with enhanced JPEG export - Op
             const config = HAPPYNESS_CONFIG[currentHappyness];
             container.innerHTML = '';
 
+            // Define JPG button based on current happyness level
+            let jpgOption;
+            if (currentHappyness === 1) {
+                jpgOption = { format: 'jpeg-720p', label: 'JPG', icon: '📷', quality: '720p', happyness: 1 };
+            } else if (currentHappyness === 3) {
+                jpgOption = { format: 'jpeg-1080p', label: 'JPG', icon: '📷', quality: '1080p', happyness: 3 };
+            } else if (currentHappyness === 5) {
+                jpgOption = { format: 'jpeg-2k', label: 'JPG', icon: '📷', quality: '2K', happyness: 5 };
+            }
+
             const exportOptions = [
-                { format: 'jpeg-720p', label: 'JPG (720p)', icon: '📷', quality: '720p', happyness: 1 },
-                { format: 'jpeg-1080p', label: 'JPG (1080p)', icon: '📷', quality: '1080p', happyness: 3 },
-                { format: 'jpeg-2k', label: 'JPG (2K)', icon: '📷', quality: '2K', happyness: 5 },
-                { format: 'jpeg-4k', label: 'JPG (4K)', icon: '📷', quality: '4K', happyness: 5 },
+                jpgOption,
                 { format: 'png', label: 'PNG', icon: '🖼️', quality: getQualityLabel('png'), happyness: 3 },
                 { format: 'pdf', label: 'PDF', icon: '📄', quality: getQualityLabel('pdf'), happyness: 3 },
                 { format: 'svg', label: 'SVG', icon: '🎨', quality: '', happyness: 5 }
@@ -1962,6 +1987,7 @@ Description: Complete tiered charting application with enhanced JPEG export - Op
                 
                 if (!config.exportFormats.includes(option.format)) {
                     button.classList.add('locked');
+                    button.classList.add(`happyness-${option.happyness}`);
                     button.onclick = () => showUpgradePrompt(option.happyness);
                 } else {
                     button.onclick = () => exportChart(option.format);
@@ -2096,6 +2122,7 @@ Description: Complete tiered charting application with enhanced JPEG export - Op
                 
                 if (!config.features[option.feature]) {
                     button.classList.add('locked');
+                    button.classList.add(`happyness-${option.happyness}`);
                     button.onclick = () => showUpgradePrompt(option.happyness);
                 } else {
                     button.onclick = () => shareChart(option.platform);

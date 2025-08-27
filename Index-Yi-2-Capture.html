@@ -1,6 +1,6 @@
 <!--
 Filename: Index-Yi-2-Capture.html
-Updated: 2025-08-27 17:32:15
+Updated: 2025-08-27 18:15:17
 Description: Complete tiered charting application with enhanced JPEG export - Option 2: Fixed Height with Scroll (max-height: 100vh with overflow-y: auto)
 -->
 
@@ -949,7 +949,7 @@ Description: Complete tiered charting application with enhanced JPEG export - Op
                 </div>
             </div>
 
-            <button class="btn-primary" id="generateBtn" onclick="generateChart()" disabled>
+            <button class="btn-primary" id="generateBtn" onclick="generateChart(true)" disabled>
                 🚀 Generate Chart
             </button>
             
@@ -1172,7 +1172,7 @@ Description: Complete tiered charting application with enhanced JPEG export - Op
                 </div>
             </div>
             
-            <button class="btn-primary generate-chart-btn" id="generateBtnMain" onclick="generateChart()" disabled style="margin-top: 20px; padding: 15px 30px;">
+            <button class="btn-primary generate-chart-btn" id="generateBtnMain" onclick="generateChart(true)" disabled style="margin-top: 20px; padding: 15px 30px;">
                 🚀 Generate Chart
             </button>
             
@@ -1427,9 +1427,9 @@ Description: Complete tiered charting application with enhanced JPEG export - Op
                 return;
             }
             
-            // If chart exists, regenerate it with new grid settings
+            // If chart exists, regenerate it with new grid settings (no data preview update)
             if (currentData.length > 0) {
-                generateChart();
+                generateChart(false);
             }
         }
 
@@ -1459,9 +1459,9 @@ Description: Complete tiered charting application with enhanced JPEG export - Op
                 }
             }
             
-            // If chart exists, regenerate it with new axis label settings
+            // If chart exists, regenerate it with new axis label settings (no data preview update)
             if (currentData.length > 0) {
-                generateChart();
+                generateChart(false);
             }
         }
 
@@ -1563,6 +1563,9 @@ Description: Complete tiered charting application with enhanced JPEG export - Op
             }
 
             currentFileId = `local_${Date.now()}`;
+            
+            // Populate axis labels with column names
+            populateAxisLabels();
         }
 
         function transposeData(data) {
@@ -1578,6 +1581,54 @@ Description: Complete tiered charting application with enhanced JPEG export - Op
             }
             
             return transposed;
+        }
+
+        function populateAxisLabels() {
+            if (!rawData || rawData.length === 0) return;
+            
+            const headerToggle = document.getElementById('headerStructureToggle');
+            const useHeaders = headerToggle ? headerToggle.checked : false;
+            
+            let xColumn, yColumn;
+            
+            if (selectedOrientation === 'horizontal') {
+                // For horizontal data, we need to get column names from the transposed data
+                let transposedData = transposeData(rawData);
+                if (useHeaders && transposedData.length > 0) {
+                    // Use the first row of transposed data as headers
+                    const headers = transposedData[0];
+                    xColumn = headers[0] || 'Column 1';
+                    yColumn = headers[1] || 'Column 2';
+                } else {
+                    // No headers, use default column names
+                    xColumn = 'Column 1';
+                    yColumn = 'Column 2';
+                }
+            } else {
+                // For vertical data, use the first row as headers
+                if (useHeaders && rawData.length > 0) {
+                    const headers = rawData[0];
+                    xColumn = headers[0] || 'Column 1';
+                    yColumn = headers[1] || 'Column 2';
+                } else {
+                    // No headers, use default column names
+                    xColumn = 'Column 1';
+                    yColumn = 'Column 2';
+                }
+            }
+            
+            // Get the axis label input fields
+            const xAxisTitleInput = document.getElementById('xAxisTitle');
+            const yAxisTitleInput = document.getElementById('yAxisTitle');
+            
+            // Always reset and populate the fields with new data
+            if (xAxisTitleInput) {
+                xAxisTitleInput.value = xColumn;
+            }
+            
+            if (yAxisTitleInput) {
+                yAxisTitleInput.value = yColumn;
+            }
         }
 
         // Data processing functions
@@ -1659,7 +1710,7 @@ Description: Complete tiered charting application with enhanced JPEG export - Op
         }
 
         // Chart Generation
-        async function generateChart() {
+        async function generateChart(updateDataPreview = false) {
             if (currentData.length === 0) {
                 console.log('❌ No data available. Please upload a file first.');
                 return;
@@ -1692,7 +1743,11 @@ Description: Complete tiered charting application with enhanced JPEG export - Op
                 
                 // Process and prepare data
                 processedData = prepareChartData();
-                showDataPreview(processedData);
+                
+                // Only update data preview when data changes, not when chart settings change
+                if (updateDataPreview) {
+                    showDataPreview(processedData);
+                }
                 
                 const config = createChartConfig(chartType, {
                     title,
@@ -1779,13 +1834,13 @@ Description: Complete tiered charting application with enhanced JPEG export - Op
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 font: { color: 'white' },
                 xaxis: applyGridSettings({
-                    title: xAxisTitle || xColumn,
+                    title: xAxisTitle || undefined,
                     gridcolor: 'rgba(255,255,255,0.1)',
                     zerolinecolor: 'rgba(255,255,255,0.2)',
                     color: 'white'
                 }, verticalGrid, horizontalGrid),
                 yaxis: applyGridSettings({
-                    title: yAxisTitle || yColumn || 'Value',
+                    title: yAxisTitle || undefined,
                     gridcolor: 'rgba(255,255,255,0.1)',
                     zerolinecolor: 'rgba(255,255,255,0.2)',
                     color: 'white',
